@@ -1,0 +1,103 @@
+html {
+  color-scheme: dark;
+  font-family:
+    'Roboto Flex',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Open Sans',
+    'Helvetica Neue',
+    sans-serif;
+
+  --background-body: #020202;
+  --background-secondary: #333333;
+
+  --app-header-color: var(--background-body);
+  --app-player-color: #202020;
+  --app-modal-color: var(--background-secondary);
+
+  --app-header-height: 66px;
+  --app-player-height: 71px;
+
+  // --font-sm: 12.4px;
+  // --font-md: 15.5px;
+  // --font-lg: 18.17px;
+  // --font-xl: 21.12px;
+  --font-sm: 13px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 20px;
+
+  --header-size: 24px;
+  --header-weight: 600;
+
+  --sm: 8px;
+  --md: 12px;
+  --lg: 16px;
+  --xl: 20px;
+
+  --album-color: rgb(255, 187, 187);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+*:focus-visible {
+  outline: 2px dashed var(--color-600);
+}
+
+body {
+  overflow: hidden;
+  height: 100dvh;
+
+  background-color: var(--background-body);
+  font-size: var(--font-md);
+}
+
+button {
+  position: relative;
+}
+
+.icon-button {
+  display: block;
+  background: none;
+  outline: none;
+  border: none;
+
+  .wrapper {
+    display: grid;
+    place-items: center;
+    place-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+  }
+
+  &:hover:not(:disabled) .wrapper {
+    background-color: var(--overlay-20);
+    cursor: pointer;
+  }
+
+  &:focus-visible {
+    .wrapper {
+      outline: 2px dashed var(--color-600);
+      background-color: var(--overlay-20);
+    }
+  }
+}
+
+#app,
+main {
+  outline: none;
+  border: none;
+}
