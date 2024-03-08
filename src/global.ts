@@ -44,7 +44,7 @@ declare global {
 }
 
 window.app = {
-  version: "v2.0.1a",
+  version: "v2.0.2a",
   player: new MusicService(),
   modals: new ModalService(),
   lyric: new LRCParser(),

@@ -2,13 +2,7 @@
   import { type LRCTags, type LRCArgs, type LRCLine } from '@/api/parser';
   import { $ } from '@/api/util';
   import { Icon } from '@iconify/vue';
-  import {
-    onMounted,
-    onUnmounted,
-    getCurrentInstance,
-    ref,
-    markRaw,
-  } from 'vue';
+  import { onMounted, onUnmounted, ref, markRaw } from 'vue';
 
   import animatedScroll from 'animated-scroll-to';
 
@@ -53,44 +47,57 @@
   const toggleEdit = () => (edit.value = !edit.value);
   const setFocus = (value: typeof focus.value) => {
     if (focus.value == value) return;
-    focus.value = value;
+    const focused = timingPane.value?.children[value];
     edit.value = false;
 
-    const focused = timingPane.value?.children[focus.value];
-    if (focused) {
-      const main = $('main')!;
+    if (!focused) {
+      focus.value = -1;
+      return;
+    }
 
-      const rect = main.getBoundingClientRect();
-      const halfElement = focused.clientHeight / 2;
-      const offset = rect.height / 2 - halfElement;
+    focus.value = value;
+    const main = $('main')!;
 
-      animatedScroll(focused, {
-        speed: 400,
-        verticalOffset: offset * -1,
-        elementToScroll: main,
-        cancelOnUserAction: false,
-        // easing: (t) => t,
-      });
+    const rect = main.getBoundingClientRect();
+    const halfElement = focused.clientHeight / 2;
+    const offset = rect.height / 2 - halfElement;
+
+    animatedScroll(focused, {
+      speed: 400,
+      verticalOffset: offset * -1,
+      elementToScroll: main,
+      cancelOnUserAction: false,
+    });
+  };
+
+  const setTimeFromMusicCurrent = (e?: MouseEvent) => {
+    const index = focus.value;
+
+    if (index == -1) return;
+    if (!lyrics.lines[index]) return;
+    if (!isFinite(Player.duration)) return;
+
+    const newIndex = index + 1 === lyrics.lines.length ? index : index + 1;
+    const currentTime = Player.currentTime * 1000;
+
+    e?.stopPropagation?.();
+    setFocus(newIndex);
+
+    if (lyrics.lines[newIndex].time != currentTime) {
+      Lyrics.updateLine(index, { time: currentTime });
     }
   };
 
-  const setTimeFromMusicCurrent = () => {
-    if (focus.value == -1) return;
-    if (!lyrics.lines[focus.value]) return;
-    if (!isFinite(Player.duration)) return;
-    if (lyrics.lines[focus.value].time == Player.currentTime * 1000) return;
-
-    const currentTime = Player.currentTime * 1000;
-    Lyrics.updateLine(focus.value, { time: currentTime });
-  };
-
   const adjustTime = (value: number) => {
-    if (focus.value == -1) return;
-    if (!lyrics.lines[focus.value]) return;
+    const index = focus.value;
+    const lrcLine = lyrics.lines[index];
 
-    const time = lyrics.lines[focus.value].time + value;
+    if (index == -1) return;
+    if (!lrcLine) return;
 
-    Lyrics.updateLine(focus.value, {
+    const time = lrcLine.time + value;
+
+    Lyrics.updateLine(index, {
       time: time < 0 ? 0 : time,
     });
   };
@@ -98,12 +105,16 @@
   function saveValue(index: number) {
     const element = $(`.lrc-line.active .data`);
     const value = element?.textContent ?? '';
+    console.log(value);
 
     Lyrics.updateLine(index, { data: value, type: 'single' });
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    e.key.startsWith('Arrow') && e.preventDefault();
+    const index = focus.value;
+    if (edit.value) return;
+
+    e.preventDefault();
 
     switch (e.key) {
       case 'ArrowLeft':
@@ -116,7 +127,7 @@
         break;
     }
 
-    if (focus.value == -1) return;
+    if (index == -1) return;
     switch (e.key) {
       case 'ArrowLeft':
         Player.paused && adjustTime(-100);
@@ -127,56 +138,61 @@
         e.shiftKey && adjustTime(100);
         break;
       case 'ArrowDown':
-        setFocus(
-          focus.value + 1 >= lyrics.lines.length ? focus.value : focus.value + 1
-        );
+        setFocus(index + 1 >= lyrics.lines.length ? index : index + 1);
         break;
       case 'ArrowUp':
-        setFocus(focus.value == 0 ? 0 : focus.value - 1);
+        setFocus(index == 0 ? 0 : index - 1);
+        break;
     }
   }
 
   function handleKeyUp(e: KeyboardEvent) {
-    if (focus.value == -1) {
-      e.key == 'Insert' &&
-        Lyrics.addLine({
-          type: 'single',
-          time: 0,
-          data: '',
-        });
+    const index = focus.value;
+
+    if (edit.value) return;
+
+    e.preventDefault();
+
+    if (index == -1) {
+      switch (e.key) {
+        case 'Insert':
+          Lyrics.addLine(Lyrics.EMPTYLINE);
+          break;
+        case 'ArrowDown':
+          if (lyrics.lines.length > 0) setFocus(0);
+          break;
+        case 'ArrowUp':
+          if (lyrics.lines.length > 0) setFocus(lyrics.lines.length - 1);
+          break;
+      }
       return;
     }
 
     switch (e.key) {
       case 'Enter':
-        e.preventDefault();
         setTimeFromMusicCurrent();
-        !Player.paused && setFocus((focus.value + 1) % lyrics.lines.length);
+        !Player.paused && setFocus(index + 1);
         break;
       case 'Escape':
         setFocus(-1);
         break;
       case 'Insert':
-        const newItem = {
-          type: 'single',
-          time: 0,
-          data: '',
-        } as LRCLine;
+        const newItem = Lyrics.EMPTYLINE;
 
         e.shiftKey
-          ? Lyrics.addLine(newItem, focus.value - 1)
-          : Lyrics.addLine(newItem, focus.value);
+          ? Lyrics.addLine(newItem, index - 1)
+          : Lyrics.addLine(newItem, index);
 
         break;
       case 'Delete':
-        Lyrics.removeLine(focus.value);
+        Lyrics.removeLine(index);
         break;
     }
   }
 
   onMounted(() => {
-    setLyricsObj('parsed', Lyrics);
     const app = $('#app')!;
+    setLyricsObj('parsed', Lyrics);
     Lyrics.addEventListener('lrc-updated', setLyricsObj);
     app.addEventListener('keydown', handleKeyDown);
     app.addEventListener('keyup', handleKeyUp);
@@ -192,10 +208,9 @@
 
 <template>
   <div
-    class="timing-screen"
     :data-update="updateKey"
+    class="timing-screen"
     ref="timingPane"
-    :style="{ '--val': focus }"
   >
     <div
       :key="index"
@@ -254,7 +269,7 @@
         v-if="focus == index"
       >
         <button
-          @click="() => adjustTime(-100)"
+          @click="adjustTime(-100)"
           class="icon-button"
           title="-100ms"
         >
@@ -266,7 +281,7 @@
           </div>
         </button>
         <button
-          @click="() => setTimeFromMusicCurrent()"
+          @click="setTimeFromMusicCurrent"
           class="icon-button"
           title="Player current time"
         >
@@ -278,7 +293,7 @@
           </div>
         </button>
         <button
-          @click="() => adjustTime(100)"
+          @click="adjustTime(100)"
           class="icon-button"
           title="+100ms"
         >

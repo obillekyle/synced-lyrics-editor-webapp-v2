@@ -31,9 +31,11 @@ export type LRCArgs =
   | ["parsed", LRCParser]
 
 export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
-  tags: LRCTags = {}
-  lines: LRCLine[] = []
   private _cachedTime: number[] = [];
+  public tags: LRCTags = {}
+  public lines: LRCLine[] = []
+  get EMPTYLINE(): LRCLine { return { type: "single", time: 0, data: "" }; }
+
 
   constructor(lrc?: string) {
     super();

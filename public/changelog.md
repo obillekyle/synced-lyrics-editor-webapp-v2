@@ -1,6 +1,18 @@
 ### **March 7, 2024**
 
-**v2.0.1a**: Initial Alpha releas:e
+**v2.0.2a**: Hotfix
+
+**Changes:**
+
+<ins>v2.0.1a ... v2.0.2a</ins>
+
+- Fixed hourglass button not switching focus to next line
+- Fixed timing not working on mobile
+- Prevented object mutation when updating a line.
+
+### **March 7, 2024**
+
+**v2.0.1a**: Initial Alpha release
 
 Welcome to Synced Lyrics Editor v2
 
