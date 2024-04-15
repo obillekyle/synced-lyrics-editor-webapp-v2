@@ -1,5 +1,7 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import { onBeforeUnmount, onMounted, ref } from 'vue';
+  import ContentEditable from '../elements/code-editor/main.vue';
+  import { lrcTextFormatter } from '@/app/formatter';
   const Lyrics = window.app.lyric;
 
   const value = ref(Lyrics.stringify());
@@ -12,37 +14,26 @@
     Lyrics.addEventListener('lrc-updated', setValue);
   });
 
-  onUnmounted(() => {
+  onBeforeUnmount(() => {
     Lyrics.parse(value.value);
     Lyrics.removeEventListener('lrc-updated', setValue);
   });
 </script>
 
 <template>
-  <textarea
-    placeholder="Paste your lyrics here..."
-    class="edit-screen notranslate"
-    v-model="value"
-  />
+  <div class="edit-screen">
+    <ContentEditable v-model="value" :formatter="lrcTextFormatter" />
+  </div>
 </template>
 
 <style lang="scss">
   .edit-screen {
     inset: 0 0 0 0;
     position: absolute;
-    white-space: pre-line;
-    font-family: 'JetBrains Mono', monospace;
-    outline: none;
-    height: 100%;
-    display: block;
-    border: none;
-    resize: none;
-    padding: var(--xl);
-    font-size: var(--font-md);
-    background: var(--overlay-10);
-    &:empty::after {
-      content: 'Click to edit';
-      display: block;
-    }
+    display: grid;
+    overflow: hidden;
+    height: inherit;
+    grid-template-columns: auto 1fr;
+    background: var(--color-600-10);
   }
 </style>

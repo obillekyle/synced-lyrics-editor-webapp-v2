@@ -1,42 +1,31 @@
 import { Buffer } from "buffer";
-import Colors from "./api/colors";
-import LRCParser from "./api/parser";
-import ModalService from "./api/modals";
-import MusicService from "./api/service";
-import Options from "./api/options";
-import Screen from "./api/screen";
-import modalPresets from "./components/_modals";
+import Clipboard from "./api/clipboard";
+import Colors from "@/api/colors";
+import LRCParser from "@/api/parser";
+import ModalService from "@/api/modals";
+import MusicService from "@/api/service";
+import Screen from "@/api/screen";
+import options from "@/app/options";
+import presets from "@/components/modals/_presets";
 import process from 'process';
 
-type AppOptions = {
-  bypassLrcWarn?: boolean,
-  showChangeLog: boolean
-  lastVersion: string
-  screen: "edit" | "timing" | "lyric"
-}
-
-const opts = new Options<AppOptions>({
-  autoSave: true,
-  defaultOptions: {
-    lastVersion: "",
-    showChangeLog: true,
-    screen: "timing"
-  }
-});
-
-const screen = new Screen(opts.get("screen") || "timing");
+const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
+const appVerString = import.meta.env.VITE_VERSION ?? "unknown";
+const screen = new Screen(options.get("screen", "timing"));
 
 declare global {
   interface Window {
     app: {
-      version: string,
+      colors: Colors
+      version: number,
+      version_string: string
       player: MusicService
       lyric: LRCParser
+      clipboard: Clipboard
       screen: Screen<"edit" | "timing" | "lyric">
       modals: ModalService
-      options: typeof opts
-      custom: { [key: string]: any }
-      colors: Colors
+      options: typeof options
+      presets: typeof presets,
     }
     Buffer: typeof Buffer
     process: typeof process
@@ -44,20 +33,23 @@ declare global {
 }
 
 window.app = {
-  version: "v2.0.2a",
+  version: appVer,
+  version_string: appVerString,
+
+  colors: new Colors(),
   player: new MusicService(),
   modals: new ModalService(),
   lyric: new LRCParser(),
-  colors: new Colors(),
+  clipboard: new Clipboard(),
 
-  custom: modalPresets.custom || {},
-  screen: screen,
-  options: opts,
+  presets,
+  screen,
+  options,
 }
 
 window.addEventListener('beforeunload', (e) => {
   const Lyrics = window.app.lyric
-  opts.save()
+  options.save()
 
   if (!Lyrics.lines.length) return;
 
@@ -67,3 +59,11 @@ window.addEventListener('beforeunload', (e) => {
 
 window.Buffer = Buffer;
 window.process = process;
+
+window.addEventListener('pointerdown', () => {
+  document.body.classList.remove('no-touch')
+})
+
+window.addEventListener('pointerup', () => {
+  document.body.classList.add('no-touch')
+})

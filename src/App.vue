@@ -1,12 +1,12 @@
 <script setup lang="ts">
   import appPlayer from './components/player.vue';
-  import lrcScreen from './components/screens.vue';
-  import seeker from './components/seeker.vue';
+
   import appHeader from './components/header.vue';
   import { onMounted, onUnmounted, ref } from 'vue';
   import type MusicService from './api/service';
-  import modals from './components/modals.vue';
   import styles from './components/styles.vue';
+  import modals from './components/modals/main.vue';
+  import lrcScreen from './components/screens/main.vue';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -15,13 +15,8 @@
     Colors.set(Player.picture?.color || '#ccc');
   }
 
-  onMounted(() => {
-    Player.addEventListener('musicupdated', onPlayerUpdate);
-  });
-
-  onUnmounted(() => {
-    Player.removeEventListener('musicupdated', onPlayerUpdate);
-  });
+  onMounted(() => Player.addEventListener('musicupdated', onPlayerUpdate));
+  onUnmounted(() => Player.removeEventListener('musicupdated', onPlayerUpdate));
 </script>
 
 <template>
@@ -29,7 +24,6 @@
   <main tabindex="0">
     <lrc-screen />
   </main>
-  <seeker />
   <app-player />
   <modals />
   <styles />

@@ -24,11 +24,7 @@ html {
   --app-header-height: 66px;
   --app-player-height: 71px;
 
-  // --font-sm: 12.4px;
-  // --font-md: 15.5px;
-  // --font-lg: 18.17px;
-  // --font-xl: 21.12px;
-  --font-sm: 13px;
+  --font-sm: 14px;
   --font-md: 16px;
   --font-lg: 18px;
   --font-xl: 20px;
@@ -42,6 +38,13 @@ html {
   --xl: 20px;
 
   --album-color: rgb(255, 187, 187);
+}
+
+@media screen and (max-width: 600px) {
+  html {
+    --app-header-height: 56px;
+    --app-player-height: 64px;
+  }
 }
 
 *,
@@ -73,31 +76,68 @@ button {
   background: none;
   outline: none;
   border: none;
+  -webkit-tap-highlight-color: transparent;
 
-  .wrapper {
+  > .wrapper {
     display: grid;
     place-items: center;
     place-content: center;
+    position: relative;
+    overflow: hidden;
     width: 48px;
     height: 48px;
     border-radius: 999px;
+    transition: background-color 0.2s;
+    * {
+      pointer-events: none;
+    }
   }
 
   &:hover:not(:disabled) .wrapper {
-    background-color: var(--overlay-20);
+    background-color: var(--color-600-20);
     cursor: pointer;
   }
 
   &:focus-visible {
     .wrapper {
       outline: 2px dashed var(--color-600);
-      background-color: var(--overlay-20);
+      background-color: var(--color-600-20);
     }
   }
 }
 
+// .no-touch {
+//   .icon-button:hover:not(:disabled) .wrapper {
+//     background-color: transparent;
+//   }
+// }
+
 #app,
 main {
-  outline: none;
-  border: none;
+  &:focus-visible {
+    border: none;
+    outline: none;
+  }
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.2;
+  background-color: var(--color-700-30);
+  animation: rippled 0.5s forwards;
+}
+
+@keyframes rippled {
+  60% {
+    opacity: 1;
+    scale: 1.5;
+  }
+  100% {
+    opacity: 0;
+    scale: 2;
+  }
 }

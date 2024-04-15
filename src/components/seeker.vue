@@ -1,54 +1,63 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
-  import { rateLimiter } from '@/api/util';
+  import { throttler } from '@/api/util';
   import { onMounted, onUnmounted, ref } from 'vue';
 
-  const music = window.app.player;
+  const Player = window.app.player;
 
-  const time = ref(0)
+  const time = ref(0);
   const duration = ref(NaN);
 
   function timeUpdate(this: MusicService) {
-    rateLimiter(() => {
-      time.value = this.currentTime
-    }, ["seeker", 500])
+    throttler(
+      () => {
+        time.value = this.currentTime;
+      },
+      {
+        key: 'seeker',
+        blockTime: 500,
+        endCall: true,
+      }
+    );
   }
 
   function onMusicUpdate(this: MusicService) {
-    duration.value = this.duration
+    duration.value = this.duration;
   }
 
   function seek(event: MouseEvent) {
-    const elem = event.currentTarget as HTMLElement
-    const x = event.clientX - elem.getBoundingClientRect().left
+    if (!isFinite(Player.duration)) return;
+    const elem = event.currentTarget as HTMLElement;
+    const x = event.clientX - elem.getBoundingClientRect().left;
 
-    const currentTime = x / elem.clientWidth * music.duration
-    music.currentTime = currentTime
-    time.value = currentTime
+    const currentTime = (x / elem.clientWidth) * Player.duration;
+    Player.currentTime = currentTime;
+    time.value = currentTime;
   }
 
   function seeked(this: MusicService) {
-    time.value = this.currentTime
+    time.value = this.currentTime;
   }
 
   onMounted(() => {
-    music.addEventListener("timeupdate", timeUpdate)
-    music.addEventListener("musicupdated", onMusicUpdate)
-    music.addEventListener("seeked", seeked)
-  })
+    Player.addEventListener('timeupdate', timeUpdate);
+    Player.addEventListener('musicupdated', onMusicUpdate);
+    Player.addEventListener('seeked', seeked);
+  });
 
   onUnmounted(() => {
-    music.removeEventListener("timeupdate", timeUpdate)
-    music.removeEventListener("musicupdated", onMusicUpdate)
-    music.removeEventListener("seeked", seeked)
-  })
+    Player.removeEventListener('timeupdate', timeUpdate);
+    Player.removeEventListener('musicupdated', onMusicUpdate);
+    Player.removeEventListener('seeked', seeked);
+  });
 </script>
 
 <template>
-  <div @click="seek" class="music-seeker" v-if="isFinite(duration)">
+  <div @click="seek" class="music-seeker">
     <div class="progress">
       <div
-        :style="`width: ${(time / music.duration) * 100}%`"
+        v-if="isFinite(duration)"
+        :style="`width: ${(time / Player.duration) * 100}%`"
         class="progress-bar"
       ></div>
     </div>
@@ -59,8 +68,8 @@
   .music-seeker {
     display: flex;
     height: 16px;
-    position: fixed;
-    inset: auto 0 calc(var(--app-player-height) - 8px) 0;
+    position: absolute;
+    inset: -8px 0 auto 0;
     z-index: 3;
     cursor: pointer;
 
@@ -89,7 +98,7 @@
       }
 
       .progress-bar::after {
-        content: "";
+        content: '';
         right: 0;
         position: absolute;
         display: block;
@@ -98,6 +107,24 @@
         background: inherit;
         transform: translateX(50%);
         border-radius: 99px;
+      }
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .music-seeker {
+      .progress {
+        background: var(--color-600-30);
+        height: 2px !important;
+
+        .progress-bar {
+          background-color: var(--color-900);
+        }
+
+        .progress-bar::after {
+          height: 12px;
+          width: 12px;
+        }
       }
     }
   }

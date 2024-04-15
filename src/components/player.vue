@@ -1,20 +1,30 @@
 <script setup lang="ts">
-  import type { AudioImage, AudioDetails } from '@/api/service';
-  import { onMounted, onUnmounted, readonly, ref } from 'vue';
+  import { onMounted, onUnmounted, ref } from 'vue';
   import { Icon } from '@iconify/vue';
-  import { $, openFilePicker, rateLimiter } from '@/api/util';
+  import { throttler } from '@/api/util';
   import type MusicService from '@/api/service';
-  import { useAudioLRC } from './_modals';
+  import iconButton from './elements/icon-button.vue';
+  import {
+    getKeybinds,
+    keyHandlers as handlers,
+    processKey,
+  } from './keybinds/keys';
+  import floatingKeybind from './keybinds/main.vue';
+  import Seeker from './seeker.vue';
+  import _presets from './modals/_presets';
+  import Divider from './divider.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
+  const Keybinds = getKeybinds();
 
   const time = ref(0);
+  const shown = ref(false);
   const loading = ref(true);
+  const audioLoop = ref(false);
   const playing = ref(!Player.paused);
   const picture = ref(Player.picture);
   const metadata = ref(Player.getDetails());
-  const fileInput = ref<HTMLInputElement | null>(null);
 
   const playPause = () => (playing.value = !Player.paused);
   function onMusicUpdate(this: MusicService): void {
@@ -24,43 +34,51 @@
     loading.value = false;
   }
 
-  function handleChange(file: File | null) {
-    if (!file) return;
-
-    loading.value = true;
-    Player.updateFile(file).then((success) => {
-      if (!success) {
-        loading.value = false;
-        return;
-      }
-
-      const lrc = Player.metadata?.common.lyrics;
-      if (lrc?.length) useAudioLRC();
-    });
-  }
-
   function handleTimeUpdate(this: MusicService) {
-    time.value = this.currentTime;
-
-    rateLimiter(() => {
-      time.value = this.currentTime;
-    }, ['player', 750]);
+    throttler(
+      () => {
+        time.value = this.currentTime;
+      },
+      {
+        key: 'player',
+        blockTime: 500,
+        endCall: true,
+      }
+    );
   }
 
-  function handleKeyPress(e: KeyboardEvent) {
-    e.key == 'Space' && Player.playPause();
+  function formatTime(time: number) {
+    if (!isFinite(time)) return '-:--';
+    const mins = Math.floor(time / 60).toString();
+    const secs = Math.floor(time % 60).toString();
+
+    const minutes = mins.padStart(2, '0');
+    const seconds = secs.padStart(2, '0');
+
+    return `${minutes}:${seconds}`;
+  }
+
+  function handleKeyUp(e: KeyboardEvent) {
+    if (Screen.current == 'timing') return;
+
+    processKey(Keybinds.player.playPause, e, () => Player.playPause());
+  }
+
+  function setLoop(loop?: boolean) {
+    Player.loop = loop ?? !Player.loop;
+    audioLoop.value = Player.loop;
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    const screen = Screen.current;
-    if (screen == 'timing') return;
-    if (e.key == 'ArrowLeft') {
-      Player.fastSeek(-5);
-    }
+    if (Screen.current == 'timing') return;
 
-    if (e.key == 'ArrowRight') {
-      Player.fastSeek(5);
-    }
+    processKey(Keybinds.uploadLRC, e, handlers.uploadLRC);
+    processKey(Keybinds.uploadAudio, e, handlers.uploadAudio);
+    processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
+    processKey(Keybinds.showKeybinds, e, handlers.showKeybinds);
+
+    processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
+    processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
   }
 
   onMounted(() => {
@@ -69,7 +87,7 @@
     Player.addEventListener('pause', playPause);
     Player.addEventListener('timeupdate', handleTimeUpdate);
     Player.addEventListener('musicupdated', onMusicUpdate);
-    window.addEventListener('keypress', handleKeyPress);
+    window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('keydown', handleKeyDown);
   });
 
@@ -78,142 +96,178 @@
     Player.removeEventListener('pause', playPause);
     Player.removeEventListener('timeupdate', handleTimeUpdate);
     Player.removeEventListener('musicupdated', onMusicUpdate);
-    window.removeEventListener('keypress', handleKeyPress);
+    window.removeEventListener('keyup', handleKeyUp);
     window.removeEventListener('keydown', handleKeyDown);
-
-    Player.reset();
   });
-
-  const uploadFn = () => openFilePicker(handleChange, { accept: 'audio/*' });
-
-  function formatTime(time: number) {
-    if (!isFinite(time)) return '00:00';
-
-    const minutes = Math.floor(time / 60)
-      .toString()
-      .padStart(2, '0');
-    const seconds = Math.floor(time % 60)
-      .toString()
-      .padStart(2, '0');
-
-    return `${minutes}:${seconds}`;
-  }
 </script>
 
 <template>
   <div class="app-player">
-    <input
-      :disabled="loading"
-      accept="audio/*"
-      id="upload"
-      ref="fileInput"
-      type="file"
-    />
+    <div class="main-panel">
+      <Seeker />
+      <floating-keybind />
 
-    <div class="controls">
-      <button
-        :disabled="!isFinite(Player.duration)"
-        :onclick="() => Player.fastSeek(-5)"
-        class="icon-button"
-        id="seek-backward"
-        title="Seek Backward"
-        type="button"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:fast-rewind"
-          />
-        </div>
-      </button>
-      <button
-        :data-playing="playing ? 'true' : 'false'"
-        :disabled="!isFinite(Player.duration)"
-        :onclick="() => Player.playPause()"
-        class="icon-button"
-        id="play-button"
-        title="Play/Pause"
-        type="button"
-      >
-        <div class="wrapper">
-          <icon
-            :width="36"
-            class="paused"
-            icon="material-symbols:play-arrow"
-          />
-          <icon
-            :width="36"
-            class="playing"
-            icon="material-symbols-light:pause"
-          />
-        </div>
-      </button>
-      <button
-        :disabled="!isFinite(Player.duration)"
-        :onclick="() => Player.fastSeek(5)"
-        class="icon-button"
-        id="seek-forward"
-        title="Seek Forward"
-        type="button"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:fast-forward"
-          />
-        </div>
-      </button>
-    </div>
+      <div class="controls">
+        <icon-button
+          :disabled="!isFinite(Player.duration)"
+          :onclick="() => Player.fastSeek(-5)"
+          id="seek-backward"
+          title="Seek Backward"
+          icon="material-symbols:fast-rewind"
+        />
+        <button
+          :data-playing="playing ? 'true' : 'false'"
+          :disabled="!isFinite(Player.duration)"
+          :onclick="() => Player.playPause()"
+          class="icon-button play-button"
+          id="play-button"
+          title="Play/Pause"
+          type="button"
+        >
+          <div class="wrapper">
+            <icon
+              :width="36"
+              class="paused"
+              icon="material-symbols:play-arrow"
+            />
+            <icon
+              :width="36"
+              class="playing"
+              icon="material-symbols-light:pause"
+            />
+          </div>
+        </button>
+        <icon-button
+          :disabled="!isFinite(Player.duration)"
+          :onclick="() => Player.fastSeek(5)"
+          id="seek-forward"
+          title="Seek Forward"
+          icon="material-symbols:fast-forward"
+        />
+      </div>
 
-    <div class="music-info">
-      <img
-        :src="picture?.data || '/dummy.svg'"
-        alt="Album art"
-      />
+      <div class="music-info">
+        <img :src="picture?.data || '/dummy.svg'" alt="Album art" />
 
-      <div class="details">
-        <div class="title">{{ metadata?.title || 'No Audio' }}</div>
-        <span>
-          {{ metadata?.artist || 'No Artist' }}
-          {{ metadata?.album && ' • ' }}
-          {{ metadata?.album }}
-        </span>
+        <div class="details">
+          <div class="title">{{ metadata?.title || 'No Audio' }}</div>
+          <span class="artist">
+            {{ metadata?.artist || 'No Artist' }}
+            <span>
+              {{ metadata?.album && ' • ' }}
+              {{ metadata?.album }}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <div class="time">
+        {{ formatTime(time) }} /
+        {{ formatTime(Player.duration) }}
+      </div>
+
+      <div class="actions">
+        <icon-button
+          :onclick="() => Player.reset()"
+          :disabled="!isFinite(Player.duration)"
+          id="reset-audio"
+          title="Change Audio"
+          icon="material-symbols:close"
+        />
+        <icon-button
+          :onclick="handlers.uploadAudio"
+          id="upload-music"
+          title="Change Audio"
+          icon="material-symbols:upload"
+        />
+        <icon-button
+          id="tag-sync"
+          title="Sync Lyric Tags"
+          icon="material-symbols:sync"
+        />
+        <icon-button
+          id="sub-panel-toggle"
+          title="Open Sub-Panel"
+          icon="material-symbols:expand-less"
+          :onclick="() => (shown = !shown)"
+        />
       </div>
     </div>
 
-    <div class="time">
-      {{ formatTime(time) }} /
-      {{ formatTime(Player.duration) }}
-    </div>
+    <div class="sub-panel" :shown="shown">
+      <div class="wrapper">
+        <div class="time">
+          <span class="current">
+            {{ isFinite(Player.duration) ? formatTime(time) : '-:--' }}
+          </span>
+          <span class="duration">{{ formatTime(Player.duration) }}</span>
+        </div>
 
-    <div class="actions">
-      <button
-        :onclick="uploadFn"
-        class="icon-button"
-        id="upload-music"
-        title="Change Audio"
-        type="button"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:upload"
+        <div class="controls">
+          <icon-button
+            :onclick="() => Player.reset()"
+            :disabled="!isFinite(Player.duration)"
+            id="reset-audio-2"
+            title="Change Audio"
+            icon="material-symbols:close"
+          />
+
+          <divider direction="y" :size="24" margin="sm" />
+
+          <icon-button
+            :disabled="!isFinite(Player.duration)"
+            :onclick="() => Player.fastSeek(-5)"
+            id="seek-backward"
+            title="Seek Backward"
+            icon="material-symbols:fast-rewind"
+          />
+          <button
+            :data-playing="playing ? 'true' : 'false'"
+            :disabled="!isFinite(Player.duration)"
+            :onclick="() => Player.playPause()"
+            class="icon-button play-button"
+            id="play-button"
+            title="Play/Pause"
+            type="button"
+          >
+            <div class="wrapper">
+              <icon
+                :width="36"
+                class="paused"
+                icon="material-symbols:play-arrow"
+              />
+              <icon
+                :width="36"
+                class="playing"
+                icon="material-symbols-light:pause"
+              />
+            </div>
+          </button>
+          <icon-button
+            :disabled="!isFinite(Player.duration)"
+            :onclick="() => Player.fastSeek(5)"
+            id="seek-forward"
+            title="Seek Forward"
+            icon="material-symbols:fast-forward"
+          />
+
+          <divider direction="y" :size="24" margin="sm" />
+
+          <icon-button
+            id="repeat"
+            title="Repeat / Loop"
+            icon="material-symbols:repeat"
+            :onclick="() => setLoop()"
+            :active="audioLoop"
           />
         </div>
-      </button>
-      <button
-        class="icon-button"
-        id="tag-sync"
-        title="Sync Lyric Tags"
-        type="button"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:sync"
-          />
+
+        <Divider direction="x" size="100%" margin="sm" />
+        <div class="sub-button" @click="handlers.uploadAudio">
+          <icon icon="material-symbols:upload-sharp" :width="24" />
+          <span>Upload Audio</span>
         </div>
-      </button>
+      </div>
     </div>
   </div>
 </template>
@@ -222,102 +276,202 @@
   .app-player {
     position: fixed;
     inset: auto 0 0 0;
-
-    display: grid;
-    gap: var(--sm);
-    overflow-x: auto;
-    align-content: center;
-    height: var(--app-player-height);
-    padding-inline: var(--sm);
+    z-index: 10;
 
     border-top: 1px solid #7777;
+    overflow: hidden;
     background-color: var(--app-player-color);
 
-    grid-template-columns: auto auto 1fr auto;
-    grid-template-areas: 'controls time music-info actions';
+    .main-panel {
+      display: grid;
+      gap: var(--sm);
+      align-content: center;
+      padding-left: var(--sm);
 
-    .controls {
-      grid-area: controls;
-      display: flex;
-    }
+      height: var(--app-player-height);
 
-    .actions {
-      display: flex;
-      flex-wrap: nowrap;
-      grid-area: actions;
-    }
-
-    .music-info {
-      height: 100%;
-      grid-area: music-info;
-      display: flex;
-      align-items: center;
-      gap: var(--lg);
-      margin-inline: auto;
-
-      img {
-        aspect-ratio: 1 / 1;
-        object-fit: contain;
-        background: #333;
-        border-radius: 2px;
-        width: 40px;
+      grid-template-columns: auto auto minmax(0px, 1fr) auto;
+      grid-template-areas: 'controls time music-info actions';
+      overflow: hidden;
+      .controls {
+        grid-area: controls;
+        display: flex;
       }
 
-      .details {
-        white-space: nowrap;
-        line-height: 1.5;
+      .actions {
+        display: flex;
+        flex-wrap: nowrap;
+        grid-area: actions;
+        background-color: var(--app-player-color);
 
-        .title {
-          font-weight: 600;
-          font-size: 16px;
-        }
-
-        span {
-          color: gray;
+        #sub-panel-toggle {
+          display: none;
+          transition: rotate 0.3s;
         }
       }
-    }
-
-    #play-button {
-      &[data-playing='true'] .playing,
-      &[data-playing='false'] .paused {
-        display: block;
-      }
-    }
-
-    .time {
-      grid-area: time;
-      margin-left: auto;
-      align-self: center;
-      white-space: nowrap;
-      color: darkgray;
-      font-size: var(--font-sm);
-    }
-
-    input,
-    #play-button > div > * {
-      display: none;
-    }
-  }
-
-  @media screen and (max-width: 768px) {
-    .app-player {
-      grid-template-columns: 1fr auto auto auto;
-      grid-template-areas: 'music-info time controls  actions';
 
       .music-info {
-        margin: 0;
+        height: 100%;
+        grid-area: music-info;
+        display: flex;
+        align-items: center;
+        gap: var(--lg);
+        margin-inline: auto;
+
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+
         img {
-          display: none;
+          aspect-ratio: 1 / 1;
+          object-fit: contain;
+          background: #333;
+          border-radius: 2px;
+          width: 40px;
+        }
+
+        .details {
+          line-height: 1.5;
+
+          .title {
+            font-weight: 600;
+            font-size: 16px;
+          }
+
+          span {
+            color: gray;
+          }
         }
       }
 
       .time {
+        grid-area: time;
+        margin-left: auto;
+        align-self: center;
+        white-space: nowrap;
+        color: darkgray;
+        font-size: var(--font-sm);
+      }
+    }
+
+    .play-button {
+      &[data-playing='true'] .playing,
+      &[data-playing='false'] .paused {
+        display: block;
+      }
+      > div > * {
         display: none;
       }
+    }
 
-      .controls {
-        margin-left: auto;
+    .sub-panel {
+      background: var(--app-modal-color);
+      display: none;
+    }
+  }
+
+  @media screen and (max-width: 600px) {
+    .app-player {
+      border-top-left-radius: var(--md);
+      border-top-right-radius: var(--md);
+
+      .main-panel {
+        grid-template-columns: 1fr auto auto auto;
+        grid-template-areas: 'music-info time controls  actions';
+        padding-left: var(--md);
+        overflow: hidden;
+
+        .actions {
+          #sub-panel-toggle {
+            display: block;
+          }
+
+          > *:not(#sub-panel-toggle) {
+            display: none;
+          }
+        }
+
+        .music-seeker {
+          inset: calc(var(--app-player-height) + var(--md)) var(--xl) auto
+            var(--xl);
+        }
+
+        .music-info {
+          margin: 0;
+          .artist span {
+            display: none;
+          }
+
+          img {
+            width: 48px;
+          }
+        }
+
+        .time {
+          display: none;
+        }
+
+        .controls {
+          > :not(#play-button) {
+            display: none;
+          }
+          margin-left: auto;
+        }
+      }
+
+      &:has(.sub-panel[shown='true']) {
+        #sub-panel-toggle {
+          rotate: 180deg;
+        }
+
+        .main-panel .play-button {
+          display: none;
+        }
+      }
+
+      .sub-panel {
+        display: block;
+        max-height: 0px;
+        transition: max-height 0.2s;
+        overflow-y: hidden;
+
+        &[shown='true'] {
+          max-height: 200px;
+        }
+
+        .time {
+          padding-inline: var(--sm);
+          font-size: var(--font-sm);
+          color: darkgray;
+          display: flex;
+          .current {
+            margin-right: auto;
+          }
+        }
+
+        > .wrapper {
+          padding: var(--sm) var(--md);
+          padding-top: calc(var(--xl) * 1.5);
+
+          .controls {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+
+            #repeat:not([active='true']) {
+              opacity: 0.5;
+            }
+          }
+
+          .sub-button {
+            padding: var(--sm);
+            align-items: center;
+            gap: var(--sm);
+            background-color: var(--color-600-20);
+            border-radius: var(--sm);
+            display: flex;
+          }
+        }
       }
     }
   }

@@ -1,10 +1,11 @@
 import './global'
 import './assets/main.scss'
 import './assets/markdown.scss'
+import './assets/formatter.scss'
 
 import App from './App.vue'
 import { createApp } from 'vue'
-import modalPresets from './components/_modals';
+import modalPresets from './components/modals/_presets';
 
 createApp(App).mount('#app');
 
@@ -13,8 +14,8 @@ if (Options.get("showChangeLog")) {
   modalPresets.changelog();
 }
 
-if (Options.get("lastVersion") !== window.app.version) {
-  Options.set("lastVersion", window.app.version);
-  Options.get("showChangeLog") || modalPresets.changelog();
+if (Options.get("version") !== window.app.version) {
+  Options.set("version", window.app.version);
+  modalPresets.changelog();
 }
 

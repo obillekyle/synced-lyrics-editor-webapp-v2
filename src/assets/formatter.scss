@@ -1,0 +1,29 @@
+.content-editable .highlight {
+  .tag {
+    .key {
+      color: rgb(141, 255, 249);
+    }
+    .value {
+      color: #ffd151;
+    }
+  }
+  .bracket {
+    color: #999999;
+  }
+
+  .lrc-line {
+    .time {
+      color: rgb(129, 248, 155);
+    }
+  }
+
+  .invalid {
+    color: #ffa238;
+    background-image: url('/wavy.svg');
+    background-repeat: repeat-x;
+    background-position: bottom;
+    background-size: 16px 10px;
+    background-position-y: calc(var(--char-height) - 9px);
+    background-position-x: 0;
+  }
+}

@@ -1,13 +1,15 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
-  import { $, rateLimiter } from '@/api/util';
+  import { $, throttler } from '@/api/util';
   import { onMounted, onUnmounted, reactive, ref } from 'vue';
   import animatedScroll from 'animated-scroll-to';
+  import playingIndicator from '../playing-indicator.vue';
 
   const Player = window.app.player;
   const Lyrics = window.app.lyric;
 
   const lyrics = reactive(Lyrics.getJSON());
+  const bypass = ref(false);
 
   const previewPane = ref<HTMLElement | null>(null);
   const currentIndex = ref(-1);
@@ -19,34 +21,47 @@
   };
 
   function handleCurrentIndex(this: MusicService) {
-    rateLimiter(async () => {
-      const index = Lyrics.findIndex(this.currentTime * 1000 + 400);
-      if (index == -1 || currentIndex.value == index) return;
+    throttler(
+      async () => {
+        const index = Lyrics.findIndex(this.currentTime * 1000 + 400);
+        if (index == -1 || currentIndex.value == index) return;
 
-      const element = previewPane.value?.children[index];
+        bypass.value = false;
+        const element = previewPane.value?.children[index];
 
-      if (element) {
-        currentIndex.value = index;
-        const main = $('main')!;
+        if (element) {
+          currentIndex.value = index;
+          const main = $('main')!;
 
-        const previous = previewPane.value?.querySelector('.active');
-        previous?.classList.remove('active');
-        element?.classList.add('active');
+          const previous = previewPane.value?.querySelector('.active');
+          previous?.classList.remove('active');
+          element?.classList.add('active');
 
-        const rect = main.getBoundingClientRect();
-        const halfElement = element.clientHeight / 2;
-        const offset = rect.height / 2 - halfElement;
+          const rect = main.getBoundingClientRect();
+          const halfElement = element.clientHeight / 2;
+          const offset = rect.height / 2 - halfElement;
 
-        await animatedScroll(element, {
-          speed: 400,
-          elementToScroll: main,
-          verticalOffset: offset * -1,
-        });
+          await animatedScroll(element, {
+            speed: 400,
+            elementToScroll: main,
+            verticalOffset: offset * -1,
+          });
+        }
+      },
+      {
+        key: 'getLRCIndex',
+        blockTime: 200,
+        bypass: bypass.value,
+        endCall: true,
       }
-    }, ['getLRCIndex', 200]);
+    );
   }
 
-  const resetIndex = () => (currentIndex.value = -1);
+  const resetIndex = () => {
+    bypass.value = true;
+    currentIndex.value;
+    handleCurrentIndex.call(Player);
+  };
 
   onMounted(() => {
     Lyrics.addEventListener('lrc-updated', lrcChange);
@@ -62,26 +77,27 @@
 </script>
 
 <template>
-  <div
-    class="preview-screen"
-    ref="previewPane"
-  >
+  <div class="preview-screen" ref="previewPane">
     <div
       :key="index"
       class="lrc-line"
-      :onclick="() => (Player.currentTime = time / 1000)"
+      :onclick="
+        () => {
+          if (isFinite(Player.duration)) {
+            bypass = true;
+            Player.currentTime = time / 1000;
+          }
+        }
+      "
       v-for="({ data, time }, index) in lyrics.lines"
     >
-      <div
-        class="data multi"
-        v-if="typeof data == 'object'"
-      >
+      <div class="data multi" v-if="typeof data == 'object'">
         {{ data.map(({ line }) => line).join('') }}
       </div>
-      <div
-        class="data"
-        v-else
-      >
+      <div class="data" v-else-if="data == '♪'">
+        <playing-indicator />
+      </div>
+      <div class="data" v-else>
         {{ data }}
       </div>
     </div>
@@ -90,7 +106,7 @@
 
 <style lang="scss">
   .preview-screen {
-    color: var(--overlay-20);
+    color: var(--color-600-20);
 
     &:empty::after {
       content: 'No lyric available';
@@ -112,6 +128,9 @@
         font-weight: 500;
         font-size: 36px;
         transition: all 0.3s;
+        &:has(.playing-indicator) {
+          scale: 1;
+        }
       }
 
       &.active .data {
@@ -120,6 +139,10 @@
       }
       &:hover {
         background-color: #7772;
+      }
+      &:not(.active) .playing-indicator div {
+        transform: scaleY(0.05);
+        animation: none !important;
       }
     }
   }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
-  import editScreen from './screens/edit.vue';
-  import timingScreen from './screens/timing.vue';
-  import previewScreen from './screens/lyric.vue';
+  import editScreen from './edit.vue';
+  import timingScreen from './timing.vue';
+  import previewScreen from './lyric.vue';
 
   const screen = window.app.screen;
   const options = window.app.options;

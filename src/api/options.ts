@@ -1,4 +1,6 @@
-import { CustomEventHandler, interval } from "./util";
+import { evaluate, interval } from "./util";
+
+import { CustomEventHandler } from "./event";
 
 type OptionsEvent =
   | 'event'
@@ -18,9 +20,13 @@ type OptionsConfig<T> = {
   saveIntervalSeconds: number
 }
 
-type MapRecord = Record<string, any>
+type GetType<T, K, O> = (K extends keyof O ? (O[K] extends () => any ? () => void : O[K]) : T);
 
-class Options<T extends object = MapRecord, O = T>
+type MapRecord = { [key: string]: any }
+
+
+
+class Options<O extends object = MapRecord>
   extends CustomEventHandler<OptionsEvent, OptionsArgs> {
 
   private lastMod = 0;
@@ -32,7 +38,9 @@ class Options<T extends object = MapRecord, O = T>
     defaultOptions: {},
   };
 
-  private options: MapRecord = {};
+  private options: MapRecord = {
+    wow: '1.0.0',
+  };
 
   constructor(config?: Partial<OptionsConfig<O>>) {
     super();
@@ -50,8 +58,8 @@ class Options<T extends object = MapRecord, O = T>
         this.config.localKey
       );
     }
-
   }
+
 
   load() {
     if (!this.config.localSaving) return;
@@ -76,17 +84,17 @@ class Options<T extends object = MapRecord, O = T>
     this.dispatchEvent('event', ['saved', undefined]);
   }
 
-  set<K extends keyof O>(key: K, newValue: O[K]): void;
-  set(key: string, newValue: any) {
+  set<K extends keyof O | String>(key: K, newValue: K extends keyof O ? O[K] | ((oldVal: O[K]) => O[K]) : any): void;
+  set(key: any, newValue: any) {
 
     const oldValue = this.options[key];
-    this.options[key] = newValue;
+    this.options[key] = evaluate(newValue, oldValue);
     this.lastMod++
 
-    this.dispatchEvent('event', ['modified', { key, oldValue, newValue }]);
+    this.dispatchEvent('event', ['modified', { key, oldValue, newValue: this.options[key] }]);
   }
 
-  unset<K extends keyof O>(key: K): void;
+  unset<K extends keyof O | String>(key: K): void;
   unset(key: string) {
     const copy = { key, value: this.options[key] }
 
@@ -96,11 +104,17 @@ class Options<T extends object = MapRecord, O = T>
     this.dispatchEvent('event', ['removed', copy]);
   }
 
-  get<K extends keyof O>(key: K, defaultValue?: O[K]): O[K] | undefined;
+  get<T = any, K extends keyof O | String = keyof O>(key: K): GetType<T, K, O> | undefined;
+  get<T = any, K extends keyof O | String = keyof O>(key: K, defaultValue: K extends keyof O ? O[K] : T): GetType<T, K, O>;
   get(key: string, defaultValue?: any): any {
     if (typeof key != 'string') return;
 
     return this.options[key] ?? defaultValue;
+  }
+
+
+  getRaw(): O {
+    return this.options as any;
   }
 
   defaults() {
@@ -143,7 +157,7 @@ export function stringify(obj: any): string {
         return `~$arr:${JSON.stringify(map)}`;
       }
       if (obj instanceof Date) {
-        return `~$date:${obj.getTime()}`
+        return `~$date:${obj.getTime()}`;
       }
       if (obj instanceof Object) {
         for (const key in obj) {
@@ -188,8 +202,8 @@ export function parser(str: string): any {
     return undefined
   }
   if (str.startsWith('~$arr:')) {
-    const obj = parser(str.slice(6));
-    return JSON.parse(obj.map(parser));
+    const obj = JSON.parse(str.slice(6));
+    return obj.map(parser);
   }
 
   if (str.startsWith('~$obj:')) {
@@ -200,6 +214,37 @@ export function parser(str: string): any {
     return obj;
   }
   return str;
+}
+
+async function compress(str: string, encoding: CompressionFormat = 'gzip'): Promise<string> {
+  const input = new TextEncoder().encode(str);
+
+  const compressionStream = new CompressionStream(encoding);
+  const writer = compressionStream.writable.getWriter();
+  writer.write(input);
+  writer.close();
+
+  const compressed = await new Response(compressionStream.readable).arrayBuffer();
+  const compressedData = new Uint8Array(compressed);
+
+  const base64Data = btoa(String.fromCharCode(...compressedData));
+
+  return `${encoding}:${base64Data}`;
+}
+
+async function decompress(str: string): Promise<string> {
+  const [encoding, base64Data] = str.split(':');
+
+  const binaryData = atob(base64Data);
+  const compressedData = new Uint8Array(binaryData.length).map((_, i) => binaryData.charCodeAt(i));
+
+  const decompressionStream = new DecompressionStream(encoding as CompressionFormat);
+  const writer = decompressionStream.writable.getWriter();
+  writer.write(compressedData);
+  writer.close();
+
+  const decompressed = await new Response(decompressionStream.readable).arrayBuffer();
+  return new TextDecoder().decode(decompressed);
 }
 
 export default Options

@@ -1,4 +1,4 @@
-import { CustomEventHandler } from "./util"
+import { CustomEventHandler } from "./event"
 
 export type LRCTags = Record<string, string>;
 

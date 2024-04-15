@@ -1,21 +1,53 @@
 <script setup lang="ts">
-  import { type LRCTags, type LRCArgs, type LRCLine } from '@/api/parser';
   import { $ } from '@/api/util';
   import { Icon } from '@iconify/vue';
+  import { type LRCArgs } from '@/api/parser';
   import { onMounted, onUnmounted, ref, markRaw } from 'vue';
+  import iconButton from '../elements/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
+  import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
+  const Keybinds = getKeybinds();
 
   const focus = ref(-1);
   const edit = ref(false);
   const lyrics = markRaw(Lyrics.getJSON());
 
-  const timingPane = ref<HTMLElement | null>(null);
   const updateKey = ref(true);
+  const timingPane = ref<HTMLElement | null>(null);
   const update = () => (updateKey.value = !updateKey.value);
+
+  const setFocus = (value: typeof focus.value) => {
+    if (focus.value == value) return;
+    const focused = timingPane.value?.children[value];
+    edit.value = false;
+
+    if (!focused) {
+      if (value >= lyrics.lines.length) {
+        focus.value = -1;
+        return;
+      }
+      focus.value = value;
+      return;
+    }
+
+    focus.value = value;
+    const main = $('main')!;
+
+    const rect = main.getBoundingClientRect();
+    const halfElement = focused.clientHeight / 2;
+    const offset = rect.height / 2 - halfElement;
+
+    animatedScroll(focused, {
+      speed: 400,
+      verticalOffset: offset * -1,
+      elementToScroll: main,
+      cancelOnUserAction: false,
+    });
+  };
 
   const setLyricsObj = (...args: LRCArgs) => {
     if (args[0] == 'parsed') {
@@ -45,31 +77,6 @@
   };
 
   const toggleEdit = () => (edit.value = !edit.value);
-  const setFocus = (value: typeof focus.value) => {
-    if (focus.value == value) return;
-    const focused = timingPane.value?.children[value];
-    edit.value = false;
-
-    if (!focused) {
-      focus.value = -1;
-      return;
-    }
-
-    focus.value = value;
-    const main = $('main')!;
-
-    const rect = main.getBoundingClientRect();
-    const halfElement = focused.clientHeight / 2;
-    const offset = rect.height / 2 - halfElement;
-
-    animatedScroll(focused, {
-      speed: 400,
-      verticalOffset: offset * -1,
-      elementToScroll: main,
-      cancelOnUserAction: false,
-    });
-  };
-
   const setTimeFromMusicCurrent = (e?: MouseEvent) => {
     const index = focus.value;
 
@@ -103,91 +110,91 @@
   };
 
   function saveValue(index: number) {
-    const element = $(`.lrc-line.active .data`);
-    const value = element?.textContent ?? '';
-    console.log(value);
+    const element = $<HTMLInputElement>(`.lrc-line.active .data`);
+    const value = element?.value ?? '';
 
     Lyrics.updateLine(index, { data: value, type: 'single' });
   }
 
   function handleKeyDown(e: KeyboardEvent) {
     const index = focus.value;
+    if (e.ctrlKey) return;
     if (edit.value) return;
 
-    e.preventDefault();
-
-    switch (e.key) {
-      case 'ArrowLeft':
-        e.shiftKey || Player.fastSeek(-1);
-        e.shiftKey && Player.fastSeek(-0.1);
-        break;
-      case 'ArrowRight':
-        e.shiftKey || Player.fastSeek(1);
-        e.shiftKey && Player.fastSeek(0.1);
-        break;
-    }
-
-    if (index == -1) return;
-    switch (e.key) {
-      case 'ArrowLeft':
+    processKey(Keybinds.timing.adjustTimeBackward, e, () => {
+      e.shiftKey || Player.fastSeek(-1);
+      e.shiftKey && Player.fastSeek(-0.1);
+      if (index !== -1) {
         Player.paused && adjustTime(-100);
         e.shiftKey && adjustTime(-100);
-        break;
-      case 'ArrowRight':
+      }
+    });
+    processKey(Keybinds.timing.adjustTimeForward, e, () => {
+      e.shiftKey || Player.fastSeek(1);
+      e.shiftKey && Player.fastSeek(0.1);
+      if (index !== -1) {
         Player.paused && adjustTime(100);
         e.shiftKey && adjustTime(100);
-        break;
-      case 'ArrowDown':
-        setFocus(index + 1 >= lyrics.lines.length ? index : index + 1);
-        break;
-      case 'ArrowUp':
-        setFocus(index == 0 ? 0 : index - 1);
-        break;
-    }
+      }
+    });
+
+    processKey(Keybinds.timing.arrowDownFocus, e, () => {
+      setFocus(index + 1 >= lyrics.lines.length ? index : index + 1);
+    });
+    processKey(Keybinds.timing.arrowUpFocus, e, () => {
+      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.lines.length : index) - 1);
+    });
   }
 
   function handleKeyUp(e: KeyboardEvent) {
     const index = focus.value;
 
-    if (edit.value) return;
-
-    e.preventDefault();
-
-    if (index == -1) {
+    if (e.ctrlKey) return;
+    if (edit.value) {
       switch (e.key) {
-        case 'Insert':
-          Lyrics.addLine(Lyrics.EMPTYLINE);
-          break;
-        case 'ArrowDown':
-          if (lyrics.lines.length > 0) setFocus(0);
-          break;
-        case 'ArrowUp':
-          if (lyrics.lines.length > 0) setFocus(lyrics.lines.length - 1);
+        case 'Enter':
+          saveValue(index);
+          $('#app')?.focus();
+          toggleEdit();
           break;
       }
       return;
     }
 
-    switch (e.key) {
-      case 'Enter':
-        setTimeFromMusicCurrent();
-        !Player.paused && setFocus(index + 1);
-        break;
-      case 'Escape':
-        setFocus(-1);
-        break;
-      case 'Insert':
-        const newItem = Lyrics.EMPTYLINE;
+    e.preventDefault();
 
-        e.shiftKey
-          ? Lyrics.addLine(newItem, index - 1)
-          : Lyrics.addLine(newItem, index);
-
-        break;
-      case 'Delete':
-        Lyrics.removeLine(index);
-        break;
+    if (index == -1) {
+      processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine);
+      processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine);
+      return;
     }
+
+    processKey(Keybinds.timing.setLineTiming, e, () => {
+      setTimeFromMusicCurrent();
+      !Player.paused && setFocus(index + 1);
+    });
+
+    processKey(Keybinds.timing.unfocusLine, e, () => {
+      setFocus(-1);
+    });
+
+    processKey(Keybinds.timing.addNewLine, e, () => {
+      const newItem = Lyrics.EMPTYLINE;
+      Lyrics.addLine(newItem, index);
+    });
+
+    processKey(Keybinds.timing.addNewLineReverse, e, () => {
+      const newItem = Lyrics.EMPTYLINE;
+      Lyrics.addLine(newItem, index - 1);
+    });
+    processKey(Keybinds.timing.deleteLine, e, () => {
+      Lyrics.removeLine(index);
+    });
+
+    processKey(Keybinds.timing.toggleEditMode, e, () => {
+      toggleEdit();
+      setTimeout(() => $('.lrc-line.active .data')?.focus(), 100);
+    });
   }
 
   onMounted(() => {
@@ -207,21 +214,19 @@
 </script>
 
 <template>
-  <div
-    :data-update="updateKey"
-    class="timing-screen"
-    ref="timingPane"
-  >
+  <div :data-update="updateKey" class="timing-screen" ref="timingPane">
     <div
       :key="index"
+      :data-index="index"
       @click="setFocus(index)"
-      :class="['lrc-line', focus == index ? 'active' : 'inactive']"
+      :class="{
+        'lrc-line': true,
+        active: focus == index,
+        edit,
+      }"
       v-for="({ data, time }, index) in lyrics.lines"
     >
-      <div
-        class="time"
-        :onclick="() => (Player.currentTime = time / 1000)"
-      >
+      <div class="time" :onclick="() => (Player.currentTime = time / 1000)">
         {{ Lyrics.timeToString(time) }}
       </div>
       <div
@@ -229,31 +234,18 @@
         class="edit-icon-container"
         @click="toggleEdit"
       >
-        <button
-          class="icon-button"
+        <icon-button
           title="edit"
           :onclick="() => edit && saveValue(index)"
-        >
-          <div class="wrapper">
-            <icon
-              v-if="edit"
-              :width="24"
-              class="edit-icon"
-              icon="material-symbols:done"
-            />
-            <icon
-              v-if="!edit"
-              :width="24"
-              class="edit-icon"
-              icon="material-symbols:edit-outline"
-            />
-          </div>
-        </button>
+          :icon="
+            edit ? 'material-symbols:done' : 'material-symbols:edit-outline'
+          "
+        />
       </div>
-      <div
-        :contenteditable="focus == index && edit ? 'plaintext-only' : undefined"
-        class="data"
-      >
+
+      <input class="data" v-if="focus == index && edit" :defaultValue="data" />
+
+      <div class="data" v-else>
         <div
           :key="index"
           v-for="({ line }, index) in data"
@@ -264,46 +256,31 @@
         <template v-else>{{ data }}</template>
       </div>
 
-      <div
-        class="timing-buttons"
-        v-if="focus == index"
-      >
-        <button
-          @click="adjustTime(-100)"
-          class="icon-button"
-          title="-100ms"
-        >
-          <div class="wrapper">
-            <icon
-              :width="24"
-              icon="material-symbols:fast-rewind"
-            />
-          </div>
-        </button>
-        <button
+      <div class="timing-buttons" v-if="focus == index">
+        <icon-button
           @click="setTimeFromMusicCurrent"
-          class="icon-button"
+          :disabled="!isFinite(Player.duration)"
           title="Player current time"
-        >
-          <div class="wrapper">
-            <icon
-              :width="24"
-              icon="material-symbols:hourglass-empty"
-            />
-          </div>
-        </button>
-        <button
+          icon="material-symbols:play-arrow-outline"
+        />
+        <icon-button
+          @click="setTimeFromMusicCurrent"
+          :disabled="!isFinite(Player.duration)"
+          title="Player current time"
+          icon="material-symbols:hourglass-empty"
+        />
+        <icon-button
+          @click="adjustTime(-100)"
+          :disabled="!isFinite(Player.duration)"
+          title="-100ms"
+          icon="material-symbols:fast-rewind"
+        />
+        <icon-button
           @click="adjustTime(100)"
-          class="icon-button"
+          :disabled="!isFinite(Player.duration)"
           title="+100ms"
-        >
-          <div class="wrapper">
-            <icon
-              :width="24"
-              icon="material-symbols:fast-forward"
-            />
-          </div>
-        </button>
+          icon="material-symbols:fast-forward"
+        />
       </div>
     </div>
   </div>
@@ -327,6 +304,7 @@
     .lrc-line {
       user-select: none;
       display: grid;
+      position: relative;
       grid-template-areas:
         'time data'
         'time data';
@@ -346,7 +324,9 @@
         position: absolute;
         content: '';
         inset: 0;
-        z-index: -1;
+        z-index: 0;
+        background-color: transparent;
+        transition: background-color 0.2s;
       }
 
       .edit-icon-container {
@@ -360,7 +340,7 @@
       .time {
         font-size: var(--font-sm);
         align-self: center;
-        color: var(--color-700);
+        color: var(--color-800);
       }
 
       .timing-buttons {
@@ -368,24 +348,29 @@
         display: grid;
         place-items: center;
         grid-template-areas:
-          'set set'
+          'ppp set'
           'rrr fff';
+
         :nth-child(1) {
-          grid-area: rrr;
+          grid-area: ppp;
           align-self: self-start;
         }
         :nth-child(2) {
           grid-area: set;
-          align-self: self-end;
+          align-self: self-start;
         }
         :nth-child(3) {
+          grid-area: rrr;
+          align-self: self-end;
+        }
+        :nth-child(4) {
           grid-area: fff;
           align-self: self-start;
         }
       }
 
       & + .lrc-line {
-        border-top: 1px solid var(--overlay-10);
+        border-top: 1px solid var(--color-800-10);
       }
 
       .data {
@@ -398,7 +383,7 @@
         grid-area: data;
         &:empty::after {
           content: '<Empty>';
-          color: var(--overlay-40);
+          color: var(--color-800-40);
         }
       }
 
@@ -411,10 +396,12 @@
           'edit time timing'
           'edit data timing';
         position: sticky;
+        z-index: 1;
         top: var(--sm);
 
         &::before {
-          background-color: var(--overlay-10);
+          background-color: var(--color-900-10);
+          transition: none;
         }
 
         .data {
@@ -424,10 +411,10 @@
           align-self: self-start;
           border-radius: calc(var(--sm) / 2);
           &[contenteditable] {
-            outline: 1px solid var(--overlay-20);
+            outline: 1px solid var(--color-600-20);
           }
           &:focus-visible {
-            box-shadow: 0 0 0 2px var(--overlay-20);
+            box-shadow: 0 0 0 2px var(--color-600-20);
           }
         }
       }

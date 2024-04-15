@@ -45,7 +45,6 @@ export default defineConfig({
         },
 
         chunkFileNames: (chunkInfo) => {
-          console.log(chunkInfo.name);
           const name = chunkInfo.name;
           const version = (dependencies as any)[name]
 

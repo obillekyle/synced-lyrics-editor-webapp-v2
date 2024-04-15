@@ -1,3 +1,31 @@
+### **April 15, 2024**
+
+**v2.0.3a**: Text editor and player changes
+
+**Changes:**
+
+<ins>v2.0.2a ... v2.0.3a</ins>
+
+- Added a repeat button
+- Added play button on timing entries
+- Added settings screen (hover to the logo)
+- Added mini player on mobile devices
+- Replaced textarea with barely working text editor (because why not?)
+- Revamped(?) screen switcher
+- Fixed UI overflowing on small screens
+- Fixed issue where there is a blank line at the end of the file
+- Fixed issue where the timing bar would not update
+- Properly handle invalid/unsupported files
+- Performance improvements?
+
+**Known Bugs:**
+
+- Text editor almost unusable on mobile devices
+- Switching from text editor to preview does not reflect changes
+- Cut, Undo, Redo not working on text editor
+- Unable to get selection using mouse
+- Unable to open settings on mobile
+
 ### **March 7, 2024**
 
 **v2.0.2a**: Hotfix

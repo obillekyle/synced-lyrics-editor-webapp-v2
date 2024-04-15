@@ -1,19 +1,24 @@
-import { CustomEventHandler } from "./util";
+import { CustomEventHandler } from "./event";
 
-class Screen<IDS extends string> extends CustomEventHandler<"screenchange", [IDS]>
+class Screen<IDS extends string | number> extends CustomEventHandler<"screenchange", [IDS]>
 {
-  current: IDS | undefined;
 
-  constructor(screen: IDS) {
+  constructor(private _screen: IDS) {
     super();
-
-    this.set(screen);
   }
 
-  set(screen: IDS) {
-    if (screen == this.current) return;
-    this.current = screen;
+  set current(screen: IDS) {
+    if (screen === this._screen) return;
+    this._screen = screen
     this.dispatchEvent("screenchange", [screen])
+  }
+
+  get current(): IDS {
+    return this._screen
+  }
+
+  set(screen: IDS): void {
+    this.current = screen
   }
 }
 

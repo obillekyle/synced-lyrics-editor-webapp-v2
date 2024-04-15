@@ -3,6 +3,7 @@ import * as music from "music-metadata-browser";
 import { FastAverageColor } from 'fast-average-color'
 import type { IAudioMetadata } from "music-metadata-browser";
 import Image from "image-js";
+import { clamp } from "./util";
 
 const fac = new FastAverageColor();
 
@@ -51,9 +52,9 @@ class MusicService extends HTMLAudioElement {
     }
   }
 
-
   async updateFile(file?: File, opts?: AudioOptions) {
     if (!file) return false;
+    this.reset(true);
 
     try {
       this.metadata = await music.parseBlob(file)
@@ -73,6 +74,7 @@ class MusicService extends HTMLAudioElement {
       this.load();
 
     } catch (e) {
+      console.log(e)
       return false
     }
 
@@ -101,7 +103,8 @@ class MusicService extends HTMLAudioElement {
   }
 
   playPause() {
-    this.paused ? this.play() : this.pause();
+    isFinite(this.duration) &&
+      this.paused ? this.play() : this.pause();
   }
 
   fastSeek(time: number): void {
@@ -136,7 +139,7 @@ class MusicService extends HTMLAudioElement {
     return imageData;
   }
 
-  reset() {
+  reset(ignore: boolean = false) {
     this.pause();
 
     this.src && URL.revokeObjectURL(this.src);
@@ -144,11 +147,16 @@ class MusicService extends HTMLAudioElement {
     this.picture?.data && URL.revokeObjectURL(this.picture.data);
 
     this.src = "";
+    this.picture = undefined
     this.metadata = undefined;
+
     this.currentTime = 0;
 
 
     this.load();
+    if (!ignore) {
+      this.dispatchEvent(updatedEvent)
+    }
   }
 }
 

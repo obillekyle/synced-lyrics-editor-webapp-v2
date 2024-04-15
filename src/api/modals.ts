@@ -1,4 +1,6 @@
-import { CustomEventHandler } from "./util";
+import type { Component } from "vue";
+import { CustomEventHandler } from "./event";
+import { evaluate, type MaybeFunction } from "./util";
 
 export type ModalEvents = 'updated';
 export type ModalKey = number | string
@@ -7,22 +9,30 @@ export type ModalArgs =
   | ["closed", ModalKey, undefined]
   | ["modified", ModalKey, Modal]
 
+export type ModalActionsArgs = {
+  id: ModalKey,
+  modify: (
+    this: ModalService,
+    modal: Partial<Modal> | ((modal: Modal) => Partial<Modal>)
+  ) => boolean
+  close: () => void
+}
+
 export type ModalActionsFunct = (
   this: ModalService,
-  args: {
-    id: ModalKey,
-    modify: (
-      this: ModalService,
-      modal: Partial<Modal>
-    ) => boolean
-    close: () => void
-  }
+  args: ModalActionsArgs
 ) => any
 
 export type Modal = {
   title: string,
   icon: string,
-  content: string,
+  content: Component | string,
+  options: {
+    width?: number,
+    height?: number,
+    mobileFullscreen?: boolean,
+    noWrapperSpacing?: boolean
+  },
   actions: {
     text: string,
     onClick: ModalActionsFunct
@@ -48,6 +58,7 @@ class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
       title: modal.title ?? "",
       content: modal.content ?? "",
       actions: modal.actions ?? [],
+      options: modal.options ?? {},
     };
 
     this.modals[id] = newModal;
@@ -55,11 +66,11 @@ class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
     return id;
   }
 
-  modify(id: ModalKey, modified: Partial<Modal>): boolean {
+  modify(id: ModalKey, modified: Partial<Modal> | ((modal: Modal) => Partial<Modal>)): boolean {
     const modal = this.modals[id];
     if (!modal) return false;
 
-    Object.assign(modal, modified);
+    Object.assign(modal, evaluate(modified, modal));
     this.dispatchEvent("updated", ["modified", id, modal]);
     return true;
   }
@@ -69,7 +80,6 @@ class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
 
     delete this.modals[id];
     this.dispatchEvent("updated", ["closed", id, undefined]);
-
   }
 
   get(id: ModalKey): Modal | undefined {

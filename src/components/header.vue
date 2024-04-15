@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
-  import { Icon } from '@iconify/vue';
-  import Divider from './divider.vue';
-  import presets from './_modals';
+  import presets from './modals/_presets';
+  import iconButton from './elements/icon-button.vue';
+  import Switcher from './elements/switcher.vue';
 
   const screen = window.app.screen;
   const current = ref(screen.current);
@@ -18,74 +18,67 @@
   onUnmounted(() => {
     screen.removeEventListener('screenchange', handleChange);
   });
+
+  const items = [
+    {
+      name: 'Edit',
+      icon: 'material-symbols:edit-outline',
+    },
+    {
+      name: 'Timing',
+      icon: 'material-symbols:hourglass-outline',
+    },
+    {
+      name: 'Preview',
+      icon: 'material-symbols:note-outline',
+    },
+  ];
+
+  const screens: (typeof current.value)[] = ['edit', 'timing', 'lyric'];
+
+  function getCurrentIndex() {
+    return screens.indexOf(current.value);
+  }
+
+  function setValue(index: number) {
+    screen.set(screens[index]);
+  }
 </script>
 
 <template>
-  <header
-    :data-screen="current"
-    class="app-header"
-  >
+  <header :data-screen="current" class="app-header">
+    <icon-button
+      icon="material-symbols:settings-outline"
+      class="settings"
+      title="Settings"
+      :onclick="presets.openSettings"
+    />
     <div class="app-logo">
-      <div
-        class="app-title"
-        :onclick="presets.changelog"
-      >
+      <div class="app-title" :onclick="presets.changelog">
         Synced Lyrics Editor
       </div>
     </div>
+
     <div class="screens">
-      <button
-        :active="current == 'edit'"
-        :onclick="() => screen.set('edit')"
-        title="Editor"
-      >
-        Editor
-      </button>
-      <button
-        :active="current == 'timing'"
-        :onclick="() => screen.set('timing')"
-        title="Timing"
-      >
-        Timing
-      </button>
-      <button
-        :active="current == 'lyric'"
-        :onclick="() => screen.set('lyric')"
-        title="Lyrics"
-      >
-        Lyrics
-      </button>
+      <Switcher
+        :items="items"
+        :defaultValue="getCurrentIndex()"
+        :change="setValue"
+      />
     </div>
     <div class="actions">
-      <button
+      <icon-button
+        :onclick="presets.uploadNewLrc"
         class="icon-button"
         title="Open LRC file"
-        :onclick="presets.uploadNewLrc"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:upload-file-outline-sharp"
-          />
-        </div>
-      </button>
-      <divider
-        direction="y"
-        margin="sm"
-        size="10px"
+        icon="material-symbols:upload-file-outline-sharp"
       />
-      <button
+      <icon-button
+        :onclick="presets.download"
         class="icon-button"
         title="Download"
-        :onclick="presets.download"
-      >
-        <div class="wrapper">
-          <icon
-            :width="24"
-            icon="material-symbols:download"
-          />
-        </div>
-      </button>
+        icon="material-symbols:download"
+      />
     </div>
   </header>
 </template>
@@ -99,14 +92,28 @@
     background-color: var(--app-header-color);
 
     display: grid;
-    grid-template-areas: 'logo screens actions';
-    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 'settings logo screens actions';
+    grid-template-columns: auto auto 1fr auto;
 
     user-select: none;
 
     &[data-screen='lyric'] {
       --app-header-color: transparent;
       border-bottom-color: transparent;
+    }
+
+    .settings {
+      margin-left: -56px;
+      position: relative;
+      rotate: 0deg;
+      transition: all 0.2s ease-in-out;
+    }
+
+    &:has(.app-logo:hover, .settings:hover) {
+      .settings {
+        margin-left: 0;
+        rotate: 360deg;
+      }
     }
 
     .app-logo {

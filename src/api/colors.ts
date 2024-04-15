@@ -1,49 +1,24 @@
 import Color from "color";
-import { CustomEventHandler, type ArrayItems } from "./util"; // Assuming you have this file
+import { CustomEventHandler } from "./event";
 
-type ColorsArray = string[];
+export class Colors extends CustomEventHandler<"update", [Color]>{
+  main: Color = Color("white");
 
-export class Colors extends CustomEventHandler<"update", [ColorsArray]>{
-  main: Color = Color("red");
-  array: ColorsArray = [];
-  alphas: ColorsArray = [];
-
-  constructor(color?: string, shades = 10) {
+  constructor(color?: string) {
     super();
 
-    this.set(color ?? this.main, shades);
+    this.set(color ?? this.main);
   }
 
-  set(colorString: string | Color, numColors = 10): [ColorsArray, ColorsArray] {
+  set(colorString: string | Color): this {
     this.main = Color(colorString);
-
-    let alphaColor: Color;
-
-    this.array.length = 0;
-    this.alphas.length = 0;
-
-    for (let i = 0; i < numColors; i++) {
-      const color = this.getShade(((i + 1) * 100 / numColors) * .9);
-      this.array.push(color.hex());
-
-      if (i == Math.floor(numColors / 1.25)) {
-        alphaColor = color;
-      }
-    }
-
-    for (let i = 0; i < numColors; i++) {
-      const color = alphaColor!.alpha((i + 1) * .1);
-      this.alphas.push(color.hexa());
-    }
-
-    this.dispatchEvent("update", [this.array]);
-    return [this.array, this.alphas];
+    this.dispatchEvent("update", [this.main]);
+    return this;
   }
 
-  getShade(shade: number) {
-    const [h, s] = this.main.hsl().array();
-
-    return Color({ h, s, l: shade })
+  shade(shade: number, alpha = 1,) {
+    const [h, s] = this.main.hsv().array();
+    return Color({ h, s, v: shade }).lightness(shade).alpha(alpha);
   }
 }
 
