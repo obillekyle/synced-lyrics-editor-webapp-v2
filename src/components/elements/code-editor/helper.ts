@@ -193,6 +193,7 @@ export const editorKeyBinds: EditorKeyBinds<KeyBind | string> = {
 }
 
 export type TextDimensionsFn = (text: string) => { width: number; height: number };
+export type ScrollToFN = (pos: { x?: number, y?: number }, smooth?: boolean) => void;
 
 // regex
 
@@ -204,6 +205,7 @@ export const SELECTION_KEYWORD_MATCHER = /\s*[\w\d][^\ ]*|\s*.[^\ \w\d]*/g;
 export function isKeyboardKey(key: string) {
   return key.match(/[\w\s.,\/#!$%\^&\*;:{}=\-_`~()\]\['@"\\+<>\?]/);
 }
+
 
 // other
 

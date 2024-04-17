@@ -7,14 +7,9 @@
     watch,
     provide,
     onBeforeUnmount,
+    onUnmounted,
   } from 'vue';
-  import {
-    getUnique,
-    clamp,
-    addPX,
-    fixLineBreaks,
-    throttler,
-  } from '@/api/util';
+  import { getUnique, clamp, addPX, fixLineBreaks } from '@/api/util';
   import debug from '../debug-view.vue';
   import AppClipboard from '@/api/clipboard';
   import {
@@ -68,6 +63,7 @@
 
   const historyIndex = ref<number | null>(null);
 
+  const ignoreScroll = ref(false);
   const Editor = ref<HTMLDivElement | null>(null);
   const Wrapper = ref<HTMLDivElement | null>(null);
   const Content = ref<HTMLDivElement | null>(null);
@@ -117,6 +113,7 @@
   provide('scrollTo', scrollTo);
   provide('lines', lines);
   provide('history', history);
+  provide('ignoreScroll', ignoreScroll);
 
   provide('char', char);
   provide('line', line);
@@ -144,7 +141,7 @@
 
     if (!ignore) {
       tElem.blur();
-      tElem.focus();
+      tElem.focus({ preventScroll: true });
     }
 
     const wRect = wElem.getBoundingClientRect();
@@ -187,11 +184,11 @@
   }
 
   watch(line, () => {
-    blurAndFocus();
+    if (!ignoreScroll.value) blurAndFocus();
   });
 
   watch(char, () => {
-    blurAndFocus(true);
+    if (!ignoreScroll.value) blurAndFocus();
   });
 
   function handleScrollWheel(event: WheelEvent) {
@@ -203,10 +200,6 @@
       const top = target.scrollTop + event.deltaY / 2;
       scrollTo({ y: top });
     }
-  }
-
-  function save() {
-    model.value = linesToString(lines.value);
   }
 
   function getDimensions() {
@@ -254,13 +247,6 @@
 
   const offset = computed(() => {
     const item = lines.value[line.value];
-
-    // if (
-    //   item.text.match(/^[a-zA-Z0-9~!@#$%^&*()_+\-={}\[\]|\:;\'",<.>/?`\\]+$/)
-    // ) {
-    //   return Math.min(char.value, item.text.length) * width.value;
-    // }
-
     const dimensions = textDimensions(item.text.slice(0, char.value));
 
     return dimensions.width;
@@ -310,8 +296,8 @@
       </div>
     </div>
     <div class="editor" ref="Editor">
-      <LinesComponent />
       <SelectionComponent />
+      <LinesComponent />
       <TextAreaComponent />
 
       <CompositionHandler />
@@ -329,6 +315,7 @@
     position: absolute;
     inset: 0 0 0 0;
     overflow: hidden;
+    user-select: none;
 
     grid-template-columns: 6ch 1fr;
     padding-bottom: calc(var(--char-height) * 2);
@@ -419,7 +406,7 @@
           height: 100%;
 
           span {
-            display: block;
+            display: inline-block;
             height: 100%;
           }
         }
@@ -427,6 +414,12 @@
         span.selected {
           background: var(--color-700-20);
         }
+      }
+    }
+
+    &:has(.selection.visible) {
+      .line-special {
+        box-shadow: none;
       }
     }
 

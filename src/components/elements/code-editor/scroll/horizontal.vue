@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import {
-    computed,
     inject,
     ref,
     watch,
@@ -31,7 +30,6 @@
       const rect = element.getBoundingClientRect();
       thumbSize.value = rect.width / element.scrollWidth;
       thumbOffset.value = element.scrollLeft / element.scrollWidth;
-      console.log(thumbSize.value, thumbOffset.value);
     }
   }
 

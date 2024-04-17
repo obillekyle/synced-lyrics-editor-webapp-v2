@@ -1,3 +1,20 @@
+### **April 17, 2024**
+
+**v2.0.4a**: Hotfix
+
+**Changes:**
+
+<ins>v2.0.3a ... v2.0.4a</ins>
+
+- Timing: Fixed issue where the current time wont update on play button click.
+- Editor: Fixed mouse selection
+- Editor: Fixed values wont save on editor unfocus
+- App: Revamped screen switcher, again
+- App: Adjusted colors
+
+**Known Bugs:**
+- Almost all the bugs in the previous version
+
 ### **April 15, 2024**
 
 **v2.0.3a**: Text editor and player changes

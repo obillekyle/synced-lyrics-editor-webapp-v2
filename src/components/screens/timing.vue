@@ -1,6 +1,5 @@
 <script setup lang="ts">
-  import { $ } from '@/api/util';
-  import { Icon } from '@iconify/vue';
+  import { $, clamp } from '@/api/util';
   import { type LRCArgs } from '@/api/parser';
   import { onMounted, onUnmounted, ref, markRaw } from 'vue';
   import iconButton from '../elements/icon-button.vue';
@@ -258,7 +257,9 @@
 
       <div class="timing-buttons" v-if="focus == index">
         <icon-button
-          @click="setTimeFromMusicCurrent"
+          @click="
+            () => (Player.currentTime = clamp(0, time / 1000, Player.duration))
+          "
           :disabled="!isFinite(Player.duration)"
           title="Player current time"
           icon="material-symbols:play-arrow-outline"

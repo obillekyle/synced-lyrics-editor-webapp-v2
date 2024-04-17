@@ -1,13 +1,12 @@
 <script setup lang="ts">
-  import appPlayer from './components/player.vue';
-
-  import appHeader from './components/header.vue';
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import AppPlayer from './components/player.vue';
+  import AppHeader from './components/header.vue';
+  import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
   import type MusicService from './api/service';
-  import styles from './components/styles.vue';
-  import modals from './components/modals/main.vue';
-  import lrcScreen from './components/screens/main.vue';
-
+  import Styles from './components/styles.vue';
+  import Modals from './components/modals/main.vue';
+  import LrcScreen from './components/screens/main.vue';
+  import NavigationBar from './components/navigation/navigation-bar.vue';
   const Player = window.app.player;
   const Colors = window.app.colors;
 
@@ -15,18 +14,26 @@
     Colors.set(Player.picture?.color || '#ccc');
   }
 
-  onMounted(() => Player.addEventListener('musicupdated', onPlayerUpdate));
-  onUnmounted(() => Player.removeEventListener('musicupdated', onPlayerUpdate));
+  onMounted(() => {
+    Player.addEventListener('musicupdated', onPlayerUpdate);
+  });
+  onUnmounted(() => {
+    Player.removeEventListener('musicupdated', onPlayerUpdate);
+  });
 </script>
 
 <template>
-  <app-header />
-  <main tabindex="0">
-    <lrc-screen />
-  </main>
-  <app-player />
-  <modals />
-  <styles />
+  <Styles />
+  <div class="content-wrapper">
+    <AppHeader />
+    <main tabindex="0">
+      <LrcScreen />
+    </main>
+    <AppPlayer />
+  </div>
+
+  <NavigationBar />
+  <Modals />
 </template>
 
 <style>
@@ -48,6 +55,27 @@
     position: relative;
     display: block;
     height: calc(100dvh - var(--app-header-height) - var(--app-player-height));
+    width: calc(100dvw - var(--app-navbar-size));
     overflow: overlay;
+  }
+
+  .content-wrapper {
+    position: fixed;
+    contain: content;
+    inset: 0 0 0 var(--app-navbar-size);
+    overflow: hidden;
+  }
+
+  @media screen and (max-width: 600px) {
+    main {
+      width: 100vw;
+      height: calc(
+        100dvh - var(--app-header-height) - var(--app-player-height) -
+          var(--app-navbar-size)
+      );
+    }
+    .content-wrapper {
+      inset: 0 0 var(--app-navbar-size) 0;
+    }
   }
 </style>

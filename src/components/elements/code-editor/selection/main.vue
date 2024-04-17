@@ -41,7 +41,7 @@
 </script>
 
 <template>
-  <div class="selection" ref="selectionRef">
+  <div class="selection" :class="{ visible: selection }" ref="selectionRef">
     <line-entry
       v-for="({ text, id }, index) in lines"
       :key="id"

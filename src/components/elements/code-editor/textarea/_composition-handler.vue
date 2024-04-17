@@ -1,18 +1,6 @@
 <script setup lang="ts">
-  import {
-    inject,
-    onBeforeMount,
-    onBeforeUnmount,
-    onMounted,
-    type Ref,
-  } from 'vue';
-  import {
-    type LineItem,
-    type EditorSelection,
-    type HistoryItem,
-    defaultFormatter,
-    type TextDimensionsFn,
-  } from '../helper';
+  import { inject, onBeforeUnmount, onMounted, type Ref } from 'vue';
+  import { type LineItem, type TextDimensionsFn } from '../helper';
   import { addPX, insertAt, replaceRange } from '@/api/util';
 
   const lines = inject<Ref<LineItem[]>>('lines')!;

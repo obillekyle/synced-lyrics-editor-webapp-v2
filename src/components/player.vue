@@ -65,6 +65,7 @@
   }
 
   function setLoop(loop?: boolean) {
+    if (typeof loop != 'boolean') loop = undefined;
     Player.loop = loop ?? !Player.loop;
     audioLoop.value = Player.loop;
   }
@@ -181,6 +182,13 @@
           icon="material-symbols:upload"
         />
         <icon-button
+          id="repeat"
+          title="Repeat / Loop"
+          icon="material-symbols:repeat"
+          :onclick="() => setLoop()"
+          :active="audioLoop"
+        />
+        <icon-button
           id="tag-sync"
           title="Sync Lyric Tags"
           icon="material-symbols:sync"
@@ -274,7 +282,7 @@
 
 <style lang="scss">
   .app-player {
-    position: fixed;
+    position: absolute;
     inset: auto 0 0 0;
     z-index: 10;
 
@@ -374,6 +382,10 @@
     .app-player {
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
+
+      #repeat:not([active='true']) {
+        opacity: 0.5;
+      }
 
       .main-panel {
         grid-template-columns: 1fr auto auto auto;

@@ -2,8 +2,8 @@
   import { $, debounce, evaluate } from '@/api/util';
   import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
   import { KeyboardGuides, type BindItems, as } from './keys';
-  import entry from './entry.vue';
   import { useToggle } from '../hooks/update';
+  import entry from './entry.vue';
 
   const Screen = window.app.screen;
 

@@ -3,7 +3,6 @@ import * as music from "music-metadata-browser";
 import { FastAverageColor } from 'fast-average-color'
 import type { IAudioMetadata } from "music-metadata-browser";
 import Image from "image-js";
-import { clamp } from "./util";
 
 const fac = new FastAverageColor();
 

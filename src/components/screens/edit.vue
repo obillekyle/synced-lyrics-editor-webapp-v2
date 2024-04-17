@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onBeforeUnmount, onMounted, ref } from 'vue';
+  import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
   import ContentEditable from '../elements/code-editor/main.vue';
   import { lrcTextFormatter } from '@/app/formatter';
   const Lyrics = window.app.lyric;
@@ -14,9 +14,9 @@
     Lyrics.addEventListener('lrc-updated', setValue);
   });
 
-  onBeforeUnmount(() => {
-    Lyrics.parse(value.value);
+  onUnmounted(() => {
     Lyrics.removeEventListener('lrc-updated', setValue);
+    Lyrics.parse(value.value);
   });
 </script>
 

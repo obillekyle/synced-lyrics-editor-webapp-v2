@@ -45,7 +45,7 @@
       char: char.value,
     };
 
-    const CARET_POS = char.value;
+    const CARET_POS = clamp(char.value, 0, curr.text.length || 0);
     const CARET_LINE = line.value;
 
     const HAS_NEXT_LINE = next != undefined;
@@ -162,10 +162,10 @@
           }
 
           endAt.char = Math.max(0, endAt.char - text.length);
-          char.value = Math.max(0, char.value - text.length);
+          char.value = Math.max(0, CARET_POS - text.length);
         } else {
           endAt.char = Math.max(0, endAt.char - 1);
-          char.value = Math.max(0, char.value - 1);
+          char.value = Math.max(0, CARET_POS - 1);
         }
 
         selectRanges.value = {
@@ -213,10 +213,10 @@
           const [text] = match;
 
           start.char = Math.max(0, start.char - text.length);
-          char.value = Math.max(0, char.value - text.length);
+          char.value = Math.max(0, CARET_POS - text.length);
         } else {
           start.char = Math.max(0, start.char - 1);
-          char.value = Math.max(0, char.value - 1);
+          char.value = Math.max(0, CARET_POS - 1);
         }
 
         selectRanges.value = {

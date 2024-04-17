@@ -31,7 +31,6 @@
       const rect = element.getBoundingClientRect();
       thumbSize.value = rect.height / element.scrollHeight;
       thumbOffset.value = element.scrollTop / element.scrollHeight;
-      console.log(thumbSize.value, thumbOffset.value);
     }
   }
 
@@ -44,8 +43,6 @@
       const y = event.clientY - rRect.top;
       const offset = (y / rRect.height) * root.scrollHeight - thumbSizePX / 1.5;
       scrollTo({ y: offset });
-
-      console.log(y, event.clientY, offset);
     }
   }
 

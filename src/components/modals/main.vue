@@ -1,15 +1,9 @@
 <script setup lang="ts">
-  import type {
-    Modal,
-    ModalActionsArgs,
-    ModalActionsFunct,
-    ModalArgs,
-  } from '@/api/modals';
+  import type { ModalActionsArgs, ModalArgs } from '@/api/modals';
   import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
   import { Icon } from '@iconify/vue';
-  import './_modals.scss';
   import { addPX } from '@/api/util';
-  import { as } from '../keybinds/keys';
+  import './_modals.scss';
 
   const ModalService = window.app.modals;
 
@@ -21,15 +15,11 @@
 
   function updateModals(...args: ModalArgs) {
     const [event, key, value] = args;
-
-    if (event == 'closed') {
-      setTimeout(() => {
-        closing.value = '';
-        update();
-      }, 300);
-      return;
-    }
-    update();
+    if (event != 'closed') update();
+    setTimeout(() => {
+      closing.value = '';
+      update();
+    }, 300);
   }
 
   function getModalFNs(id: string | number): ModalActionsArgs {

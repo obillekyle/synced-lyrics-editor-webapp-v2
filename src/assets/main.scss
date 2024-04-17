@@ -14,7 +14,7 @@ html {
     'Helvetica Neue',
     sans-serif;
 
-  --background-body: #020202;
+  --background-body: #111111;
   --background-secondary: #333333;
 
   --app-header-color: var(--background-body);
@@ -23,7 +23,9 @@ html {
 
   --app-header-height: 66px;
   --app-player-height: 71px;
+  --app-navbar-size: 88px;
 
+  --font-xs: 12px;
   --font-sm: 14px;
   --font-md: 16px;
   --font-lg: 18px;
@@ -32,6 +34,7 @@ html {
   --header-size: 24px;
   --header-weight: 600;
 
+  --xs: 4px;
   --sm: 8px;
   --md: 12px;
   --lg: 16px;
@@ -44,6 +47,7 @@ html {
   html {
     --app-header-height: 56px;
     --app-player-height: 64px;
+    --app-navbar-size: 90px;
   }
 }
 
@@ -127,6 +131,7 @@ main {
   pointer-events: none;
   opacity: 0;
   scale: 0.2;
+  transform-origin: center;
   background-color: var(--color-700-30);
   animation: rippled 0.5s forwards;
 }

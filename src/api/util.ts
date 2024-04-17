@@ -307,8 +307,9 @@ export function unscapeHtml(unsafeText: string): string {
   return unsafeText.replace(/(&amp;|&lt;|&gt;|&quot;|&#39;)/g, (match) => map[match]);
 }
 
-export function rippleEffect(e: MouseEvent) {
-  const element = e.currentTarget as HTMLElement;
+export function rippleEffect(e: MouseEvent, to?: string) {
+  const target = e.currentTarget as HTMLElement;
+  const element = to ? $(to, target) || target : target;
 
   const rect = element.getBoundingClientRect();
   const ripple = document.createElement('span');

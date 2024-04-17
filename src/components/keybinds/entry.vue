@@ -16,6 +16,7 @@
       <div class="key" v-if="keys.special[2]">SHIFT</div>
       <div class="key" v-if="keys.special[3]">META</div>
     </template>
+    
     <div class="key">
       {{ keyEquivalent[keys.key] || keys.key }}
     </div>
