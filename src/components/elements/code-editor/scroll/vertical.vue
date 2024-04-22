@@ -9,28 +9,34 @@
     onMounted,
     onBeforeUnmount,
   } from 'vue';
+  import type { ScrollToFN } from '../helper';
 
   const Editor = inject<Ref<HTMLDivElement | null>>('Editor')!;
   const char = inject<Ref<number>>('char')!;
   const line = inject<Ref<number>>('line')!;
 
-  const rootDimensions =
+  const root =
     inject<Ref<{ width: number; height: number }>>('rootDimensions')!;
   const scrollHeight = inject<Ref<number>>('scrollHeight')!;
-  const scrollTo =
-    inject<(pos: { x?: number; y?: number }) => void>('scrollTo')!;
+  const charHeight = inject<Ref<number>>('charHeight')!;
+  const scrollTo = inject<ScrollToFN>('scrollTo')!;
 
   const thumbSize = ref(0);
   const thumbOffset = ref(0);
   const dragging = ref(false);
+  const lineIndicatorPos = ref(0);
+  const thumb = ref<HTMLElement | null>(null);
 
   function setThumbVals() {
     const element = Editor.value!;
 
     if (element) {
       const rect = element.getBoundingClientRect();
+      const lineOffset = charHeight.value * line.value;
+
       thumbSize.value = rect.height / element.scrollHeight;
       thumbOffset.value = element.scrollTop / element.scrollHeight;
+      lineIndicatorPos.value = lineOffset / element.scrollHeight;
     }
   }
 
@@ -38,10 +44,10 @@
     const root = Editor.value!;
     if (dragging.value && root) {
       const rRect = root.getBoundingClientRect();
-      const thumbSizePX = thumbSize.value * rRect.height;
-
-      const y = event.clientY - rRect.top;
-      const offset = (y / rRect.height) * root.scrollHeight - thumbSizePX / 1.5;
+      const thumbHeight = thumb.value!.getBoundingClientRect().height;
+      const y = event.clientY - rRect.top - thumbHeight / 2;
+      const offset = (y / rRect.height) * root.scrollHeight;
+      document.body.style.pointerEvents = 'none';
       scrollTo({ y: offset });
     }
   }
@@ -52,9 +58,10 @@
 
   function handleMouseUp() {
     dragging.value = false;
+    document.body.style.pointerEvents = 'auto';
   }
 
-  watch(rootDimensions, setThumbVals);
+  watch(root, setThumbVals);
   watch(scrollHeight, setThumbVals);
   watch(char, setThumbVals);
   watch(line, setThumbVals);
@@ -70,6 +77,7 @@
   onBeforeUnmount(() => {
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('mouseleave', handleMouseUp);
   });
 </script>
 
@@ -78,11 +86,14 @@
     class="scrollbar-vertical"
     v-if="thumbSize < 0.99"
     @mousedown="handleMouseDown"
+    :style="{
+      '--thumb-size': thumbSize,
+      '--thumb-offset': thumbOffset,
+      '--line-indicator-pos': lineIndicatorPos,
+    }"
   >
-    <div
-      class="thumb"
-      :style="{ '--thumb-size': thumbSize, '--thumb-offset': thumbOffset }"
-    />
+    <div class="thumb" :class="{ dragging }" ref="thumb" />
+    <div class="indicator" />
   </div>
 </template>
 
@@ -105,6 +116,18 @@
       height: calc(var(--thumb-size) * 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
+      &.dragging {
+        opacity: 1;
+        background: #ccc;
+      }
+    }
+
+    .indicator {
+      height: 2px;
+      width: 100%;
+      position: absolute;
+      background: #aaa;
+      top: calc(var(--line-indicator-pos) * 100%);
     }
   }
 </style>

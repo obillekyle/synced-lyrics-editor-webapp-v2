@@ -504,7 +504,7 @@
     const elem = event.currentTarget as HTMLTextAreaElement;
     const caret = clamp(char.value, 0, curr.text.length || 0);
 
-    if (isKeyboardKey(value)) {
+    if (isKeyboardKey(value) && !event.isComposing) {
       elem.value = '';
       elem.style.removeProperty('--char-offset');
 

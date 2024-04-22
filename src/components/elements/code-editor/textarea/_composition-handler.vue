@@ -1,5 +1,12 @@
 <script setup lang="ts">
-  import { inject, onBeforeUnmount, onMounted, type Ref } from 'vue';
+  import {
+    computed,
+    inject,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    type Ref,
+  } from 'vue';
   import { type LineItem, type TextDimensionsFn } from '../helper';
   import { addPX, insertAt, replaceRange } from '@/api/util';
 
@@ -9,52 +16,76 @@
   const line = inject<Ref<number>>('line')!;
   const TextArea = inject<Ref<HTMLTextAreaElement | null>>('TextArea')!;
 
+  const composition_pos = ref<number | null>(null);
+  const lastCompositionLength = ref(0);
+
+  const charPos = computed(() => {
+    return lines.value[line.value].text.slice(0, char.value).length;
+  });
+
   function handleCompositionStart(event: CompositionEvent) {
-    const elem = event.currentTarget as HTMLTextAreaElement;
-    const curr = lines.value[line.value];
+    console.clear();
+    console.log(event);
+    composition_pos.value = charPos.value;
+    char.value = charPos.value + event.data.length;
+    lines.value[line.value].text = insertAt(
+      lines.value[line.value].text,
+      composition_pos.value || 0,
+      event.data || ''
+    );
+  }
 
-    if (!curr) return;
+  function handleCompositionUpdate(event: CompositionEvent) {
+    console.log(event);
+    console.log('update', event.data);
 
-    elem.value = '';
-    elem.style.removeProperty('--char-offset');
+    if (!composition_pos.value) return;
 
-    const offset = textDimensions(curr.text.slice(0, char.value));
+    char.value = composition_pos.value + event.data.length;
 
-    elem.style.setProperty('--char-offset', addPX(offset.width));
-    curr.text = insertAt(curr.text, char.value, 'ㅤ');
-    char.value = char.value + 1;
+    lines.value[line.value].text = replaceRange(
+      lines.value[line.value].text,
+      [
+        composition_pos.value,
+        composition_pos.value + lastCompositionLength.value,
+      ],
+      event.data
+    );
+    lastCompositionLength.value = event.data.length;
   }
 
   function handleCompositionEnd(event: CompositionEvent) {
-    const elem = event.currentTarget as HTMLTextAreaElement;
-    const curr = lines.value[line.value];
+    console.log(event);
+    console.log('end', event.data);
 
-    if (!curr) return;
+    if (!composition_pos.value) return;
 
-    const id = char.value - 1;
-
-    elem.value = '';
-    elem.style.removeProperty('--char-offset');
-
-    curr.text = replaceRange(curr.text, [id, id + 1], event.data);
-
-    if (!event.data) {
-      char.value = id;
-    }
+    lines.value[line.value].text = replaceRange(
+      lines.value[line.value].text,
+      [
+        composition_pos.value,
+        composition_pos.value + lastCompositionLength.value,
+      ],
+      event.data || ''
+    );
+    TextArea.value!.value = '';
+    composition_pos.value = null;
+    lastCompositionLength.value = 0;
   }
 
   onMounted(() => {
     const elem = TextArea.value as HTMLTextAreaElement;
 
     elem.addEventListener('compositionstart', handleCompositionStart);
+    elem.addEventListener('compositionupdate', handleCompositionUpdate);
     elem.addEventListener('compositionend', handleCompositionEnd);
   });
 
   onBeforeUnmount(() => {
     const elem = TextArea.value as HTMLTextAreaElement;
 
-    elem.style.removeProperty('--char-offset');
     elem.removeEventListener('compositionstart', handleCompositionStart);
+    elem.removeEventListener('compositionupdate', handleCompositionUpdate);
     elem.removeEventListener('compositionend', handleCompositionEnd);
   });
 </script>

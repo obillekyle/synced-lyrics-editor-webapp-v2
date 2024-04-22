@@ -9,7 +9,6 @@
   const count = ref(0);
   const parent = ref<HTMLDivElement | null>(null);
   const model = defineModel<number>('active', {
-    required: true,
     default: 0,
   });
 

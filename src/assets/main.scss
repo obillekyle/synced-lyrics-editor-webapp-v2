@@ -43,6 +43,32 @@ html {
   --album-color: rgb(255, 187, 187);
 }
 
+* {
+  &::-webkit-scrollbar {
+    background: url('/assets/arrow-up.svg'), url('/assets/arrow-down.svg');
+    background-repeat: no-repeat;
+    background-position:
+      center top,
+      center bottom;
+    background-clip: padding-box;
+    background-size: 10px;
+    width: 16px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: gray;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    background-clip: padding-box;
+    border-radius: 6px;
+  }
+
+  &::-webkit-scrollbar-button {
+    display: block;
+    height: 12px;
+  }
+}
+
 @media screen and (max-width: 600px) {
   html {
     --app-header-height: 56px;
@@ -109,12 +135,6 @@ button {
     }
   }
 }
-
-// .no-touch {
-//   .icon-button:hover:not(:disabled) .wrapper {
-//     background-color: transparent;
-//   }
-// }
 
 #app,
 main {

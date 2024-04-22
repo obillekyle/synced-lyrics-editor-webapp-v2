@@ -21,6 +21,7 @@
 
   function setScreen() {
     screen.value = Screen.current;
+    update.toggle();
   }
 
   function matches(special?: [boolean, boolean, boolean, boolean]) {

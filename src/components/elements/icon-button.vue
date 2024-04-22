@@ -19,6 +19,7 @@
   });
 
   defineOptions({
+    name: 'IconButton',
     inheritAttrs: false,
   });
 </script>
@@ -34,4 +35,3 @@
     </div>
   </button>
 </template>
-

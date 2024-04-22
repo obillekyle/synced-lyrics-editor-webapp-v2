@@ -148,7 +148,7 @@
       </div>
 
       <div class="music-info">
-        <img :src="picture?.data || '/dummy.svg'" alt="Album art" />
+        <img :src="picture?.data || '/assets/dummy.svg'" alt="Album art" />
 
         <div class="details">
           <div class="title">{{ metadata?.title || 'No Audio' }}</div>
@@ -287,7 +287,6 @@
     z-index: 10;
 
     border-top: 1px solid #7777;
-    overflow: hidden;
     background-color: var(--app-player-color);
 
     .main-panel {

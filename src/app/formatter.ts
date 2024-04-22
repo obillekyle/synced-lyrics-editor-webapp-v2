@@ -1,16 +1,38 @@
+const tagTooltips: Record<string, string | undefined> = {
+  'ar': 'Artist',
+  'au': 'Author',
+  'al': 'Album',
+  'by': 'Composer',
+  'ti': 'Title',
+  'offset': 'Offset',
+  'ref': 'Reference',
+  'rel': 'Release',
+  're': 'Source',
+  'total': 'Total',
+  'w': 'Website',
+  'c': 'Copyright',
+  'g': 'Genre',
+  'm': 'Musician',
+  'v': 'Version',
+  '$id': 'ID',
+}
+
+
 function formatTag(tag: string) {
   const tagMatch = tag.match(/\[(.*)\:(.*)\](.*)/);
   if (!tagMatch) return tag;
+
+  const tooltip = tagTooltips[tagMatch[1]] || '';
 
   let value = '';
 
   value += '<span class="tag">';
   value += '<span class="bracket">[</span>';
-  value += '<span class="key">' + tagMatch[1] + '</span>';
+  value += '<span class="key" tip="' + tooltip + '">' + tagMatch[1] + '</span>';
   value += '<span class="separator">:</span>';
   value += '<span class="value">' + tagMatch[2] + '</span>';
   value += '<span class="bracket">]</span>';
-  value += '<span class="invalid" title="' + tagMatch[3] + ' is ignored' + '">' + tagMatch[3] + '</span>';
+  value += '<span class="invalid" tip="\'' + tagMatch[3] + '\' is ignored' + '">' + tagMatch[3] + '</span>';
   value += '</span>';
 
 

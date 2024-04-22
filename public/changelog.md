@@ -1,3 +1,20 @@
+### **April 22, 2024**
+
+**v2.0.4b**: Hotfix v2
+
+**Changes:**
+
+<ins>v2.0.4a ... v2.0.4b</ins>
+
+- Editor: Added zooming.
+- Editor: Better handling of IME input.
+- Editor: Added tooltips on hover (tags only atm).
+- App: Modified scrollbar style (Chromium only).
+- App: Added input elements to the header (not working).
+- App: Settings will now appear on smaller screens.
+- App: Added the "ALPHA" tag
+- Player: Fixed seeker unable to be clicked.
+
 ### **April 17, 2024**
 
 **v2.0.4a**: Hotfix
@@ -13,6 +30,7 @@
 - App: Adjusted colors
 
 **Known Bugs:**
+
 - Almost all the bugs in the previous version
 
 ### **April 15, 2024**

@@ -1,7 +1,9 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
   import presets from './modals/_presets';
-  import iconButton from './elements/icon-button.vue';
+  import IconButton from './elements/icon-button.vue';
+  import InputText from './elements/input/text.vue';
+  import InputNumber from './elements/input/number.vue';
 
   const screen = window.app.screen;
   const current = ref(screen.current);
@@ -46,14 +48,20 @@
 
 <template>
   <header :data-screen="current" class="app-header">
+    <InputText
+      left-icon="material-symbols:artist-outline"
+      defaultValue="Lyric"
+      maxlength="16"
+    />
+    <InputNumber placeholder="Lyrics Offset" :defaultValue="0" max="16" />
     <div class="actions">
-      <icon-button
+      <IconButton
         :onclick="presets.uploadNewLrc"
         class="icon-button"
         title="Open LRC file"
         icon="material-symbols:upload-file-outline-sharp"
       />
-      <icon-button
+      <IconButton
         :onclick="presets.download"
         class="icon-button"
         title="Download"
@@ -69,22 +77,15 @@
     padding-inline: var(--sm);
     background-color: var(--app-header-color);
 
-    display: grid;
-    grid-template-areas: 'settings logo screens actions';
-    grid-template-columns: auto auto 1fr auto;
+    display: flex;
+    align-items: center;
+    position: relative;
 
     user-select: none;
 
     &[data-screen='lyric'] {
       --app-header-color: transparent;
       border-bottom-color: transparent;
-    }
-
-    .settings {
-      margin-left: -56px;
-      position: relative;
-      rotate: 0deg;
-      transition: all 0.2s ease-in-out;
     }
 
     &:has(.app-logo:hover, .settings:hover) {
@@ -95,9 +96,11 @@
     }
 
     .actions {
-      grid-area: actions;
+      right: 0;
+      position: absolute;
       align-content: center;
       display: flex;
+      background-color: inherit;
     }
   }
 </style>

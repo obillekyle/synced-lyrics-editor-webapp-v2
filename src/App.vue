@@ -7,6 +7,7 @@
   import Modals from './components/modals/main.vue';
   import LrcScreen from './components/screens/main.vue';
   import NavigationBar from './components/navigation/navigation-bar.vue';
+  import AppTag from './components/elements/app-tag.vue';
   const Player = window.app.player;
   const Colors = window.app.colors;
 
@@ -23,6 +24,7 @@
 </script>
 
 <template>
+  <AppTag>ALPHA</AppTag>
   <Styles />
   <div class="content-wrapper">
     <AppHeader />

@@ -6,6 +6,12 @@
     <NavigationItem name="Edit" icon="material-symbols:edit-outline" />
     <NavigationItem name="Timing" icon="material-symbols:hourglass-outline" />
     <NavigationItem name="Lyric" icon="material-symbols:queue-music" />
+    <NavigationEntry
+      name="Settings"
+      id="nav-item-settings"
+      icon="material-symbols:settings-outline"
+      :onclick="_presets.openSettings"
+    />
 
     <NavigationContent>
       <IconButton
@@ -25,16 +31,19 @@
   import NavigationBar from '../elements/navigation-bar/main.vue';
   import NavigationItem from '../elements/navigation-bar/item.vue';
   import NavigationContent from '../elements/navigation-bar/content.vue';
+  import NavigationEntry from '../elements/navigation-bar/entry.vue';
   import IconButton from '../elements/icon-button.vue';
   import AppLogo from './app-logo.vue';
 
   const Screen = window.app.screen;
   const screenIndex = ref(0);
+
+  const screens = ['edit', 'timing', 'lyric'];
+
   function onScreenUpdate() {
     screenIndex.value = screens.indexOf(Screen.current);
   }
 
-  const screens = ['edit', 'timing', 'lyric'];
   watch(screenIndex, (value) => {
     if (screens[value] != Screen.current) {
       Screen.set(screens[value] as any);
@@ -51,4 +60,10 @@
   });
 </script>
 
-<style scoped></style>
+<style scoped>
+  @media screen and (min-width: 600px) {
+    #nav-item-settings {
+      display: none;
+    }
+  }
+</style>

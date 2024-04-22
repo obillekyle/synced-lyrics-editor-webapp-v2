@@ -14,14 +14,16 @@
     getParent,
     interval,
     removeInterval,
+    throttler,
   } from '@/api/util';
 
   const lines = inject<Ref<LineItem[]>>('lines')!;
   const line = inject<Ref<number>>('line')!;
   const char = inject<Ref<number>>('char')!;
 
-  const contentRef = ref<HTMLDivElement | null>(null);
+  const Content = ref<HTMLDivElement | null>(null);
   const Editor = inject<Ref<HTMLDivElement | null>>('Editor')!;
+  const Wrapper = inject<Ref<HTMLDivElement | null>>('Wrapper')!;
   const selectRanges = inject<Ref<EditorSelection | null>>('selection')!;
   const ignoreScroll = inject<Ref<boolean>>('ignoreScroll')!;
 
@@ -34,6 +36,10 @@
   const charHeight = inject<Ref<number>>('charHeight')!;
   const onHold = ref<{ line: number; char: number } | null>(null);
   const lastEvent = ref<MouseEvent | null>(null);
+  const tooltipElem = ref<HTMLElement | null>(null);
+  const lastHoverEvent = ref<MouseEvent | null>(null);
+  const tooltipTimeoutKey = ref<NodeJS.Timeout | null>(null);
+  const id = inject<number>('id')!;
 
   function getCharPos(event: MouseEvent) {
     const editor = Editor.value!;
@@ -171,23 +177,86 @@
     return length > width ? length : width;
   });
 
+  function setTooltip() {
+    if (!lastHoverEvent.value || !tooltipElem.value) return;
+
+    const element = lastHoverEvent.value.target as HTMLElement;
+    const tipElem = tooltipElem.value!;
+
+    if (element && element.matches('.content .tooltip')) {
+      return;
+    }
+
+    if (element && element.matches('.content span > span')) {
+      const tooltip = element.getAttribute('tip');
+      const event = lastHoverEvent.value;
+
+      if (tooltip) {
+        tipElem.innerHTML = tooltip;
+        const eRect = element.getBoundingClientRect();
+        const wRect = Wrapper.value!.getBoundingClientRect();
+        const tRect = tipElem.getBoundingClientRect();
+        const x = eRect.left - wRect.left;
+        const y = eRect.top - tRect.height;
+        if (!element.classList.contains('hovering')) {
+          Content.value!.querySelectorAll('.hovering').forEach((el) => {
+            el.classList.remove('hovering');
+          });
+          element.classList.add('hovering');
+        }
+
+        tipElem.style.left = `${x}px`;
+        tipElem.style.top = `${y}px`;
+
+        tipElem.style.opacity = '1';
+        tipElem.style.pointerEvents = 'auto';
+
+        tooltipTimeoutKey.value && clearTimeout(tooltipTimeoutKey.value);
+        tooltipTimeoutKey.value = setTimeout(() => {
+          element.classList.remove('hovering');
+          tipElem.style.opacity = '0';
+          tipElem.style.pointerEvents = 'none';
+        }, 600);
+        return;
+      }
+    }
+
+    tipElem.style.opacity = '0';
+    tipElem.style.pointerEvents = 'none';
+    Content.value!.querySelectorAll('.hovering').forEach((el) => {
+      el.classList.remove('hovering');
+    });
+  }
+
+  function handleMouseOver(event: MouseEvent) {
+    lastHoverEvent.value = event;
+  }
+
   onMounted(() => {
+    interval(() => setTooltip(), 500, id + '_tooltip');
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseover', handleMouseOver);
   });
 
   onUnmounted(() => {
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+
+    document.removeEventListener('mouseover', handleMouseOver);
+
+    removeInterval('scroller');
+    removeInterval(id + '_tooltip');
   });
 </script>
 
 <template>
   <div>
     <div
-      ref="contentRef"
+      ref="Content"
       class="content highlight"
       @mousedown="handleMouseDown"
+      @mouseover="handleMouseOver"
       :style="{
         '--width': addPX(width),
       }"
@@ -200,8 +269,18 @@
         :visible="isVisible(index)"
       />
       <div class="line-special" />
+      <div class="tooltip" ref="tooltipElem" />
     </div>
   </div>
 </template>
 
-<style></style>
+<style scoped>
+  .tooltip {
+    position: fixed;
+    left: -100dvw;
+    background-color: #222;
+    border: 1px solid #333;
+    padding: var(--xs) var(--sm);
+    transition: opacity 0.3s ease;
+  }
+</style>

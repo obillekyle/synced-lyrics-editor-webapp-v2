@@ -60,6 +60,7 @@
   const lines = ref<LineItem[]>([{ id: 0, text: '' }]);
   const history = ref<HistoryItem[]>([]);
   const selectRanges = ref<EditorSelection | null>(null);
+  const fontSize = ref(16);
 
   const historyIndex = ref<number | null>(null);
 
@@ -77,11 +78,15 @@
     if (!elem) return { width: 0, height: 0 };
 
     elem.textContent = text;
+
+    elem.style.setProperty('font-size', addPX(fontSize.value));
     const rect = elem.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
 
     return {
-      width: rect.width,
-      height: rect.height,
+      width,
+      height,
     };
   }
 
@@ -119,6 +124,7 @@
   provide('line', line);
   provide('selection', selectRanges);
   provide('historyIndex', historyIndex);
+  provide('fontSize', fontSize);
 
   provide('id', id);
   provide('charHeight', height);
@@ -188,12 +194,19 @@
   });
 
   watch(char, () => {
-    if (!ignoreScroll.value) blurAndFocus();
+    if (!ignoreScroll.value) blurAndFocus(true);
   });
 
   function handleScrollWheel(event: WheelEvent) {
     const target = event.currentTarget as HTMLElement;
-    if (event.altKey) {
+    if (event.ctrlKey) {
+      event.preventDefault();
+      if (event.deltaY > 0) {
+        fontSize.value = clamp(fontSize.value - 1, 8, 32);
+      } else {
+        fontSize.value = clamp(fontSize.value + 1, 8, 32);
+      }
+    } else if (event.altKey) {
       const left = target.scrollLeft + event.deltaY / 2;
       scrollTo({ x: left });
     } else {
@@ -213,13 +226,20 @@
     }
   }
 
-  onMounted(() => {
-    const editor = Editor.value!;
-    const wrapper = Wrapper.value!;
+  function getCharDimensions() {
     const dimensions = textDimensions('A');
+    if (!dimensions) return;
 
     width.value = dimensions.width;
     height.value = dimensions.height;
+  }
+
+  onMounted(() => {
+    const editor = Editor.value!;
+    const wrapper = Wrapper.value!;
+
+    getCharDimensions();
+    getDimensions();
 
     lines.value = stringToLines(fixLineBreaks(model.value));
 
@@ -237,6 +257,10 @@
     observer.value?.disconnect();
   });
 
+  watch(fontSize, () => {
+    getCharDimensions();
+  });
+
   watch(model, async (value, prev) => {
     const finalText = linesToString(lines.value);
 
@@ -249,7 +273,7 @@
     const item = lines.value[line.value];
     const dimensions = textDimensions(item.text.slice(0, char.value));
 
-    return dimensions.width;
+    return Math.max(0, dimensions.width - 1);
   });
 </script>
 
@@ -271,6 +295,7 @@
     tabindex="0"
     ref="Wrapper"
     :style="{
+      '--font-editor': fontSize + 'px',
       '--cursor-pos': Math.min(char, lines[line]?.text?.length || 0),
       '--cursor-line': line,
       '--char-width': addPX(width),
@@ -377,7 +402,7 @@
     .char-dimensions,
     .line-number {
       line-height: 1.5;
-      font-size: var(--font-md);
+      font-size: var(--font-editor, var(--font-md, 16px));
       font-family: 'JetBrains Mono', Consolas, monospace;
     }
 
@@ -439,7 +464,7 @@
         position: absolute;
         top: calc(var(--cursor-line) * var(--char-height));
         min-height: var(--char-height);
-        box-shadow: 0 0 0 1px inset var(--color-700-20);
+        box-shadow: 0 0 0 2px inset #ccc1;
         pointer-events: none;
         min-width: 100%;
         width: var(--width);
@@ -452,6 +477,11 @@
         min-width: 100%;
         width: var(--width);
 
+        .hovering {
+          background-color: #00aeff44;
+          border-radius: 3px;
+        }
+
         &.active {
           outline: 1px solid var(--color-700-20);
 
@@ -460,7 +490,6 @@
             position: absolute;
             width: 1px;
             top: 0;
-            // background-color: white;
             left: calc(var(--cursor-pos) * 1ch);
             height: 100%;
           }
@@ -490,8 +519,32 @@
       pointer-events: none;
       background: none;
       resize: none;
-      caret-color: white;
+      width: 2px;
+      display: block;
+      min-width: 2px;
+      caret-color: transparent;
+      border-left: 2px solid #888;
       height: var(--char-height);
+      animation: blink 1s infinite;
+      &:not(:focus) {
+        opacity: 0;
+        animation-play-state: paused;
+      }
+    }
+
+    @keyframes blink {
+      49% {
+        border-left-color: #888;
+      }
+      50% {
+        border-left-color: transparent;
+      }
+      99% {
+        border-left-color: transparent;
+      }
+      100% {
+        border-left-color: #888;
+      }
     }
 
     .line-number {

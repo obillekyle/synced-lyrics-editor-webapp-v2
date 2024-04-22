@@ -31,7 +31,7 @@
   function updateIndex() {
     if (parent.value) {
       index.value = Array.from(parent.value.children)
-        .filter((e) => e.matches('.nav-item'))
+        .filter((e) => e.matches('button.nav-item'))
         .indexOf(element.value!);
     }
   }
@@ -53,10 +53,8 @@
     ref="element"
     v-bind="$attrs"
     @click="() => (active = index)"
-    :class="{
-      'nav-item': true,
-      active: index == active,
-    }"
+    class="nav-item special"
+    :class="{ active: index == active }"
   >
     <div class="icon">
       <Icon :icon="icon" />

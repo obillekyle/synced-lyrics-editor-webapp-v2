@@ -7,7 +7,10 @@
     watchEffect,
     onMounted,
     onBeforeUnmount,
+    computed,
   } from 'vue';
+  import type { ScrollToFN } from '../helper';
+  import Edit from '@/components/screens/edit.vue';
 
   const Editor = inject<Ref<HTMLDivElement | null>>('Editor')!;
   const char = inject<Ref<number>>('char')!;
@@ -16,12 +19,13 @@
   const rootDimensions =
     inject<Ref<{ width: number; height: number }>>('rootDimensions')!;
   const scrollWidth = inject<Ref<number>>('scrollWidth')!;
-  const scrollTo =
-    inject<(pos: { x?: number; y?: number }) => void>('scrollTo')!;
+  const charHeight = inject<Ref<number>>('charHeight')!;
+  const scrollTo = inject<ScrollToFN>('scrollTo')!;
 
   const thumbSize = ref(0);
   const thumbOffset = ref(0);
   const dragging = ref(false);
+  const thumb = ref<HTMLElement | null>(null);
 
   function setThumbVals() {
     const element = Editor.value!;
@@ -37,13 +41,11 @@
     const root = Editor.value!;
     if (dragging.value && root) {
       const rRect = root.getBoundingClientRect();
-      const thumbSizePX = thumbSize.value * rRect.width;
-
-      const x = event.clientX - rRect.left;
-      const offset = (x / rRect.width) * root.scrollWidth - thumbSizePX / 1.5;
+      const thumbWidth = thumb.value!.getBoundingClientRect().width;
+      const x = event.clientX - rRect.left - thumbWidth / 2;
+      const offset = (x / rRect.width) * root.scrollWidth;
+      document.body.style.pointerEvents = 'none';
       scrollTo({ x: offset });
-
-      console.log(x, event.clientX, offset);
     }
   }
 
@@ -53,9 +55,8 @@
 
   function handleMouseUp() {
     dragging.value = false;
+    document.body.style.pointerEvents = 'auto';
   }
-
-  watchEffect(setThumbVals);
 
   watch(rootDimensions, setThumbVals);
   watch(scrollWidth, setThumbVals);
@@ -73,6 +74,7 @@
   onBeforeUnmount(() => {
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('mouseleave', handleMouseUp);
   });
 </script>
 
@@ -81,11 +83,12 @@
     class="scrollbar-horizontal"
     v-if="thumbSize < 0.99"
     @mousedown="handleMouseDown"
+    :style="{
+      '--thumb-size': thumbSize,
+      '--thumb-offset': thumbOffset,
+    }"
   >
-    <div
-      class="thumb"
-      :style="{ '--thumb-size': thumbSize, '--thumb-offset': thumbOffset }"
-    />
+    <div class="thumb" :class="{ dragging }" ref="thumb" />
   </div>
 </template>
 
@@ -107,6 +110,10 @@
       width: calc(var(--thumb-size) * 100%);
       opacity: 0;
       transition: opacity 0.3s ease;
+      &.dragging {
+        opacity: 1;
+        background: #ccc;
+      }
     }
   }
 </style>
