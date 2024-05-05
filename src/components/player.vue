@@ -1,8 +1,14 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
-  import { Icon } from '@iconify/vue';
-  import { throttler } from '@/api/util';
+
+  import type { OptionsArgs } from '@/api/options';
   import type MusicService from '@/api/service';
+  import { throttler } from '@/api/util';
+  import { i18n } from '@/app/i18n';
+  import { Icon } from '@iconify/vue';
+
+  import Divider from './divider.vue';
+  import I18nString from './elements/i18n-string.vue';
   import iconButton from './elements/icon-button.vue';
   import {
     getKeybinds,
@@ -10,13 +16,13 @@
     processKey,
   } from './keybinds/keys';
   import floatingKeybind from './keybinds/main.vue';
-  import Seeker from './seeker.vue';
   import _presets from './modals/_presets';
-  import Divider from './divider.vue';
+  import Seeker from './seeker.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
   const Keybinds = getKeybinds();
+  const Option = window.app.options;
 
   const time = ref(0);
   const shown = ref(false);
@@ -25,6 +31,7 @@
   const playing = ref(!Player.paused);
   const picture = ref(Player.picture);
   const metadata = ref(Player.getDetails());
+  const showKeyBinds = ref(false);
 
   const playPause = () => (playing.value = !Player.paused);
   function onMusicUpdate(this: MusicService): void {
@@ -82,6 +89,12 @@
     processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
   }
 
+  function handleOptionsChange(...args: OptionsArgs) {
+    if (args[0] == 'modified' && args[1].key == 'showKeyBinds') {
+      showKeyBinds.value = Option.get('showKeyBinds', false);
+    }
+  }
+
   onMounted(() => {
     onMusicUpdate.call(Player);
     Player.addEventListener('play', playPause);
@@ -90,6 +103,7 @@
     Player.addEventListener('musicupdated', onMusicUpdate);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('keydown', handleKeyDown);
+    Option.addEventListener('event', handleOptionsChange);
   });
 
   onUnmounted(() => {
@@ -99,6 +113,7 @@
     Player.removeEventListener('musicupdated', onMusicUpdate);
     window.removeEventListener('keyup', handleKeyUp);
     window.removeEventListener('keydown', handleKeyDown);
+    Option.removeEventListener('event', handleOptionsChange);
   });
 </script>
 
@@ -106,14 +121,14 @@
   <div class="app-player">
     <div class="main-panel">
       <Seeker />
-      <floating-keybind />
+      <floating-keybind v-if="showKeyBinds" />
 
       <div class="controls">
         <icon-button
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(-5)"
           id="seek-backward"
-          title="Seek Backward"
+          title=""
           icon="material-symbols:fast-rewind"
         />
         <button
@@ -122,7 +137,7 @@
           :onclick="() => Player.playPause()"
           class="icon-button play-button"
           id="play-button"
-          title="Play/Pause"
+          :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
           type="button"
         >
           <div class="wrapper">
@@ -151,9 +166,13 @@
         <img :src="picture?.data || '/assets/dummy.svg'" alt="Album art" />
 
         <div class="details">
-          <div class="title">{{ metadata?.title || 'No Audio' }}</div>
+          <div class="title">
+            <I18nString entry="PLAYER_NO_AUDIO" v-if="!metadata?.title" />
+            <span v-else>{{ metadata.title }}</span>
+          </div>
           <span class="artist">
-            {{ metadata?.artist || 'No Artist' }}
+            <I18nString entry="PLAYER_NO_ARTIST" v-if="!metadata?.artist" />
+            <span v-else>{{ metadata.artist }}</span>
             <span>
               {{ metadata?.album && ' • ' }}
               {{ metadata?.album }}

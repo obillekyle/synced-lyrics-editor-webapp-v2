@@ -1,10 +1,14 @@
-import { $, openFilePicker } from "@/api/util";
+import {
+  $,
+  openFilePicker,
+} from '@/api/util';
 
-import Settings from "./settings.vue";
-import changelogScreen from "./changelogScreen.vue";
+import Settings from './settings.vue';
+import changelogScreen from './changelogScreen.vue';
 import downloadScreen from './download.vue';
-import keyBindsGuide from "../keybinds/guide.vue";
-import loadLyrics from "./loadLyrics.vue";
+import { i18n } from '@/app/i18n';
+import keyBindsGuide from '../keybinds/guide.vue';
+import loadLyrics from './loadLyrics.vue';
 
 function download() {
   const player = window.app.player;
@@ -14,15 +18,15 @@ function download() {
   modals.open({
     icon: 'material-symbols:download',
     id: 'download',
-    title: 'Download',
+    title: i18n('DOWNLOAD'),
     content: downloadScreen,
     actions: [
       {
-        text: 'Cancel',
+        text: i18n('CANCEL'),
         onClick: ({ close }) => close(),
       },
       {
-        text: 'Download',
+        text: i18n('DOWNLOAD'),
         onClick: ({ close }) => {
           const data = player.getDetails();
           data.artist = data.artist ? data.artist + ' - ' : '';
@@ -54,11 +58,11 @@ function changelog() {
   modals.open({
     icon: 'material-symbols:book-2-outline',
     id: 'changelog',
-    title: 'Changelog',
+    title: i18n('CHANGELOG'),
     content: changelogScreen,
     actions: [
       {
-        text: 'Do not show again',
+        text: i18n('DO_NOT_SHOW_AGAIN'),
         role: 'secondary',
         onClick: ({ close }) => {
           options.set("showChangeLog", false);
@@ -66,7 +70,7 @@ function changelog() {
         },
       },
       {
-        text: 'OK',
+        text: i18n('CLOSE'),
         onClick: ({ close }) => close(),
       }
     ]
@@ -137,7 +141,7 @@ function uploadNewLrc() {
     content: "Old lyrics will be overwritten",
     actions: [
       {
-        text: "Continue, do not show again",
+        text: `${i18n('OK')}, ${i18n('DO_NOT_SHOW_AGAIN')}`,
         role: "secondary",
         onClick: ({ close }) => {
           options.set("bypassLrcWarn", true);
@@ -146,13 +150,13 @@ function uploadNewLrc() {
         }
       },
       {
-        text: "Cancel",
+        text: i18n('CANCEL'),
         onClick: ({ close }) => {
           close();
         }
       },
       {
-        text: "OK",
+        text: i18n('OK'),
         onClick: ({ close }) => {
           openLRCPicker();
           close();
@@ -172,7 +176,7 @@ function showKeyBinds() {
     content: keyBindsGuide,
     actions: [
       {
-        text: "OK",
+        text: i18n('CLOSE'),
         onClick: ({ close }) => close(),
       }
     ],

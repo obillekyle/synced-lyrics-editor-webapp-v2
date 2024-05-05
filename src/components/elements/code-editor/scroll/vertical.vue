@@ -101,8 +101,8 @@
   .scrollbar-vertical {
     position: absolute;
     width: var(--scrollbar-size);
+    bottom: var(--statusbar-size);
     right: 0;
-    bottom: 0;
     top: 0;
     overflow: hidden;
     user-select: none;

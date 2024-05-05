@@ -1,17 +1,20 @@
 <script setup lang="ts">
   import './input.scss';
-  import { Icon } from '@iconify/vue/dist/iconify.js';
+
   import {
     type Component,
     type InputHTMLAttributes,
-    type Ref,
     onMounted,
     ref,
-    watch,
+    type Ref,
     useAttrs,
+    watch,
   } from 'vue';
-  import InputIcon from './input-icon.vue';
+
+  import { Icon } from '@iconify/vue/dist/iconify.js';
+
   import Counter from './counter.vue';
+  import InputIcon from './input-icon.vue';
   import NumberArrows from './number-arrows.vue';
 
   interface InputText extends /** @vue-ignore */ InputHTMLAttributes {
@@ -51,6 +54,11 @@
     model.value = props.modelValue?.value
       ? props.modelValue?.value
       : props.defaultValue ?? 0;
+  });
+
+  defineExpose({
+    value: model,
+    input: input,
   });
 </script>
 

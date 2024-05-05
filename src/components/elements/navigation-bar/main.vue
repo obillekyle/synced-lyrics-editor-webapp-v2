@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { provide, type HTMLAttributes, type Ref, ref } from 'vue';
+  import { type HTMLAttributes, provide, ref, type Ref } from 'vue';
 
   interface NavigationBarProps extends /* @vue-ignore */ HTMLAttributes {
     active: Ref<number>;
@@ -8,7 +8,7 @@
   defineProps<NavigationBarProps>();
   const count = ref(0);
   const parent = ref<HTMLDivElement | null>(null);
-  const model = defineModel<number>('active', {
+  const model = defineModel('active', {
     default: 0,
   });
 
@@ -50,6 +50,7 @@
         display: grid;
         position: relative;
         overflow: hidden;
+        justify-self: center;
         place-items: center;
         width: 48px;
         height: 28px;
@@ -76,6 +77,9 @@
       .name {
         font-size: var(--font-xs);
         font-weight: 500;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
       }
       * {
         pointer-events: none;

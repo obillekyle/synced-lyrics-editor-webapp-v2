@@ -1,9 +1,19 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
-  import presets from './modals/_presets';
+
+  import Button from './elements/button/button.vue';
+  import I18nString from './elements/i18n-string.vue';
   import IconButton from './elements/icon-button.vue';
-  import InputText from './elements/input/text.vue';
   import InputNumber from './elements/input/number.vue';
+  import InputText from './elements/input/text.vue';
+  import presets from './modals/_presets';
+
+  const screenNames = {
+    edit: 'APP_EDIT',
+    timing: 'APP_TIMING',
+    lyric: 'APP_LYRIC',
+    debug: 'DEBUG',
+  };
 
   const screen = window.app.screen;
   const current = ref(screen.current);
@@ -19,41 +29,11 @@
   onUnmounted(() => {
     screen.removeEventListener('screenchange', handleChange);
   });
-
-  const items = [
-    {
-      name: 'Edit',
-      icon: 'material-symbols:edit-outline',
-    },
-    {
-      name: 'Timing',
-      icon: 'material-symbols:hourglass-outline',
-    },
-    {
-      name: 'Preview',
-      icon: 'material-symbols:note-outline',
-    },
-  ];
-
-  const screens: (typeof current.value)[] = ['edit', 'timing', 'lyric'];
-
-  function getCurrentIndex() {
-    return screens.indexOf(current.value);
-  }
-
-  function setValue(index: number) {
-    screen.set(screens[index]);
-  }
 </script>
 
 <template>
   <header :data-screen="current" class="app-header">
-    <InputText
-      left-icon="material-symbols:artist-outline"
-      defaultValue="Lyric"
-      maxlength="16"
-    />
-    <InputNumber placeholder="Lyrics Offset" :defaultValue="0" max="16" />
+    <I18nString :entry="screenNames[current]" element="h3" />
     <div class="actions">
       <IconButton
         :onclick="presets.uploadNewLrc"
@@ -84,15 +64,15 @@
     user-select: none;
 
     &[data-screen='lyric'] {
+      color: white;
       --app-header-color: transparent;
       border-bottom-color: transparent;
     }
 
-    &:has(.app-logo:hover, .settings:hover) {
-      .settings {
-        margin-left: 0;
-        rotate: 360deg;
-      }
+    h3 {
+      font-weight: 600;
+      font-size: var(--font-lg);
+      margin-left: var(--sm);
     }
 
     .actions {

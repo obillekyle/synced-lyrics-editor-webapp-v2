@@ -1,10 +1,10 @@
-.content-editable .highlight {
+body .content-editable .highlight {
   .tag {
     .key {
-      color: rgb(141, 255, 249);
+      color: rgb(0, 151, 238);
     }
     .value {
-      color: #ffd151;
+      color: #8f6900;
     }
   }
   .bracket {
@@ -13,17 +13,38 @@
 
   .lrc-line {
     .time {
-      color: rgb(129, 248, 155);
+      color: #009e28;
     }
   }
 
   .invalid {
-    color: #ffa238;
+    color: red;
     background-image: url('/assets/wavy.svg');
     background-repeat: repeat-x;
     background-position: bottom;
     background-size: 16px 9px;
     background-position-y: calc(var(--char-height) - 9px);
     background-position-x: 0;
+  }
+}
+
+body.dark .content-editable .highlight {
+  .tag {
+    .key {
+      color: rgb(141, 255, 249);
+    }
+    .value {
+      color: #ffd151;
+    }
+  }
+
+  .lrc-line {
+    .time {
+      color: #81f89b;
+    }
+  }
+
+  .invalid {
+    color: #ffa238;
   }
 }

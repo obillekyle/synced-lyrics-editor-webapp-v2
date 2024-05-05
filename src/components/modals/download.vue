@@ -1,6 +1,8 @@
 <script setup lang="ts">
   import { ref } from 'vue';
 
+  import I18nString from '../elements/i18n-string.vue';
+
   const Player = window.app.player;
   const presets = ref([true, true, true]);
   const fileName = ref(getPreset(presets.value));
@@ -55,23 +57,32 @@
 
 <template>
   <div class="button-group mode" :data-mode="activeMode">
-    <button class="chip-button" :onclick="() => changeMode(0)">Presets</button>
-    <button class="chip-button" :onclick="() => changeMode(1)">Custom</button>
+    <I18nString
+      entry="PRESETS"
+      class="chip-button"
+      :onclick="() => changeMode(0)"
+    />
+    <I18nString
+      entry="BUILDER"
+      class="chip-button"
+      :onclick="() => changeMode(1)"
+    />
   </div>
 
   <div class="button-group preset">
-    <button
+    <I18nString
+      element="button"
       :class="['chip-button', presets[0] && 'active']"
       :onclick="() => togglePreset(0)"
-    >
-      Artist
-    </button>
-    <button
+      entry="PLAYER_ARTIST"
+    />
+
+    <I18nString
+      element="button"
+      entry="PLAYER_AUDIO_TITLE"
       :class="['chip-button', presets[1] && 'active']"
       :onclick="() => togglePreset(0)"
-    >
-      Title
-    </button>
+    />
     <button
       :class="['chip-button', presets[2] && 'active']"
       :onclick="() => togglePreset(2)"

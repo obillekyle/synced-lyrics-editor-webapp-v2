@@ -1,3 +1,22 @@
+### **May 5, 2024**
+
+**v2.0.5**: Languages
+
+**Changes:**
+
+<ins>v2.0.4b ... v2.0.5</ins>
+
+- App: Added loading screen
+- App: Added debug mode
+- App: Bump version code (6)
+- Layout: Removed unused elements
+- Settings: Add theme toggle
+- Settings: Add debug toggle
+- Settings: Add language selector
+- Editor: Added statusbar
+- Editor: Performance improvements
+- Editor: Removed debug floater
+
 ### **April 22, 2024**
 
 **v2.0.4b**: Hotfix v2

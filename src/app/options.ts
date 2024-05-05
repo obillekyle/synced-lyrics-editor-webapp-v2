@@ -1,5 +1,6 @@
-import Options from "@/api/options";
-import { defaultKeys } from "@/components/keybinds/keys";
+import Options from '@/api/options';
+import type { Screens } from './types';
+import { defaultKeys } from '@/components/keybinds/keys';
 
 type AppOptions = {
   bypassLrcWarn?: boolean,
@@ -7,7 +8,11 @@ type AppOptions = {
   lastVersion?: string,
   version: number,
   showChangeLog: boolean
-  screen: "edit" | "timing" | "lyric",
+  showKeybinds: boolean
+  screen: Screens,
+  debug: boolean,
+  lang: string,
+  theme: 'light' | 'dark',
   keybinds: typeof defaultKeys
 }
 
@@ -33,6 +38,10 @@ function update() {
   if (version < 2) {
     options.unset("lastVersion");
     options.set("keybinds", defaultKeys);
+    options.set("showKeyBinds", true);
+  }
+
+  if (version < 6) {
   }
 }
 

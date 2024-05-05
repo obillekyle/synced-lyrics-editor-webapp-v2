@@ -1,6 +1,8 @@
-import type { Component } from "vue";
+import type { Component, ComponentInternalInstance } from "vue";
+
 import { CustomEventHandler } from "./event";
-import { evaluate, type MaybeFunction } from "./util";
+import { evaluate } from "./util/object";
+import { getParent } from "./util/dom";
 
 export type ModalEvents = 'updated';
 export type ModalKey = number | string
@@ -86,5 +88,14 @@ class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
     return this.modals[id];
   }
 }
+
+export function getModalID(instance: ComponentInternalInstance): string | number | undefined {
+  const elem = getParent(instance.proxy?.$el, '.modal')
+
+  if (elem) {
+    return elem.id
+  }
+}
+
 
 export default ModalService

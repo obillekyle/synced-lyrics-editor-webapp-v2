@@ -14,14 +14,14 @@
     meta: false,
   });
 
-  const update = useToggle();
+  const update = ref(false);
+  const onUpdate = () => (update.value = !update.value);
   const screen = ref(Screen.current);
 
   const binds = KeyboardGuides();
 
   function setScreen() {
     screen.value = Screen.current;
-    update.toggle();
   }
 
   function matches(special?: [boolean, boolean, boolean, boolean]) {
@@ -53,7 +53,7 @@
   onMounted(() => {
     const app = $('#app')!;
 
-    app.addEventListener('click', update.toggle);
+    app.addEventListener('click', onUpdate);
     app.addEventListener('keydown', onKey);
     app.addEventListener('keyup', onKey);
     Screen.addEventListener('screenchange', setScreen);
@@ -62,7 +62,7 @@
   onUnmounted(() => {
     const app = $('#app')!;
 
-    app.removeEventListener('click', update.toggle);
+    app.removeEventListener('click', onUpdate);
     app.removeEventListener('keydown', onKey);
     app.removeEventListener('keyup', onKey);
     Screen.removeEventListener('screenchange', setScreen);

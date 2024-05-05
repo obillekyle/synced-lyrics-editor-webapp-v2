@@ -1,8 +1,10 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
+
+  import debugScreen from './debug.vue';
   import editScreen from './edit.vue';
-  import timingScreen from './timing.vue';
   import previewScreen from './lyric.vue';
+  import timingScreen from './timing.vue';
 
   const screen = window.app.screen;
   const options = window.app.options;
@@ -24,25 +26,20 @@
 </script>
 
 <template>
-  <div
-    v-if="activeScreen == 'edit'"
-    class="app-main-content"
-  >
+  <div v-if="activeScreen == 'edit'" class="app-main-content">
     <edit-screen />
   </div>
 
-  <div
-    v-if="activeScreen == 'timing'"
-    class="app-main-content"
-  >
+  <div v-if="activeScreen == 'timing'" class="app-main-content">
     <timing-screen />
   </div>
 
-  <div
-    v-if="activeScreen == 'lyric'"
-    class="app-main-content"
-  >
+  <div v-if="activeScreen == 'lyric'" class="app-main-content">
     <preview-screen />
+  </div>
+
+  <div v-if="activeScreen == 'debug'" class="app-main-content">
+    <debug-screen />
   </div>
 </template>
 
@@ -50,7 +47,7 @@
   .app-main-content {
     padding-block: 40dvh;
 
-    &:has(.edit-screen) {
+    &:has(.edit-screen, .debug-screen) {
       padding-block: 0;
       padding: var(--md);
     }

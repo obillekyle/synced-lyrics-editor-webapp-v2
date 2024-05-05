@@ -1,8 +1,10 @@
 <script setup lang="ts">
-  import { onMounted, ref, inject, type Ref } from 'vue';
-  import type { LineItem, EditorSelection } from '../helper';
-  import LineEntry from './line-entry.vue';
+  import { inject, onMounted, ref, type Ref } from 'vue';
+
   import { inRange } from '@/api/util';
+
+  import type { EditorSelection, LineItem } from '../helper';
+  import LineEntry from './line-entry.vue';
 
   const height = inject<Ref<number>>('charHeight')!;
   const lines = inject<Ref<LineItem[]>>('lines')!;
@@ -52,3 +54,34 @@
     />
   </div>
 </template>
+
+<style lang="scss">
+  .selection {
+    top: 0;
+    position: absolute;
+    pointer-events: none;
+    color: transparent;
+
+    > .select {
+      display: flex;
+      flex-wrap: nowrap;
+      position: absolute;
+      white-space: pre;
+
+      > span {
+        display: flex;
+        flex-wrap: nowrap;
+        height: 100%;
+
+        span {
+          display: inline-block;
+          height: 100%;
+        }
+      }
+
+      span.selected {
+        background: var(--color-700-20);
+      }
+    }
+  }
+</style>

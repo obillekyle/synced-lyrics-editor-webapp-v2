@@ -1,23 +1,21 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
   import { $, throttler } from '@/api/util';
-  import { onMounted, onUnmounted, reactive, ref } from 'vue';
+  import { onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue';
   import animatedScroll from 'animated-scroll-to';
   import playingIndicator from '../playing-indicator.vue';
 
   const Player = window.app.player;
   const Lyrics = window.app.lyric;
 
-  const lyrics = reactive(Lyrics.getJSON());
+  const lyrics = shallowRef(Lyrics.getJSON());
   const bypass = ref(false);
 
   const previewPane = ref<HTMLElement | null>(null);
   const currentIndex = ref(-1);
 
   const lrcChange = () => {
-    const newObj = Lyrics.getJSON();
-    lyrics.lines = newObj.lines;
-    lyrics.tags = newObj.tags;
+    lyrics.value = Lyrics.getJSON();
   };
 
   function handleCurrentIndex(this: MusicService) {
@@ -64,6 +62,7 @@
   };
 
   onMounted(() => {
+    lrcChange();
     Lyrics.addEventListener('lrc-updated', lrcChange);
     Player.addEventListener('timeupdate', handleCurrentIndex);
     Player.addEventListener('musicupdated', resetIndex);

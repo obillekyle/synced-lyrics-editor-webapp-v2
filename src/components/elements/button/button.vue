@@ -1,0 +1,92 @@
+<script setup lang="ts">
+  import { type ButtonHTMLAttributes, type Component } from 'vue';
+
+  import { type AppSizes, getCSSValue } from '@/api/util';
+
+  import ButtonIcon from './button-icon.vue';
+
+  interface ButtonProps extends /* @vue-ignore */ ButtonHTMLAttributes {
+    leftIcon?: string | Component;
+    rightIcon?: string | Component;
+    radius?: AppSizes | 'rounded' | String | number;
+    variant?: 'filled' | 'outline' | 'transparent' | 'subtle';
+    label?: string;
+  }
+
+  withDefaults(defineProps<ButtonProps>(), {
+    radius: 'rounded',
+  });
+
+  defineOptions({
+    name: 'Button',
+    inheritAttrs: false,
+  });
+</script>
+
+<template>
+  <button
+    v-bind="$attrs"
+    class="button"
+    :class="variant"
+    type="button"
+    :style="`--radius: ${getCSSValue(radius.toString())};`"
+  >
+    <ButtonIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
+    <div class="label">
+      <slot>{{ label }}</slot>
+    </div>
+    <ButtonIcon v-if="rightIcon" class="right-icon" :icon="rightIcon" />
+  </button>
+</template>
+
+<style lang="scss" scoped>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: var(--radius);
+    gap: var(--sm);
+    border: none;
+    font: inherit;
+    font-weight: 600;
+    color: var(--color-100);
+    background: var(--color-700);
+    padding: var(--sm) var(--md);
+    transition: opacity 0.2s;
+
+    .button-icon {
+      display: grid;
+      place-items: center;
+    }
+
+    &:active {
+      opacity: 0.8;
+    }
+
+    &:not(:disabled) {
+      cursor: pointer;
+    }
+
+    &.outline,
+    &.transparent,
+    &.subtle {
+      color: var(--color-800);
+    }
+
+    &.outline {
+      background: none;
+      border: 1px solid var(--color-800-30);
+    }
+
+    &.subtle {
+      background: var(--color-400-10);
+    }
+
+    &.transparent {
+      background: none;
+      &:hover {
+        background: var(--color-400-10);
+      }
+    }
+  }
+</style>

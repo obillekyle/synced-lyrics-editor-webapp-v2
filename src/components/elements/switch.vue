@@ -1,6 +1,8 @@
 <script setup lang="ts">
-  import { ref, type InputHTMLAttributes } from 'vue';
+  import { type InputHTMLAttributes, ref } from 'vue';
+
   import { addPX, evaluate } from '@/api/util';
+
   import { as } from '../keybinds/keys';
 
   interface SwitchProps extends /* @vue-ignore */ InputHTMLAttributes {
@@ -23,12 +25,7 @@
 <template>
   <div
     class="switch-wrapper"
-    @click="
-      (e) => {
-        e.stopPropagation();
-        inputRef?.click();
-      }
-    "
+    @click="() => inputRef?.click()"
     :style="`--size: ${addPX(size)}`"
   >
     <input

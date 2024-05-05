@@ -1,15 +1,18 @@
 <script setup lang="ts">
   import './input.scss';
-  import { Icon } from '@iconify/vue/dist/iconify.js';
+
   import {
     type Component,
     type InputHTMLAttributes,
-    type Ref,
     onMounted,
     ref,
+    type Ref,
   } from 'vue';
-  import InputIcon from './input-icon.vue';
+
+  import { Icon } from '@iconify/vue/dist/iconify.js';
+
   import Counter from './counter.vue';
+  import InputIcon from './input-icon.vue';
 
   interface InputText extends /** @vue-ignore */ InputHTMLAttributes {
     leftIcon?: string | Component;
@@ -28,6 +31,11 @@
     model.value = props.modelValue?.value
       ? props.modelValue?.value
       : props.defaultValue || '';
+  });
+
+  defineExpose({
+    value: model,
+    input: input,
   });
 </script>
 

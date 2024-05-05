@@ -314,7 +314,7 @@
       height: 112px;
       overflow: hidden;
       align-content: center;
-      border-radius: var(--sm);
+
       column-gap: var(--sm);
       padding-inline: var(--sm);
 
@@ -325,7 +325,7 @@
         position: absolute;
         content: '';
         inset: 0;
-        z-index: 0;
+        z-index: -1;
         background-color: transparent;
         transition: background-color 0.2s;
       }
@@ -370,7 +370,12 @@
         }
       }
 
-      & + .lrc-line {
+      &:is(:first-child):is(:last-child) {
+        border-radius: var(--sm);
+        border: 1px solid var(--color-800-10) !important;
+      }
+
+      &:not(.active) + .lrc-line {
         border-top: 1px solid var(--color-800-10);
       }
 
@@ -380,6 +385,7 @@
         width: clamp(200px, 100%, 100%);
         white-space: pre-wrap;
         text-wrap: balance;
+        border: none;
 
         grid-area: data;
         &:empty::after {
@@ -393,6 +399,7 @@
       }
 
       &.active {
+        border-radius: var(--sm);
         grid-template-areas:
           'edit time timing'
           'edit data timing';

@@ -98,7 +98,7 @@
     height: var(--scrollbar-size);
     right: var(--scrollbar-size);
     left: var(--number-width);
-    bottom: 0;
+    bottom: var(--statusbar-size);
     overflow: hidden;
     user-select: none;
 

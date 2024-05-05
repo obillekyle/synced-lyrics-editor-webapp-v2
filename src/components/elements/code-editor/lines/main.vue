@@ -1,13 +1,6 @@
 <script setup lang="ts">
   import { computed, inject, onMounted, onUnmounted, ref, type Ref } from 'vue';
-  import {
-    type LineItem,
-    type EditorSelection,
-    type TextDimensionsFn,
-    isKeyboardKey,
-    type ScrollToFN,
-  } from '../helper';
-  import lineEntry from './line-entry.vue';
+
   import {
     addPX,
     clamp,
@@ -16,6 +9,15 @@
     removeInterval,
     throttler,
   } from '@/api/util';
+
+  import {
+    type EditorSelection,
+    isKeyboardKey,
+    type LineItem,
+    type ScrollToFN,
+    type TextDimensionsFn,
+  } from '../helper';
+  import lineEntry from './line-entry.vue';
 
   const lines = inject<Ref<LineItem[]>>('lines')!;
   const line = inject<Ref<number>>('line')!;
@@ -274,7 +276,7 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
   .tooltip {
     position: fixed;
     left: -100dvw;
@@ -282,5 +284,51 @@
     border: 1px solid #333;
     padding: var(--xs) var(--sm);
     transition: opacity 0.3s ease;
+  }
+
+  .content {
+    position: relative;
+    top: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    background: transparent;
+
+    min-width: 100%;
+    height: var(--lines-height);
+    margin-top: var(--char-height);
+
+    caret-color: white;
+    white-space: nowrap;
+
+    .line-special,
+    > .line {
+      position: absolute;
+      min-height: var(--char-height);
+      min-width: 100%;
+      width: var(--width);
+    }
+
+    .line-special {
+      top: calc(var(--cursor-line) * var(--char-height));
+      box-shadow: 0 0 0 2px inset #ccc1;
+      pointer-events: none;
+    }
+
+    > .line {
+      white-space: pre;
+      .hovering {
+        background-color: #00aeff44;
+        border-radius: 3px;
+      }
+    }
+  }
+
+  .highlight,
+  .content {
+    border: none;
+    resize: none;
+    outline: none;
   }
 </style>

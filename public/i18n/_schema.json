@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "required": ["language", "strings"],
+  "properties": {
+    "language": {
+      "type": "string"
+    },
+    "strings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ALPHA": {
+          "type": "string"
+        },
+        "BETA": {
+          "type": "string"
+        },
+        "DEBUG": {
+          "type": "string"
+        },
+        "SETTINGS": {
+          "type": "string"
+        },
+        "APP_EDIT": {
+          "type": "string"
+        },
+        "APP_TIMING": {
+          "type": "string"
+        },
+        "APP_LYRIC": {
+          "type": "string"
+        },
+        "PLAYER_NO_AUDIO": {
+          "type": "string"
+        },
+        "PLAYER_NO_ARTIST": {
+          "type": "string"
+        },
+        "PLAYER_PLAY": {
+          "type": "string"
+        },
+        "PLAYER_STOP": {
+          "type": "string"
+        },
+        "PLAYER_PAUSE": {
+          "type": "string"
+        },
+        "PLAYER_FORWARD": {
+          "type": "string"
+        },
+        "PLAYER_BACKWARD": {
+          "type": "string"
+        },
+        "PLAYER_REPEAT": {
+          "type": "string"
+        },
+        "PLAYER_ARTIST": {
+          "type": "string"
+        },
+        "PLAYER_AUDIO_TITLE": {
+          "type": "string"
+        },
+        "UPLOAD_AUDIO": {
+          "type": "string"
+        },
+        "UPLOAD_LRC": {
+          "type": "string"
+        },
+        "AUDIO_RESET": {
+          "type": "string"
+        },
+        "DOWNLOAD": {
+          "type": "string"
+        },
+        "PRESETS": {
+          "type": "string"
+        },
+        "BUILDER": {
+          "type": "string"
+        },
+        "ABOUT": {
+          "type": "string"
+        },
+        "EMPTY": {
+          "type": "string"
+        },
+        "ADD": {
+          "type": "string"
+        },
+        "DELETE": {
+          "type": "string"
+        },
+        "EDIT": {
+          "type": "string"
+        },
+        "SAVE": {
+          "type": "string"
+        },
+        "CANCEL": {
+          "type": "string"
+        },
+        "OK": {
+          "type": "string"
+        },
+        "CLOSE": {
+          "type": "string"
+        },
+        "CHANGELOG": {
+          "type": "string"
+        },
+        "DO_NOT_SHOW_AGAIN": {
+          "type": "string"
+        },
+        "LOADING": {
+          "type": "string"
+        },
+        "ERROR": {
+          "type": "string"
+        },
+        "SYNC_TAGS": {
+          "type": "string"
+        },
+        "TIMING_PLAY_FROM_FOCUSED": {
+          "type": "string"
+        },
+        "TIMING_EMPTY_TIP": {
+          "type": "string"
+        },
+        "TIMING_SET_NOW": {
+          "type": "string"
+        },
+        "SETTINGS_GENERAL": {
+          "type": "string"
+        },
+        "SETTINGS_LANG": {
+          "type": "string"
+        },
+        "SETTINGS_MISC": {
+          "type": "string"
+        },
+        "YES": {
+          "type": "string"
+        },
+        "NO": {
+          "type": "string"
+        },
+        "VIEW_SOURCE": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

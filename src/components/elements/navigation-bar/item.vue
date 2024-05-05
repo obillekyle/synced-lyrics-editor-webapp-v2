@@ -1,18 +1,19 @@
 <script setup lang="ts">
   import {
-    ref,
-    watch,
+    type ButtonHTMLAttributes,
     inject,
     onMounted,
-    type Ref,
-    type ButtonHTMLAttributes,
     onUnmounted,
+    ref,
+    type Ref,
+    watch,
   } from 'vue';
+
   import { Icon } from '@iconify/vue';
 
   interface NavigationItemProps
     extends /** @vue-ignore */ ButtonHTMLAttributes {
-    name: string;
+    name?: string;
     icon: string;
   }
 
@@ -59,6 +60,8 @@
     <div class="icon">
       <Icon :icon="icon" />
     </div>
-    <div class="name">{{ name }}</div>
+    <div class="name">
+      <slot>{{ name }}</slot>
+    </div>
   </button>
 </template>

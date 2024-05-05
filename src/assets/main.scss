@@ -1,5 +1,4 @@
-html {
-  color-scheme: dark;
+body {
   font-family:
     'Roboto Flex',
     system-ui,
@@ -13,12 +12,11 @@ html {
     'Open Sans',
     'Helvetica Neue',
     sans-serif;
-
-  --background-body: #111111;
-  --background-secondary: #333333;
+  --background-body: #ffffff;
+  --background-secondary: #eeeeee;
+  --app-player-color: #eeeeee;
 
   --app-header-color: var(--background-body);
-  --app-player-color: #202020;
   --app-modal-color: var(--background-secondary);
 
   --app-header-height: 66px;
@@ -43,6 +41,12 @@ html {
   --album-color: rgb(255, 187, 187);
 }
 
+body.dark {
+  --background-body: #111111;
+  --background-secondary: #333333;
+  --app-player-color: #202020;
+}
+
 * {
   &::-webkit-scrollbar {
     background: url('/assets/arrow-up.svg'), url('/assets/arrow-down.svg');
@@ -53,6 +57,7 @@ html {
     background-clip: padding-box;
     background-size: 10px;
     width: 16px;
+    height: 8px;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -61,6 +66,9 @@ html {
     border-right: 4px solid transparent;
     background-clip: padding-box;
     border-radius: 6px;
+  }
+  &::-webkit-scrollbar-corner {
+    background-color: transparent;
   }
 
   &::-webkit-scrollbar-button {
@@ -95,6 +103,7 @@ body {
 
   background-color: var(--background-body);
   font-size: var(--font-md);
+  transform: translate(0, 0);
 }
 
 button {
@@ -105,6 +114,7 @@ button {
   display: block;
   background: none;
   outline: none;
+  color: var(--color-900, inherit);
   border: none;
   -webkit-tap-highlight-color: transparent;
 

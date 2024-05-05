@@ -1,17 +1,20 @@
-import { Buffer } from "buffer";
-import Clipboard from "./api/clipboard";
-import Colors from "@/api/colors";
-import LRCParser from "@/api/parser";
-import ModalService from "@/api/modals";
-import MusicService from "@/api/service";
-import Screen from "@/api/screen";
-import options from "@/app/options";
-import presets from "@/components/modals/_presets";
+import { Buffer } from 'buffer';
+import Clipboard from './api/clipboard';
+import Colors from '@/api/colors';
+import { I18N } from './api/i18n';
+import LRCParser from '@/api/parser';
+import ModalService from '@/api/modals';
+import MusicService from '@/api/service';
+import Screen from '@/api/screen';
+import type { Screens } from './app/types';
+import options from '@/app/options';
+import presets from '@/components/modals/_presets';
 import process from 'process';
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
 const appVerString = import.meta.env.VITE_VERSION ?? "unknown";
 const screen = new Screen(options.get("screen", "timing"));
+const lang = options.get("lang", "en");
 
 declare global {
   interface Window {
@@ -21,8 +24,9 @@ declare global {
       version_string: string
       player: MusicService
       lyric: LRCParser
+      i18n: I18N<string>
       clipboard: Clipboard
-      screen: Screen<"edit" | "timing" | "lyric">
+      screen: Screen<Screens>
       modals: ModalService
       options: typeof options
       presets: typeof presets,
@@ -41,6 +45,7 @@ window.app = {
   modals: new ModalService(),
   lyric: new LRCParser(),
   clipboard: new Clipboard(),
+  i18n: new I18N(lang),
 
   presets,
   screen,

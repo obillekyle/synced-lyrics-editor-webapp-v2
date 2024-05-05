@@ -1,34 +1,37 @@
 <script setup lang="ts">
   import {
-    ref,
-    type HTMLAttributes,
-    onMounted,
     computed,
-    watch,
-    provide,
+    type HTMLAttributes,
+    inject,
     onBeforeUnmount,
-    onUnmounted,
+    onMounted,
+    provide,
+    ref,
+    type Ref,
+    watch,
   } from 'vue';
-  import { getUnique, clamp, addPX, fixLineBreaks } from '@/api/util';
-  import debug from '../debug-view.vue';
+
   import AppClipboard from '@/api/clipboard';
+  import { addPX, clamp, fixLineBreaks, getUnique } from '@/api/util';
+
+  import debug from '../debug-view.vue';
   import {
     defaultFormatter,
-    linesToString,
-    stringToLines,
-    type LineItem,
     type EditorSelection,
     type HistoryItem,
+    type LineItem,
+    linesToString,
+    stringToLines,
   } from './helper';
-
-  import TextAreaComponent from './textarea/main.vue';
-  import SelectionComponent from './selection/main.vue';
   import LinesComponent from './lines/main.vue';
-  import InputHandler from './textarea/_input-handler.vue';
-  import SelectionHandler from './textarea/_selection-handler.vue';
-  import CompositionHandler from './textarea/_composition-handler.vue';
   import HorizontalScrollBar from './scroll/horizontal.vue';
   import VerticalScrollBar from './scroll/vertical.vue';
+  import SelectionComponent from './selection/main.vue';
+  import StatusBar from './status-bar.vue';
+  import CompositionHandler from './textarea/_composition-handler.vue';
+  import InputHandler from './textarea/_input-handler.vue';
+  import SelectionHandler from './textarea/_selection-handler.vue';
+  import TextAreaComponent from './textarea/main.vue';
 
   interface ContentEditableProps
     extends /* @vue-ignore */ Omit<HTMLAttributes, 'onChange' | 'disabled'> {
@@ -45,6 +48,7 @@
   const height = ref(0);
   const id = getUnique();
 
+  const statusBarSize = ref(22);
   const rootDimensions = ref({
     width: 0,
     height: 0,
@@ -100,16 +104,17 @@
     }
   }
 
-  const model = defineModel<string>({
-    required: true,
-  });
-
   const props = withDefaults(defineProps<ContentEditableProps>(), {
     disabled: false,
     spellcheck: false,
     formatter: defaultFormatter,
   });
 
+  const model = defineModel<string>({
+    required: true,
+  });
+
+  // #region Provide
   provide('formatter', props.formatter);
   provide('textDimensions', textDimensions);
   provide('rootDimensions', rootDimensions);
@@ -138,6 +143,9 @@
   provide('Selection', Selection);
   provide('Clipboard', Clipboard);
   provide('Editor', Editor);
+  // #endregion
+
+  const debugShow = inject<Ref<boolean>>('app-debug')!;
 
   function blurAndFocus(ignore: boolean = false) {
     const tElem = TextArea.value;
@@ -189,14 +197,6 @@
     scrollHeight.value = Editor.value.scrollTop;
   }
 
-  watch(line, () => {
-    if (!ignoreScroll.value) blurAndFocus();
-  });
-
-  watch(char, () => {
-    if (!ignoreScroll.value) blurAndFocus(true);
-  });
-
   function handleScrollWheel(event: WheelEvent) {
     const target = event.currentTarget as HTMLElement;
     if (event.ctrlKey) {
@@ -216,19 +216,17 @@
   }
 
   function getDimensions() {
-    const wrapper = Wrapper.value;
-    if (wrapper) {
-      const dimensions = wrapper.getBoundingClientRect();
-      rootDimensions.value = {
-        width: dimensions.width,
-        height: dimensions.height,
-      };
-    }
+    const wrapper = Wrapper.value!;
+
+    const dimensions = wrapper.getBoundingClientRect();
+    rootDimensions.value = {
+      width: dimensions.width,
+      height: dimensions.height,
+    };
   }
 
   function getCharDimensions() {
     const dimensions = textDimensions('A');
-    if (!dimensions) return;
 
     width.value = dimensions.width;
     height.value = dimensions.height;
@@ -241,10 +239,9 @@
     getCharDimensions();
     getDimensions();
 
-    lines.value = stringToLines(fixLineBreaks(model.value));
-
     editor.addEventListener('wheel', handleScrollWheel);
     observer.value = new ResizeObserver(getDimensions);
+    lines.value = stringToLines(fixLineBreaks(model.value));
 
     observer.value.observe(wrapper!);
   });
@@ -257,9 +254,9 @@
     observer.value?.disconnect();
   });
 
-  watch(fontSize, () => {
-    getCharDimensions();
-  });
+  watch(fontSize, () => getCharDimensions());
+  watch(line, () => !ignoreScroll.value && blurAndFocus());
+  watch(char, () => !ignoreScroll.value && blurAndFocus(true));
 
   watch(model, async (value, prev) => {
     const finalText = linesToString(lines.value);
@@ -279,6 +276,7 @@
 
 <template>
   <debug
+    :show="debugShow"
     :items="{
       char: char,
       line: line,
@@ -301,11 +299,12 @@
       '--char-width': addPX(width),
       '--char-height': addPX(height),
       '--char-offset': addPX(offset),
+      '--statusbar-size': addPX(statusBarSize),
       '--numbers-width': addPX((String(lines).length + 3) * width),
       '--lines-height': addPX(
-        (lines.length - 1) * height + rootDimensions.height
+        (lines.length - 1) * height + rootDimensions.height - statusBarSize
       ),
-      '--editor-height': addPX(rootDimensions.height),
+      '--editor-height': addPX(rootDimensions.height - statusBarSize),
       '--editor-width': addPX(rootDimensions.width),
       '--number-width': addPX((String(lines.length).length + 4) * width),
       '--scroll-height': addPX(scrollHeight),
@@ -314,7 +313,8 @@
     <div class="line-number">
       <div
         :key="id"
-        :class="['number', line == index && 'active']"
+        class="number"
+        :class="{ active: line == index }"
         v-for="({ id }, index) in lines"
       >
         {{ index + 1 }}
@@ -331,6 +331,7 @@
     </div>
     <HorizontalScrollBar />
     <VerticalScrollBar />
+    <StatusBar />
     <span class="char-dimensions" ref="TextDimensions" />
   </div>
 </template>
@@ -342,20 +343,20 @@
     overflow: hidden;
     user-select: none;
 
-    grid-template-columns: 6ch 1fr;
     padding-bottom: calc(var(--char-height) * 2);
     background: var(--background-body);
 
     --scrollbar-size: var(--md);
 
     .editor {
-      height: var(--editor-height);
-      width: calc(var(--editor-width) - var(--number-width));
       position: absolute;
       left: var(--number-width);
       top: 0;
-      scroll-behavior: auto;
 
+      height: var(--editor-height);
+      width: calc(var(--editor-width) - var(--number-width));
+
+      scroll-behavior: auto;
       overflow: hidden;
       cursor: text;
 
@@ -367,33 +368,8 @@
       }
     }
 
-    &:hover {
-      .thumb {
-        opacity: 1;
-      }
-    }
-
-    &:focus .content > .line.active::after {
+    &:hover .thumb {
       opacity: 1;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      49% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0;
-      }
-
-      99% {
-        opacity: 0;
-      }
-
-      100% {
-        opacity: 1;
-      }
     }
 
     .highlight,
@@ -406,40 +382,30 @@
       font-family: 'JetBrains Mono', Consolas, monospace;
     }
 
+    .status-bar {
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: 5;
+
+      display: flex;
+      align-items: center;
+      justify-content: right;
+      gap: var(--md);
+
+      font-size: var(--font-xs, 14px);
+
+      padding-inline: var(--sm);
+      height: var(--statusbar-size);
+
+      background: inherit;
+      border-top: 1px solid #7777;
+    }
+
     .char-dimensions {
       position: fixed;
       white-space: pre;
       pointer-events: none;
       opacity: 0;
-    }
-
-    .selection {
-      top: 0;
-      position: absolute;
-      pointer-events: none;
-      color: transparent;
-
-      > .select {
-        display: flex;
-        flex-wrap: nowrap;
-        position: absolute;
-        white-space: pre;
-
-        > span {
-          display: flex;
-          flex-wrap: nowrap;
-          height: 100%;
-
-          span {
-            display: inline-block;
-            height: 100%;
-          }
-        }
-
-        span.selected {
-          background: var(--color-700-20);
-        }
-      }
     }
 
     &:has(.selection.visible) {
@@ -448,83 +414,28 @@
       }
     }
 
-    .content {
-      margin-top: var(--char-height);
-      background: transparent;
-      caret-color: white;
-      white-space: nowrap;
-      min-width: 100%;
-      display: flex;
-      position: relative;
-
-      flex-direction: column;
-      height: var(--lines-height);
-
-      .line-special {
-        position: absolute;
-        top: calc(var(--cursor-line) * var(--char-height));
-        min-height: var(--char-height);
-        box-shadow: 0 0 0 2px inset #ccc1;
-        pointer-events: none;
-        min-width: 100%;
-        width: var(--width);
-      }
-
-      > .line {
-        position: absolute;
-        white-space: pre;
-        min-height: var(--char-height);
-        min-width: 100%;
-        width: var(--width);
-
-        .hovering {
-          background-color: #00aeff44;
-          border-radius: 3px;
-        }
-
-        &.active {
-          outline: 1px solid var(--color-700-20);
-
-          &::after {
-            content: '';
-            position: absolute;
-            width: 1px;
-            top: 0;
-            left: calc(var(--cursor-pos) * 1ch);
-            height: 100%;
-          }
-
-          &:empty::before {
-            content: '1';
-            color: transparent;
-          }
-        }
-      }
-    }
-
-    .highlight,
-    .content {
-      border: none;
-      resize: none;
-      outline: none;
-    }
-
     textarea {
       position: absolute;
-      font: inherit;
       left: var(--char-offset);
       top: calc((var(--cursor-line) + 1) * var(--char-height));
+
+      resize: none;
+      pointer-events: none;
+
+      display: block;
+      height: var(--char-height);
+      width: 2px;
+      min-width: 2px;
+
       outline: none;
       border: none;
-      pointer-events: none;
-      background: none;
-      resize: none;
-      width: 2px;
-      display: block;
-      min-width: 2px;
-      caret-color: transparent;
       border-left: 2px solid #888;
-      height: var(--char-height);
+
+      background: none;
+
+      font: inherit;
+      caret-color: transparent;
+
       animation: blink 1s infinite;
       &:not(:focus) {
         opacity: 0;
@@ -549,10 +460,12 @@
 
     .line-number {
       position: absolute;
-      text-align: right;
       top: calc((var(--scroll-height) - var(--char-height)) * -1);
-      width: var(--number-width);
       z-index: 2;
+
+      text-align: right;
+
+      width: var(--number-width);
 
       .number {
         opacity: 0.5;

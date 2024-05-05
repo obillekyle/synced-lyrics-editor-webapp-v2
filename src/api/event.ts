@@ -28,6 +28,13 @@ export class CustomEventHandler<Events extends string, Args extends any[] = any[
     }
   }
 
+  emit = this.dispatchEvent
+  on = this.addEventListener
+  listen = this.addEventListener
+  attach = this.addEventListener
+  detach = this.removeEventListener
+
+
   removeAllEvents() {
     this.events = {};
   }

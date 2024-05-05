@@ -5,14 +5,14 @@ import { CustomEventHandler } from "./event";
 type OptionsEvent =
   | 'event'
 
-type OptionsArgs =
+export type OptionsArgs =
   | ['added', { key: string, value: any }]
   | ['removed', { key: string, value: any }]
   | ['modified', { key: string, oldValue: any, newValue: any }]
   | ['loaded', undefined]
   | ['saved', undefined]
 
-type OptionsConfig<T> = {
+export type OptionsConfig<T> = {
   localSaving: boolean
   localKey: string
   defaultOptions: Partial<T>,

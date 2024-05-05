@@ -12,6 +12,7 @@
     display: grid;
     place-items: center;
     position: fixed;
+    text-transform: uppercase;
     font-weight: 600;
     font-size: var(--font-sm);
     left: -25px;

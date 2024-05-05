@@ -1,13 +1,17 @@
 <script setup lang="ts">
+  import { computed, ref } from 'vue';
+
+  import type { ModalActionsArgs } from '@/api/modals';
   import { $, evaluate, type MaybeFunction } from '@/api/util';
   import { Icon } from '@iconify/vue';
-  import { ref } from 'vue';
-  import Switch from '../elements/switch.vue';
-  import type { ModalActionsArgs } from '@/api/modals';
+
+  import I18nString from '../elements/i18n-string.vue';
   import IconButton from '../elements/icon-button.vue';
+  import Switch from '../elements/switch.vue';
   import _presets from './_presets';
 
   const Options = window.app.options;
+  const Lang = window.app.i18n;
 
   defineProps<{
     actions: ModalActionsArgs;
@@ -15,8 +19,17 @@
 
   const shown = ref(false);
   const active = ref('general');
+  const updateKey = ref(false);
+  const update = () => (updateKey.value = !updateKey.value);
   type Stringish = MaybeFunction<string>;
   type Booleanish = MaybeFunction<boolean>;
+
+  const langs: Record<string, string> = {
+    en: 'English',
+    zh: '简体中文',
+    ja: '日本語',
+    ko: '한국어',
+  };
 
   type SettingEntry =
     | {
@@ -56,110 +69,136 @@
     };
   };
 
-  const entries: SettingEntries = {
-    general: {
-      name: 'General',
-      items: [
-        {
-          type: 'switch',
-          name: 'Dark Mode',
-          icon: 'material-symbols:dark-mode-outline',
-          desc: 'Enable dark mode',
-          disabled: () => !('theme' in document.documentElement.style),
-          value: () => Options.get('darkMode', true),
-          onChange: (v) => Options.set('darkMode', v),
-        },
-        {
-          type: 'divider',
-          name: 'Keyboard',
-        },
-        {
-          type: 'switch',
-          name: 'Show Keybind Guide',
-          icon: 'material-symbols:keyboard-outline',
-          desc: 'Show the dynamic keybind guide on the bottom left of the screen',
-          value: () => Options.get('showKeyBinds'),
-          onChange: (v) => Options.set('showKeyBinds', v),
-        },
-        {
-          type: 'button',
-          name: 'View Key Bindings',
-          icon: 'material-symbols:open-in-new',
-          desc: 'View all keybindings',
-          onClick: () => _presets.showKeyBinds(),
-        },
-      ],
-    },
-    lang: {
-      name: 'Language',
-      items: [
-        {
-          type: 'divider',
-          name: 'Current language',
-        },
-        {
-          type: 'button',
-          name: 'English (US)',
-          icon: 'material-symbols:check',
-        },
-        {
-          type: 'divider',
-          name: 'Available languages',
-        },
-        {
-          type: 'button',
-          name: 'English (US)',
-          icon: 'material-symbols:check',
-        },
-      ],
-    },
-    misc: {
-      name: 'Miscellaneous',
-      items: [
-        {
-          type: 'switch',
-          name: 'Show Changelog',
-          icon: 'material-symbols:info-outline',
-          desc: () => {
-            return Options.get('showChangeLog')
-              ? 'Changelog is shown every time the app loads'
-              : 'Changelog is shown only once the app updates';
+  const entries = computed<SettingEntries>(() => {
+    updateKey.value;
+
+    return {
+      general: {
+        name: 'SETTINGS_GENERAL',
+        items: [
+          {
+            type: 'switch',
+            name: () =>
+              Options.get('theme', 'dark') == 'dark'
+                ? 'Dark Mode'
+                : 'Light Mode',
+            icon: () =>
+              Options.get('theme', 'dark') == 'dark'
+                ? 'material-symbols:dark-mode-outline'
+                : 'material-symbols:light-mode-outline',
+            desc: () =>
+              `Switch to ${Options.get('theme', 'dark') == 'dark' ? 'light' : 'dark'} mode`,
+            value: () => Options.get('theme', 'dark') == 'dark',
+            onChange: (v) => Options.set('theme', v ? 'dark' : 'light'),
           },
-          value: () => Options.get('showChangeLog'),
-          onChange: (v) => Options.set('showChangeLog', v),
-        },
-        {
-          type: 'divider',
-          name: 'App info',
-        },
-        {
-          type: 'info',
-          name: 'Version',
-          desc: () => `${window.app.version_string} (${window.app.version})`,
-        },
-        {
-          type: 'info',
-          name: 'Author',
-          desc: 'Kyle (@obillekyle)',
-        },
-        {
-          type: 'button',
-          name: 'View source',
-          icon: 'material-symbols:open-in-new',
-          desc: 'synced-lyrics-editor-webapp-v2',
-          onClick: () =>
-            window.open(
-              'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-              '_blank'
-            ),
-        },
-      ],
-    },
-  };
+          {
+            type: 'divider',
+            name: 'Keyboard',
+          },
+          {
+            type: 'switch',
+            name: 'Show Keybind Guide',
+            icon: 'material-symbols:keyboard-outline',
+            desc: 'Show the dynamic keybind guide on the bottom left of the screen',
+            value: () => Options.get('showKeyBinds'),
+            onChange: (v) => Options.set('showKeyBinds', !v),
+          },
+          {
+            type: 'button',
+            name: 'View Key Bindings',
+            icon: 'material-symbols:open-in-new',
+            desc: 'View all keybindings',
+            onClick: () => _presets.showKeyBinds(),
+          },
+        ],
+      },
+      lang: {
+        name: 'SETTINGS_LANG',
+        items: [
+          {
+            type: 'divider',
+            name: 'Current language',
+          },
+          {
+            type: 'button',
+            name: () => langs[Lang.lang] || 'English',
+            icon: 'material-symbols:check',
+          },
+          {
+            type: 'divider',
+            name: 'Available languages',
+          },
+          ...(Object.keys(langs).map((key) => ({
+            type: 'button',
+            name: langs[key],
+            icon:
+              key === Lang.lang
+                ? 'material-symbols:check'
+                : 'circle-flags:' + key,
+            onClick: () => Lang.set(key),
+          })) as SettingEntry[]),
+        ],
+      },
+      misc: {
+        name: 'SETTINGS_MISC',
+        items: [
+          {
+            type: 'switch',
+            name: 'Show Changelog',
+            icon: 'material-symbols:info-outline',
+            desc: () => {
+              return Options.get('showChangeLog')
+                ? 'Changelog is shown every time the app loads'
+                : 'Changelog is shown only once the app updates';
+            },
+            value: () => Options.get('showChangeLog'),
+            onChange: (v) => Options.set('showChangeLog', v),
+          },
+          {
+            type: 'switch',
+            name: 'Debug Mode',
+            icon: 'material-symbols:bug-report-outline',
+            desc: () => {
+              return Options.get('debug', false)
+                ? 'Debug mode is enabled'
+                : 'Debug mode is disabled';
+            },
+            value: () => Options.get('debug', false),
+            onChange: (v) => Options.set('debug', v),
+          },
+          {
+            type: 'divider',
+            name: 'App info',
+          },
+          {
+            type: 'info',
+            name: 'Version',
+            desc: () => `${window.app.version_string} (${window.app.version})`,
+          },
+          {
+            type: 'info',
+            name: 'Author',
+            desc: 'Kyle (@obillekyle)',
+          },
+          {
+            type: 'button',
+            name: 'View source',
+            icon: 'material-symbols:open-in-new',
+            desc: 'synced-lyrics-editor-webapp-v2',
+            onClick: () =>
+              window.open(
+                'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+                '_blank'
+              ),
+          },
+        ],
+      },
+    };
+  });
 </script>
 
 <template>
-  <div class="settings-wrapper" :shown="shown">
+  <div class="settings-wrapper" :shown="shown" @click="update">
     <header>
       <icon-button
         v-if="shown"
@@ -168,7 +207,7 @@
         @click="() => (shown = false)"
         title="Back"
       />
-      <div class="title">Settings</div>
+      <I18nString element="div" class="title" entry="SETTINGS" />
       <icon-button
         icon="material-symbols:close"
         @click="() => actions.close()"
@@ -178,9 +217,10 @@
 
     <div class="settings-panel">
       <div
+        class="entry"
         :key="name"
+        :class="{ active: name == active }"
         v-for="(item, name) in entries"
-        :class="['entry', name == active && 'active']"
         @click="
           () => {
             shown = true;
@@ -188,8 +228,8 @@
           }
         "
       >
-        <div class="name">{{ evaluate(item.name) }}</div>
-        <div class="desc">{{ evaluate(item.desc) }}</div>
+        <I18nString element="div" class="name" :entry="evaluate(item.name)" />
+        <I18nString element="div" class="desc" :entry="evaluate(item.desc)" />
       </div>
     </div>
 
@@ -326,6 +366,7 @@
       .switch-wrapper {
         margin-left: var(--sm);
         grid-area: switch;
+        pointer-events: none;
       }
     }
 
