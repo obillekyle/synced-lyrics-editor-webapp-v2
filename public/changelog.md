@@ -1,10 +1,10 @@
 ### **May 5, 2024**
 
-**v2.0.5**: Languages
+**v2.0.5a**: Languages
 
 **Changes:**
 
-<ins>v2.0.4b ... v2.0.5</ins>
+<ins>v2.0.4b ... v2.0.5a</ins>
 
 - App: Added loading screen
 - App: Added debug mode

@@ -1,4 +1,4 @@
-import { addPX } from "./css";
+import { addPX } from './css';
 
 export function $<T extends Element = HTMLElement>(selector: string, element?: Element | EventTarget | null): T | null {
   return (element as Element || document).querySelector(selector);
