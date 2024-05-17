@@ -1,3 +1,7 @@
+html {
+  touch-action: none;
+}
+
 body {
   font-family:
     'Roboto Flex',
@@ -16,7 +20,11 @@ body {
   --background-secondary: #eeeeee;
   --app-player-color: #eeeeee;
 
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+
   --app-header-color: var(--background-body);
+  --app-navbar-color: var(--background-secondary);
   --app-modal-color: var(--background-secondary);
 
   --app-header-height: 66px;
@@ -118,7 +126,7 @@ button {
   border: none;
   -webkit-tap-highlight-color: transparent;
 
-  > .wrapper {
+  > .icon-wrapper {
     display: grid;
     place-items: center;
     place-content: center;
@@ -133,13 +141,13 @@ button {
     }
   }
 
-  &:hover:not(:disabled) .wrapper {
+  &:hover:not(:disabled) .icon-wrapper {
     background-color: var(--color-600-20);
     cursor: pointer;
   }
 
   &:focus-visible {
-    .wrapper {
+    .icon-wrapper {
       outline: 2px dashed var(--color-600);
       background-color: var(--color-600-20);
     }
@@ -157,7 +165,7 @@ main {
 .ripple {
   position: absolute;
   border-radius: 999px;
-  transform: translate(-50%, -50%);
+  transform: translate(-4%, -4%);
   pointer-events: none;
   opacity: 0;
   scale: 0.2;
@@ -170,9 +178,11 @@ main {
   60% {
     opacity: 1;
     scale: 1.5;
+    transform: translate(-25%, -25%);
   }
   100% {
     opacity: 0;
     scale: 2;
+    transform: translate(-100%, -100%);
   }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
 
-  import type { OptionsArgs } from '@/api/options';
   import type MusicService from '@/api/service';
   import { throttler } from '@/api/util';
   import { i18n } from '@/app/i18n';
@@ -9,7 +8,7 @@
 
   import Divider from './divider.vue';
   import I18nString from './elements/i18n-string.vue';
-  import iconButton from './elements/icon-button.vue';
+  import iconButton from './elements/button/icon-button.vue';
   import {
     getKeybinds,
     keyHandlers as handlers,
@@ -18,6 +17,7 @@
   import floatingKeybind from './keybinds/main.vue';
   import _presets from './modals/_presets';
   import Seeker from './seeker.vue';
+  import MdProgress from './elements/md-progress.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -31,7 +31,7 @@
   const playing = ref(!Player.paused);
   const picture = ref(Player.picture);
   const metadata = ref(Player.getDetails());
-  const showKeyBinds = ref(false);
+  const showKeyBinds = ref(Option.get('showKeyBinds', false));
 
   const playPause = () => (playing.value = !Player.paused);
   function onMusicUpdate(this: MusicService): void {
@@ -66,7 +66,7 @@
   }
 
   function handleKeyUp(e: KeyboardEvent) {
-    if (Screen.current == 'timing') return;
+    if (Screen.current == 'edit' || Screen.current == 'timing') return;
 
     processKey(Keybinds.player.playPause, e, () => Player.playPause());
   }
@@ -89,21 +89,21 @@
     processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
   }
 
-  function handleOptionsChange(...args: OptionsArgs) {
-    if (args[0] == 'modified' && args[1].key == 'showKeyBinds') {
-      showKeyBinds.value = Option.get('showKeyBinds', false);
-    }
+  function updateShown() {
+    showKeyBinds.value = Option.get('showKeyBinds', false);
   }
 
   onMounted(() => {
     onMusicUpdate.call(Player);
+    updateShown();
+
     Player.addEventListener('play', playPause);
     Player.addEventListener('pause', playPause);
     Player.addEventListener('timeupdate', handleTimeUpdate);
     Player.addEventListener('musicupdated', onMusicUpdate);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('keydown', handleKeyDown);
-    Option.addEventListener('event', handleOptionsChange);
+    Option.addEventListener('event', updateShown);
   });
 
   onUnmounted(() => {
@@ -113,7 +113,7 @@
     Player.removeEventListener('musicupdated', onMusicUpdate);
     window.removeEventListener('keyup', handleKeyUp);
     window.removeEventListener('keydown', handleKeyDown);
-    Option.removeEventListener('event', handleOptionsChange);
+    Option.removeEventListener('event', updateShown);
   });
 </script>
 
@@ -131,7 +131,15 @@
           title=""
           icon="material-symbols:fast-rewind"
         />
+        <MdProgress
+          v-if="loading"
+          :stroke="4"
+          :value="Infinity"
+          :diameter="48"
+          class="play-button"
+        />
         <button
+          v-else
           :data-playing="playing ? 'true' : 'false'"
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.playPause()"
@@ -188,14 +196,14 @@
 
       <div class="actions">
         <icon-button
-          :onclick="() => Player.reset()"
+          @click="() => Player.reset()"
           :disabled="!isFinite(Player.duration)"
           id="reset-audio"
           title="Change Audio"
           icon="material-symbols:close"
         />
         <icon-button
-          :onclick="handlers.uploadAudio"
+          @click="handlers.uploadAudio"
           id="upload-music"
           title="Change Audio"
           icon="material-symbols:upload"
@@ -204,7 +212,7 @@
           id="repeat"
           title="Repeat / Loop"
           icon="material-symbols:repeat"
-          :onclick="() => setLoop()"
+          @click="() => setLoop()"
           :active="audioLoop"
         />
         <icon-button
@@ -360,11 +368,11 @@
           line-height: 1.5;
 
           .title {
-            font-weight: 600;
+            font-weight: 500;
             font-size: 16px;
           }
 
-          span {
+          .artist {
             color: gray;
           }
         }

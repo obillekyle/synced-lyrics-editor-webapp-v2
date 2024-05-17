@@ -1,12 +1,11 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import { inject, onMounted, onUnmounted, ref, type Ref } from 'vue';
 
-  import Button from './elements/button/button.vue';
   import I18nString from './elements/i18n-string.vue';
-  import IconButton from './elements/icon-button.vue';
-  import InputNumber from './elements/input/number.vue';
-  import InputText from './elements/input/text.vue';
+  import IconButton from './elements/button/icon-button.vue';
   import presets from './modals/_presets';
+  import Switch from './elements/switch.vue';
+  import Divider from './divider.vue';
 
   const screenNames = {
     edit: 'APP_EDIT',
@@ -17,17 +16,18 @@
 
   const screen = window.app.screen;
   const current = ref(screen.current);
+  const showTranslate = inject<Ref<boolean>>('showTranslate')!;
 
   function handleChange(value: typeof current.value) {
     current.value = value;
   }
 
   onMounted(() => {
-    screen.addEventListener('screenchange', handleChange);
+    screen.listen('screenchange', handleChange);
   });
 
   onUnmounted(() => {
-    screen.removeEventListener('screenchange', handleChange);
+    screen.detach('screenchange', handleChange);
   });
 </script>
 
@@ -35,6 +35,11 @@
   <header :data-screen="current" class="app-header">
     <I18nString :entry="screenNames[current]" element="h3" />
     <div class="actions">
+      <template v-if="current === 'lyric'">
+        <I18nString entry="TRANSLATE" fallback="Translate" />
+        <Switch v-model="showTranslate" title="Translate" />
+        <Divider direction="y" size="24" margin="none" />
+      </template>
       <IconButton
         :onclick="presets.uploadNewLrc"
         class="icon-button"
@@ -52,6 +57,9 @@
 </template>
 
 <style lang="scss">
+  body:has(.app-header[data-screen='lyric']) {
+    --app-header-color: transparent;
+  }
   .app-header {
     height: var(--app-header-height);
     padding-inline: var(--sm);
@@ -64,8 +72,6 @@
     user-select: none;
 
     &[data-screen='lyric'] {
-      color: white;
-      --app-header-color: transparent;
       border-bottom-color: transparent;
     }
 
@@ -78,9 +84,13 @@
     .actions {
       right: 0;
       position: absolute;
-      align-content: center;
+      align-items: center;
       display: flex;
       background-color: inherit;
+
+      .switch-wrapper {
+        margin-inline: 12px;
+      }
     }
   }
 </style>

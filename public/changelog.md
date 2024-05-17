@@ -1,3 +1,26 @@
+### **May 17, 2024**
+
+**v2.0.6a**: Translatable preview lyrics
+
+**Changes:**
+
+<ins>v2.0.5a ... v2.0.6a</ins>
+
+- App: Adjusted app colors
+- Preview: Added a translate toggle
+- Settings: Fixed entry toggles
+- Editor: Returned textarea as default editor, you can still use the code editor by toggling it in the settings -> miscellaneous -> experimental
+
+**Other:**
+
+- App: Bump version code (7)
+- App: Adjusted colors logic
+- URL: Added query parameters 'l' and 's'
+  - `l`: string = lyrics string
+  - `s`: number = screen id (0 = edit, 1 = timing, 2 = lyric, 3 = debug)
+- Element: Added new components 'MasterSwitch', 'ProgressSpinner', 'LineProgress', 'AwaitedText'
+- Element: New 'Navigation' label states 'hidden', 'always', 'active';
+
 ### **May 5, 2024**
 
 **v2.0.5a**: Languages

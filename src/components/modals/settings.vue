@@ -6,7 +6,7 @@
   import { Icon } from '@iconify/vue';
 
   import I18nString from '../elements/i18n-string.vue';
-  import IconButton from '../elements/icon-button.vue';
+  import IconButton from '../elements/button/icon-button.vue';
   import Switch from '../elements/switch.vue';
   import _presets from './_presets';
 
@@ -29,6 +29,7 @@
     zh: '简体中文',
     ja: '日本語',
     ko: '한국어',
+    ph: 'Filipino',
   };
 
   type SettingEntry =
@@ -101,7 +102,7 @@
             icon: 'material-symbols:keyboard-outline',
             desc: 'Show the dynamic keybind guide on the bottom left of the screen',
             value: () => Options.get('showKeyBinds'),
-            onChange: (v) => Options.set('showKeyBinds', !v),
+            onChange: (v) => Options.set('showKeyBinds', v),
           },
           {
             type: 'button',
@@ -168,6 +169,22 @@
           },
           {
             type: 'divider',
+            name: 'Experimental',
+          },
+          {
+            type: 'switch',
+            name: 'Enable Code Editor',
+            icon: 'material-symbols:code',
+            desc: () => {
+              return Options.get('experimentalCodeEditor', false)
+                ? 'Enabled'
+                : 'Disabled';
+            },
+            value: () => Options.get('experimentalCodeEditor', false),
+            onChange: (v) => Options.set('experimentalCodeEditor', v),
+          },
+          {
+            type: 'divider',
             name: 'App info',
           },
           {
@@ -228,62 +245,73 @@
           }
         "
       >
-        <I18nString element="div" class="name" :entry="evaluate(item.name)" />
-        <I18nString element="div" class="desc" :entry="evaluate(item.desc)" />
+        <I18nString
+          v-if="item.name"
+          element="div"
+          class="name"
+          :entry="evaluate(item.name)"
+        />
+        <I18nString
+          v-if="item.desc"
+          element="div"
+          class="desc"
+          :entry="evaluate(item.desc)"
+        />
       </div>
     </div>
+    <div class="constraint">
+      <div class="settings-screen">
+        <template v-for="(item, index) in entries[active].items">
+          <div
+            tabindex="0"
+            class="entry switch"
+            v-if="item.type == 'switch'"
+            :key="'switch-' + index"
+            @click="({ currentTarget }) => $('input', currentTarget)?.click()"
+          >
+            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+            <div class="name">{{ evaluate(item.name) }}</div>
+            <div class="desc">{{ evaluate(item.desc) }}</div>
 
-    <div class="settings-screen">
-      <template v-for="(item, index) in entries[active].items">
-        <div
-          tabindex="0"
-          class="entry switch"
-          v-if="item.type == 'switch'"
-          :key="'switch-' + index"
-          @click="({ currentTarget }) => $('input', currentTarget)?.click()"
-        >
-          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-          <div class="name">{{ evaluate(item.name) }}</div>
-          <div class="desc">{{ evaluate(item.desc) }}</div>
+            <Switch
+              :defaultChecked="evaluate(item.value)"
+              :disabled="evaluate(item.disabled)"
+              :change="item.onChange"
+            />
+          </div>
 
-          <Switch
-            :defaultChecked="evaluate(item.value)"
-            :disabled="evaluate(item.disabled)"
-            :change="item.onChange"
-          />
-        </div>
+          <div
+            tabindex="0"
+            class="entry info"
+            v-else-if="item.type == 'info'"
+            :key="'info-' + index"
+          >
+            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+            <div class="name">{{ evaluate(item.name) }}</div>
+            <div class="desc">{{ evaluate(item.desc) }}</div>
+          </div>
 
-        <div
-          tabindex="0"
-          class="entry info"
-          v-else-if="item.type == 'info'"
-          :key="'info-' + index"
-        >
-          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-          <div class="name">{{ evaluate(item.name) }}</div>
-          <div class="desc">{{ evaluate(item.desc) }}</div>
-        </div>
+          <div
+            tabindex="0"
+            class="entry button"
+            :key="'button-' + index"
+            v-else-if="item.type == 'button'"
+            @click="() => item.disabled || evaluate(item.onClick)()"
+          >
+            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+            <div class="name">{{ evaluate(item.name) }}</div>
+            <div class="desc">{{ evaluate(item.desc) }}</div>
+          </div>
 
-        <div
-          tabindex="0"
-          class="entry button"
-          :key="'button-' + index"
-          v-else-if="item.type == 'button'"
-          @click="() => item.disabled || evaluate(item.onClick)()"
-        >
-          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-          <div class="name">{{ evaluate(item.name) }}</div>
-          <div class="desc">{{ evaluate(item.desc) }}</div>
-        </div>
-
-        <div
-          class="entry-divider"
-          v-else-if="item.type == 'divider'"
-          :key="'divider-' + index"
-        >
-          <div class="name">{{ evaluate(item.name) }}</div>
-        </div>
-      </template>
+          <div
+            class="entry-divider"
+            v-else-if="item.type == 'divider'"
+            :key="'divider-' + index"
+          >
+            <div class="name">{{ evaluate(item.name) }}</div>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -298,9 +326,6 @@
       'header header'
       'panel screen';
     overflow: hidden;
-    inset: 0 0 0 0;
-    z-index: 100;
-
     header {
       padding-inline: var(--md);
       grid-area: header;
@@ -325,6 +350,10 @@
       }
     }
 
+    .constraint {
+      grid-area: screen;
+    }
+
     .entry {
       display: grid;
       padding: var(--lg) var(--md);
@@ -337,7 +366,7 @@
     }
 
     .settings-screen {
-      grid-area: screen;
+      max-width: 100%;
       .entry {
         align-items: center;
         grid-template-areas:
@@ -361,6 +390,7 @@
         color: var(--color-900);
         font-size: var(--font-sm);
         opacity: 0.8;
+        white-space: wrap;
       }
 
       .switch-wrapper {

@@ -26,26 +26,27 @@
 </script>
 
 <template>
-  <div v-if="activeScreen == 'edit'" class="app-main-content">
-    <edit-screen />
-  </div>
-
-  <div v-if="activeScreen == 'timing'" class="app-main-content">
-    <timing-screen />
-  </div>
-
-  <div v-if="activeScreen == 'lyric'" class="app-main-content">
-    <preview-screen />
-  </div>
-
-  <div v-if="activeScreen == 'debug'" class="app-main-content">
-    <debug-screen />
+  <div class="app-main-content">
+    <edit-screen v-if="activeScreen == 'edit'" />
+    <timing-screen v-if="activeScreen == 'timing'" />
+    <preview-screen v-if="activeScreen == 'lyric'" />
+    <debug-screen v-if="activeScreen == 'debug'" />
   </div>
 </template>
 
 <style lang="scss">
   .app-main-content {
     padding-block: 40dvh;
+    > * {
+      transform: translateY(48px);
+      animation: slide-up 0.15s forwards;
+    }
+
+    @keyframes slide-up {
+      100% {
+        transform: translateY(0);
+      }
+    }
 
     &:has(.edit-screen, .debug-screen) {
       padding-block: 0;

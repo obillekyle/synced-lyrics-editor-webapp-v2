@@ -1,5 +1,5 @@
 import Options from '@/api/options';
-import type { Screens } from './types';
+import type { Screens } from './main';
 import { defaultKeys } from '@/components/keybinds/keys';
 
 type AppOptions = {

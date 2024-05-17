@@ -1,7 +1,12 @@
 <script setup lang="ts">
-  defineProps<{
-    value: number;
-  }>();
+  withDefaults(
+    defineProps<{
+      value: number;
+    }>(),
+    {
+      value: Infinity,
+    }
+  );
 </script>
 
 <template>
@@ -16,11 +21,11 @@
     position: relative;
     width: 100%;
     height: var(--xs);
-    background: #7777;
+    background: var(--mono-100);
 
     .progress-bar {
       height: inherit;
-      background: var(--color-500);
+      background: var(--color-700);
       transition: width 0.2s;
       overflow: hidden;
     }
@@ -36,7 +41,7 @@
         top: 0;
         bottom: 0;
         height: inherit;
-        background: var(--color-500);
+        background: var(--color-700);
       }
 
       &::before {
@@ -52,10 +57,13 @@
 
           75% {
             width: 175%;
-            left: 100%;
+            left: 120%;
             opacity: 1;
           }
           76% {
+            opacity: 0;
+          }
+          77% {
             width: 40%;
             opacity: 0;
           }

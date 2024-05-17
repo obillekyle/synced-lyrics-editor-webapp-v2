@@ -7,8 +7,16 @@
   import type { ListItemType, SwipeOptions } from '../elements/list/types';
   import _presets from '../modals/_presets';
   import DebugListComp from './debug-list-comp.vue';
+  import MasterSwitch from '../elements/master-switch.vue';
+  import I18nString from '../elements/i18n-string.vue';
+  import MdProgress from '../elements/md-progress.vue';
+  import Switch from '../elements/switch.vue';
+  import Progress from '../elements/progress.vue';
+  import Slider from '../elements/slider.vue';
 
   const Lang = window.app.i18n;
+  const Option = window.app.options;
+  const Player = window.app.player;
 
   const langInput = ref<HTMLInputElement | null>(null);
 
@@ -49,6 +57,23 @@
 
 <template>
   <div class="debug-screen">
+    <MasterSwitch
+      :defaultChecked="Option.get('debug', false)"
+      :change="(value) => Option.set('debug', value)"
+    >
+      <I18nString entry="DEBUG" />
+    </MasterSwitch>
+
+    <MdProgress />
+    <Progress />
+
+    <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" />
+    <Slider
+      show-value
+      :default-value="Player.volume * 100"
+      :change="(v) => Player.setVolume(v)"
+    />
+
     <Button
       left-icon="material-symbols:settings-outline"
       right-icon="material-symbols:open-in-new"
@@ -89,6 +114,8 @@
         @click="() => Lang.set(langInput!.value || 'en')"
       />
     </div>
+
+    <Switch />
 
     <div class="special-wrapper">
       <List

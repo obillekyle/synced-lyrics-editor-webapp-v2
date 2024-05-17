@@ -2,7 +2,7 @@
   import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
 
   import I18nString from '../elements/i18n-string.vue';
-  import IconButton from '../elements/icon-button.vue';
+  import IconButton from '../elements/button/icon-button.vue';
   import NavigationContent from '../elements/navigation-bar/content.vue';
   import NavigationEntry from '../elements/navigation-bar/entry.vue';
   import NavigationItem from '../elements/navigation-bar/item.vue';
@@ -38,7 +38,7 @@
 </script>
 
 <template>
-  <NavigationBar v-model:active="screenIndex">
+  <NavigationBar v-model:active="screenIndex" labels="active">
     <NavigationContent>
       <AppLogo />
     </NavigationContent>

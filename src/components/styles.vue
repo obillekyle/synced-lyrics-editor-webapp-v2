@@ -1,49 +1,66 @@
 <script setup lang="ts">
   import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
+  import ColorsObj from '@/api/colors';
 
   const Colors = window.app.colors;
   const Player = window.app.player;
   const theme = inject<Ref<string>>('app-theme')!;
   const styleElem = ref('');
 
-  function setStyle() {
-    let value = 'html {\n';
+  function getShades(colors: typeof Colors, prefix = 'color') {
+    const values: Record<string, string> = {};
 
     if (theme.value == 'dark') {
-      for (let i = 0; i < 10; i++) {
-        const index = i === 0 ? 5 : i * 10;
+      for (let i = 0; i < 12; i++) {
+        const index = i === 1 ? 5 : i === 0 ? 0 : (i - 1) * 10;
         const shade = index * 10;
-        value += `  --color-${shade}: ${Colors.shade(index).hexa()};\n`;
+        values[prefix + '-' + shade] = colors.shade(index).hexa();
 
         for (let j = 0; j < 9; j++) {
-          const color = Colors.shade(index, (j + 1) * 0.1).hexa();
-          value += `  --color-${shade}-${(j + 1) * 10}: ${color};\n`;
+          const color = colors.shade(index, (j + 1) * 0.1).hexa();
+          values[prefix + '-' + shade + '-' + (j + 1) * 10] = color;
         }
       }
     } else {
-      for (let i = 0; i < 10; i++) {
-        const index = i === 9 ? 95 : (i + 1) * 10;
-        const shade = (index - 100) * -10;
-        console.log(shade, index);
-        value += `  --color-${shade}: ${Colors.shade(index).hexa()};\n`;
+      for (let i = 0; i < 12; i++) {
+        const index = i === 10 ? 95 : i === 11 ? 100 : i * 10;
+        const shade = Math.abs((index - 100) * -10);
+        values[prefix + '-' + shade] = colors.shade(index).hexa();
 
         for (let j = 0; j < 9; j++) {
-          const color = Colors.shade(index, (j + 1) * 0.1).hexa();
-          value += `  --color-${shade}-${(j + 1) * 10}: ${color};\n`;
+          const color = colors.shade(index, (j + 1) * 0.1).hexa();
+          values[prefix + '-' + shade + '-' + (j + 1) * 10] = color;
         }
       }
     }
+    return values;
+  }
 
-    value += '  --color-primary: var(--color-500);\n';
-    value += '  --album-color: var(--color-primary);\n';
-    value += `  --album-image: url('${Player.picture?.data}');\n`;
-    value += `  --album-blur: url('${Player.picture?.blur}');\n`;
-    value += `  color-scheme: ${theme.value};\n`;
-    value += '}\n';
+  function setStyle() {
+    const values: Record<string, string> = {};
+
+    let value = '';
+
+    Object.assign(values, {
+      'color-primary': 'var(--color-500)',
+      'album-color': 'var(--color-primary)',
+      'album-image': `url('${Player.picture?.data || ''}')`,
+      'album-blur': `url('${Player.picture?.blur || ''}')`,
+    });
+
+    Object.assign(values, getShades(Colors));
+    Object.assign(values, getShades(new ColorsObj('#000000'), 'mono'));
+
+    for (const key in values) {
+      value += `  --${key}: ${values[key]};\n`;
+    }
 
     document.body.classList.toggle('dark', theme.value != 'light');
 
-    styleElem.value = value;
+    styleElem.value = `html {
+      ${value}
+      color-scheme: ${theme.value};
+    }`;
   }
 
   onMounted(() => {

@@ -1,19 +1,37 @@
 <script setup lang="ts">
-  import { type InputHTMLAttributes, ref } from 'vue';
-
+  import {
+    type InputHTMLAttributes,
+    ref,
+    onMounted,
+    watch,
+    onBeforeMount,
+  } from 'vue';
   import { addPX, evaluate } from '@/api/util';
-
-  import { as } from '../keybinds/keys';
 
   interface SwitchProps extends /* @vue-ignore */ InputHTMLAttributes {
     size?: number | string;
     change?: (v: boolean) => any;
+    defaultChecked?: boolean;
   }
 
   const inputRef = ref<HTMLInputElement | null>(null);
+  const model = defineModel<boolean | undefined>({
+    default: undefined,
+  });
 
-  withDefaults(defineProps<SwitchProps>(), {
+  const props = withDefaults(defineProps<SwitchProps>(), {
     size: 24,
+  });
+
+  function handleClick() {
+    const element = inputRef.value!;
+    if (element.disabled) return;
+    model.value = !model.value;
+    evaluate(props.change, model.value);
+  }
+
+  onMounted(() => {
+    model.value ??= props.defaultChecked ?? false;
   });
 
   defineOptions({
@@ -31,23 +49,24 @@
     <input
       type="checkbox"
       v-bind="$attrs"
+      v-model="model"
       ref="inputRef"
-      @change="
-        (e) => evaluate(change, as<HTMLInputElement>(e.currentTarget)?.checked)
-      "
+      @click="handleClick"
     />
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .switch-wrapper {
     position: relative;
     display: inline-block;
     width: calc(var(--size) * 1.8);
     height: var(--size);
     border-radius: var(--size);
-    background-color: var(--color-600-10);
-    box-shadow: 0 0 0 2px var(--color-600-50);
+    background-color: var(--mono-100);
+    box-shadow:
+      0 0 0 2px var(--mono-500),
+      0 0 8px #0004;
 
     input {
       display: none;
@@ -62,19 +81,19 @@
     scale: 0.6;
     width: var(--size);
     height: var(--size);
-    background-color: var(--color-600-50);
+    background-color: var(--mono-500);
     border-radius: var(--size);
     transition: all 0.15s ease;
   }
 
   .switch-wrapper:has(input:checked) {
-    background-color: var(--color-900);
-    box-shadow: 0 0 0 2px var(--color-900);
+    background-color: var(--color-800);
+    box-shadow: 0 0 0 2px var(--color-800);
 
     &::after {
       scale: 0.85;
       left: calc(var(--size) * 0.8);
-      background-color: var(--color-300);
+      background-color: var(--color-400);
     }
   }
 

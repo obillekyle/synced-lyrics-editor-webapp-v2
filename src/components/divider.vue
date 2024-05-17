@@ -1,16 +1,17 @@
 <script setup lang="ts">
-  import { reactive } from "vue";
+  import { addPX, getCSSValue } from '@/api/util';
+  import { reactive } from 'vue';
 
   withDefaults(
     defineProps<{
-      direction: "x" | "y";
+      direction: 'x' | 'y';
       size?: number | string;
-      margin?: "sm" | "md" | "lg" | "xl" | String;
+      margin?: 'sm' | 'md' | 'lg' | 'xl' | String;
     }>(),
     {
-      direction: "x",
-      margin: "md",
-      size: "100%"
+      direction: 'x',
+      margin: 'md',
+      size: '100%',
     }
   );
 </script>
@@ -19,11 +20,11 @@
   <div
     :class="{
       divider: true,
-      [direction]: true
+      [direction]: true,
     }"
     :style="{
-      '--size': typeof size == 'number' ? size + 'px' : size,
-      '--margin': `var(--${margin})`
+      '--size': addPX(size),
+      '--margin': getCSSValue(margin),
     }"
   />
 </template>

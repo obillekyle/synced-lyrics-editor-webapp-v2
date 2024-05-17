@@ -53,6 +53,14 @@
     background: var(--color-700);
     padding: var(--sm) var(--md);
     transition: opacity 0.2s;
+    box-shadow: 0 2px 6px #0005;
+    transition:
+      filter 0.2s,
+      background-color 0.2s;
+
+    &:hover {
+      filter: brightness(1.2);
+    }
 
     .button-icon {
       display: grid;
@@ -71,10 +79,10 @@
     &.transparent,
     &.subtle {
       color: var(--color-800);
+      box-shadow: none;
     }
 
     &.outline {
-      background: none;
       border: 1px solid var(--color-800-30);
     }
 
@@ -82,7 +90,8 @@
       background: var(--color-400-10);
     }
 
-    &.transparent {
+    &.transparent,
+    &.outline {
       background: none;
       &:hover {
         background: var(--color-400-10);

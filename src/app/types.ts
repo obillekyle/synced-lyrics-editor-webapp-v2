@@ -1,1 +1,0 @@
-export type Screens = "edit" | "timing" | "lyric" | "debug";

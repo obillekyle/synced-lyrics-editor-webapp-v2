@@ -6,11 +6,11 @@
     type ReservedProps,
   } from 'vue';
   import { rippleEffect } from '@/api/util';
-  import { as } from '../keybinds/keys';
+  import { as } from '../../keybinds/keys';
 
   interface IconButtonProps extends /* @vue-ignore */ ButtonHTMLAttributes {
     icon: string;
-    div?: HTMLAttributes & ReservedProps;
+    wrapper?: HTMLAttributes & ReservedProps;
     size?: number;
   }
 
@@ -30,7 +30,7 @@
     v-bind="$attrs"
     :type="as<any>($attrs.type || 'button')"
   >
-    <div class="wrapper" v-bind="div" :onclick="rippleEffect">
+    <div class="icon-wrapper" v-bind="wrapper" :onclick="rippleEffect">
       <Icon :icon="icon" :width="size" />
     </div>
   </button>

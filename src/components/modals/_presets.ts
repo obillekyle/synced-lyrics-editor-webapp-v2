@@ -9,6 +9,7 @@ import downloadScreen from './download.vue';
 import { i18n } from '@/app/i18n';
 import keyBindsGuide from '../keybinds/guide.vue';
 import loadLyrics from './loadLyrics.vue';
+import { h } from 'vue';
 
 function download() {
   const player = window.app.player;
@@ -108,6 +109,34 @@ function useAudioLRC() {
   })
 }
 
+function useQueryLRC(lrc: string) {
+  const lyrics = window.app.lyric;
+  const modals = window.app.modals;
+
+
+  modals.open({
+    icon: 'material-symbols:queue-music',
+    id: "useQueryLRC",
+    title: "Lyrics found",
+    content: h(loadLyrics, { lrc }),
+    actions: [
+      {
+        text: "No",
+        onClick: ({ close }) => {
+          close();
+        },
+      },
+      {
+        text: "Yes",
+        onClick: ({ close }) => {
+          lyrics.parse(lrc);
+          close();
+        },
+      },
+    ],
+  })
+}
+
 function openLRCPicker() {
   const lyric = window.app.lyric;
 
@@ -200,6 +229,7 @@ export default {
   changelog,
   download,
   useAudioLRC,
+  useQueryLRC,
   openLRCPicker,
   openSettings,
   uploadNewLrc,

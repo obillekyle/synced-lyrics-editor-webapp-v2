@@ -2,7 +2,7 @@
   import { $, clamp } from '@/api/util';
   import { type LRCArgs } from '@/api/parser';
   import { onMounted, onUnmounted, ref, markRaw } from 'vue';
-  import iconButton from '../elements/icon-button.vue';
+  import iconButton from '../elements/button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
@@ -111,6 +111,7 @@
   function saveValue(index: number) {
     const element = $<HTMLInputElement>(`.lrc-line.active .data`);
     const value = element?.value ?? '';
+    toggleEdit();
 
     Lyrics.updateLine(index, { data: value, type: 'single' });
   }
@@ -152,15 +153,12 @@
     if (edit.value) {
       switch (e.key) {
         case 'Enter':
-          saveValue(index);
           $('#app')?.focus();
-          toggleEdit();
+          saveValue(index);
           break;
       }
       return;
     }
-
-    e.preventDefault();
 
     if (index == -1) {
       processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine);
@@ -218,27 +216,28 @@
       :key="index"
       :data-index="index"
       @click="setFocus(index)"
+      class="lrc-line"
       :class="{
-        'lrc-line': true,
         active: focus == index,
         edit,
       }"
       v-for="({ data, time }, index) in lyrics.lines"
     >
-      <div class="time" :onclick="() => (Player.currentTime = time / 1000)">
+      <div class="time" @click="() => (Player.currentTime = time / 1000)">
         {{ Lyrics.timeToString(time) }}
       </div>
-      <div
-        v-if="focus == index"
-        class="edit-icon-container"
-        @click="toggleEdit"
-      >
+      <div v-if="focus == index" class="edit-icon-container">
         <icon-button
-          title="edit"
-          :onclick="() => edit && saveValue(index)"
-          :icon="
-            edit ? 'material-symbols:done' : 'material-symbols:edit-outline'
-          "
+          v-show="edit"
+          title="Save"
+          icon="material-symbols:done"
+          @click="() => saveValue(index)"
+        />
+        <icon-button
+          v-show="!edit"
+          title="Edit"
+          @click="toggleEdit"
+          icon="material-symbols:edit-outline"
         />
       </div>
 
@@ -418,9 +417,6 @@
           outline: none;
           align-self: self-start;
           border-radius: calc(var(--sm) / 2);
-          &[contenteditable] {
-            outline: 1px solid var(--color-600-20);
-          }
           &:focus-visible {
             box-shadow: 0 0 0 2px var(--color-600-20);
           }

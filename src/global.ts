@@ -6,10 +6,10 @@ import LRCParser from '@/api/parser';
 import ModalService from '@/api/modals';
 import MusicService from '@/api/service';
 import Screen from '@/api/screen';
-import type { Screens } from './app/types';
 import options from '@/app/options';
 import presets from '@/components/modals/_presets';
 import process from 'process';
+import type { Screens } from './app/main';
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
 const appVerString = import.meta.env.VITE_VERSION ?? "unknown";
@@ -64,11 +64,3 @@ window.addEventListener('beforeunload', (e) => {
 
 window.Buffer = Buffer;
 window.process = process;
-
-window.addEventListener('pointerdown', () => {
-  document.body.classList.remove('no-touch')
-})
-
-window.addEventListener('pointerup', () => {
-  document.body.classList.add('no-touch')
-})

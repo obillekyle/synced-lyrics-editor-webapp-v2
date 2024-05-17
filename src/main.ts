@@ -12,7 +12,6 @@ createApp(App).mount('#app');
 const Options = window.app.options;
 const Lang = window.app.i18n;
 
-
 function init() {
   if (Options.get("showChangeLog")) {
     modalPresets.changelog();
@@ -21,6 +20,15 @@ function init() {
   if (Options.get("version") !== window.app.version) {
     Options.set("version", window.app.version);
     modalPresets.changelog();
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const lyrics = urlParams.get('l');
+  const screen = urlParams.get('s');
+
+  if (lyrics) {
+    modalPresets.useQueryLRC(lyrics);
+    window.history.replaceState({}, document.title, "/");
   }
 
   Lang.removeEventListener('ready', init);

@@ -3,6 +3,7 @@ import * as music from "music-metadata-browser";
 import { FastAverageColor } from 'fast-average-color'
 import type { IAudioMetadata } from "music-metadata-browser";
 import Image from "image-js";
+import { clamp } from "./util";
 
 const fac = new FastAverageColor();
 
@@ -29,7 +30,7 @@ const updatedEvent = new CustomEvent("musicupdated", { bubbles: false })
 const seekedEvent = new CustomEvent("seeked", { bubbles: false })
 
 
-class MusicService extends HTMLAudioElement {
+class MusicService extends Audio {
 
   constructor()
   constructor(file: File, opts?: AudioOptions)
@@ -106,6 +107,16 @@ class MusicService extends HTMLAudioElement {
       this.paused ? this.play() : this.pause();
   }
 
+  setVolume(volume: number) {
+    if (volume === 0) {
+      this.muted = true
+      return;
+    }
+
+    this.muted = false
+    this.volume = clamp(volume / 100, 0.01, 100)
+  }
+
   fastSeek(time: number): void {
     if (this.currentTime + time >= this.duration) {
       this.currentTime = this.duration
@@ -137,6 +148,8 @@ class MusicService extends HTMLAudioElement {
     }
     return imageData;
   }
+
+
 
   reset(ignore: boolean = false) {
     this.pause();

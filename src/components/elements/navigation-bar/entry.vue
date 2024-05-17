@@ -1,13 +1,5 @@
 <script setup lang="ts">
-  import {
-    type ButtonHTMLAttributes,
-    inject,
-    onMounted,
-    onUnmounted,
-    ref,
-    type Ref,
-    watch,
-  } from 'vue';
+  import { type ButtonHTMLAttributes } from 'vue';
 
   import { Icon } from '@iconify/vue';
 

@@ -22,6 +22,9 @@
         "SETTINGS": {
           "type": "string"
         },
+        "TRANSLATE": {
+          "type": "string"
+        },
         "APP_EDIT": {
           "type": "string"
         },

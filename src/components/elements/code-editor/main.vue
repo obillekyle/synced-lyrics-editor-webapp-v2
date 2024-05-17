@@ -23,15 +23,16 @@
     linesToString,
     stringToLines,
   } from './helper';
-  import LinesComponent from './lines/main.vue';
+  import LinesRenderer from './lines/main.vue';
   import HorizontalScrollBar from './scroll/horizontal.vue';
   import VerticalScrollBar from './scroll/vertical.vue';
-  import SelectionComponent from './selection/main.vue';
+  import SelectionRenderer from './selection/main.vue';
   import StatusBar from './status-bar.vue';
   import CompositionHandler from './textarea/_composition-handler.vue';
   import InputHandler from './textarea/_input-handler.vue';
   import SelectionHandler from './textarea/_selection-handler.vue';
   import TextAreaComponent from './textarea/main.vue';
+  import LineNumbers from './lines/line-numbers.vue';
 
   interface ContentEditableProps
     extends /* @vue-ignore */ Omit<HTMLAttributes, 'onChange' | 'disabled'> {
@@ -280,10 +281,11 @@
     :items="{
       char: char,
       line: line,
-      width: width,
-      height: height,
-      offset: offset,
-      scrollHeight: scrollHeight,
+      height: addPX(height),
+      width: addPX(width.toFixed(2)),
+      offset: addPX(offset.toFixed(2)),
+      scrollHeight: addPX(scrollHeight),
+      fontSize: addPX(fontSize),
       selection: selectRanges,
     }"
   />
@@ -310,23 +312,14 @@
       '--scroll-height': addPX(scrollHeight),
     }"
   >
-    <div class="line-number">
-      <div
-        :key="id"
-        class="number"
-        :class="{ active: line == index }"
-        v-for="({ id }, index) in lines"
-      >
-        {{ index + 1 }}
-      </div>
-    </div>
+    <LineNumbers />
     <div class="editor" ref="Editor">
-      <SelectionComponent />
-      <LinesComponent />
+      <SelectionRenderer />
+      <LinesRenderer />
       <TextAreaComponent />
 
-      <CompositionHandler />
       <InputHandler />
+      <CompositionHandler />
       <SelectionHandler />
     </div>
     <HorizontalScrollBar />

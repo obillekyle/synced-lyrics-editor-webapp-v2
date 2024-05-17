@@ -1,18 +1,32 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
   import { $, throttler } from '@/api/util';
-  import { onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue';
+  import {
+    type Ref,
+    inject,
+    onMounted,
+    onUnmounted,
+    reactive,
+    ref,
+    shallowRef,
+    Suspense,
+  } from 'vue';
   import animatedScroll from 'animated-scroll-to';
   import playingIndicator from '../playing-indicator.vue';
+  import { getTranslatedText } from '@/api/util/main';
+  import AwaitedText from '../elements/awaited-text.vue';
 
   const Player = window.app.player;
   const Lyrics = window.app.lyric;
+  const Lang = window.app.i18n;
 
   const lyrics = shallowRef(Lyrics.getJSON());
   const bypass = ref(false);
 
   const previewPane = ref<HTMLElement | null>(null);
   const currentIndex = ref(-1);
+  const showTranslate = inject<Ref<boolean>>('showTranslate')!;
+  const lang = Lang.lang;
 
   const lrcChange = () => {
     lyrics.value = Lyrics.getJSON();
@@ -97,7 +111,13 @@
         <playing-indicator />
       </div>
       <div class="data" v-else>
-        {{ data }}
+        <AwaitedText
+          v-if="showTranslate && data"
+          :text="getTranslatedText(data, lang)"
+          element="div"
+          class="translated"
+        />
+        <span>{{ data }}</span>
       </div>
     </div>
   </div>
@@ -105,7 +125,7 @@
 
 <style lang="scss">
   .preview-screen {
-    color: var(--color-600-20);
+    color: var(--color-900-20);
 
     &:empty::after {
       content: 'No lyric available';
@@ -129,6 +149,11 @@
         transition: all 0.3s;
         &:has(.playing-indicator) {
           scale: 1;
+        }
+
+        &:has(.translated) span {
+          font-size: 24px;
+          color: var(--mono-500);
         }
       }
 

@@ -1,5 +1,7 @@
 .modal {
+  width: inherit;
   .wrapper {
+    width: inherit;
     .chip-button {
       margin-right: var(--sm);
       padding: calc(var(--sm) / 2) var(--sm);

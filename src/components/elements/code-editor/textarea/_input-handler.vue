@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { inject, onBeforeUnmount, onMounted, type Ref } from 'vue';
+  import { inject, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
   import type AppClipboard from '@/api/clipboard';
   import {
     fixLineBreaks,
@@ -504,14 +504,14 @@
     const elem = event.currentTarget as HTMLTextAreaElement;
     const caret = clamp(char.value, 0, curr.text.length || 0);
 
-    if (isKeyboardKey(value) && !event.isComposing) {
+    if (!event.isComposing) {
       elem.value = '';
-      elem.style.removeProperty('--char-offset');
 
       const pairValue = getPair(value) || '';
 
       curr.text = insertAt(curr.text, caret, value + pairValue);
       char.value = caret + (pairValue ? 1 : value.length);
+
       blurAndFocus();
     }
   }

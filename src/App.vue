@@ -22,6 +22,7 @@
   const theme = ref('dark');
   const debug = ref(false);
   const ready = ref(false);
+  const showTranslate = ref(false);
 
   function onPlayerUpdate(this: MusicService) {
     Colors.set(Player.picture?.color || '#ccc');
@@ -46,6 +47,7 @@
   provide('app-screen', screen);
   provide('app-theme', theme);
   provide('app-debug', debug);
+  provide('showTranslate', showTranslate);
 
   onMounted(() => {
     langUpdate();
@@ -121,10 +123,10 @@
   #app:has([data-screen='lyric']) {
     background: linear-gradient(
         to bottom,
-        #00000080 -20%,
-        #000000d1 20%,
-        #000000f4 60%,
-        #000000 100%
+        var(--mono-100-40) -20%,
+        var(--mono-100-70) 20%,
+        var(--mono-100-90) 60%,
+        var(--mono-100) 100%
       ),
       var(--album-blur);
     background-size: cover;
@@ -138,6 +140,16 @@
     height: calc(100dvh - var(--app-header-height) - var(--app-player-height));
     width: calc(100dvw - var(--app-navbar-size));
     overflow: overlay;
+
+    &:has(.preview-screen) {
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        black 56px,
+        black calc(100% - 56px),
+        transparent 100%
+      );
+    }
   }
 
   .content-wrapper {

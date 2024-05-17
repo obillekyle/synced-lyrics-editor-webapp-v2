@@ -3,9 +3,12 @@
 
   interface NavigationBarProps extends /* @vue-ignore */ HTMLAttributes {
     active: Ref<number>;
+    labels?: 'hidden' | 'always' | 'active';
   }
 
-  defineProps<NavigationBarProps>();
+  withDefaults(defineProps<NavigationBarProps>(), {
+    labels: 'always',
+  });
   const count = ref(0);
   const parent = ref<HTMLDivElement | null>(null);
   const model = defineModel('active', {
@@ -17,7 +20,7 @@
   provide('count', count);
 </script>
 <template>
-  <div class="navigation-bar" ref="parent">
+  <div class="navigation-bar" :class="labels" ref="parent">
     <slot />
   </div>
 </template>
@@ -32,7 +35,7 @@
     top: 0;
     bottom: 0;
     width: var(--app-navbar-size, 88px);
-    background: var(--background-secondary);
+    background: var(--app-navbar-color);
     .nav-item {
       display: grid;
       font: inherit;
@@ -80,10 +83,26 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+        transform: translateY(0);
+        transition:
+          max-height 0.2s,
+          transform 0.2s,
+          opacity 0.2s;
       }
       * {
         pointer-events: none;
       }
+    }
+
+    &.hidden .nav-item,
+    &.active .nav-item {
+      margin-bottom: 0;
+    }
+
+    &.hidden .nav-item .name,
+    &.active .nav-item:not(.active) .name {
+      transform: translateY(50%);
+      opacity: 0;
     }
 
     .nav-item:active .icon > * {
@@ -115,9 +134,17 @@
       inset: auto 0 0 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+
+      &.hidden .nav-item .name,
+      &.active .nav-item:not(.active) .name {
+        opacity: 0;
+        max-height: 0px;
+      }
+
       .nav-item {
         margin-bottom: 0;
         .name {
+          max-height: 24px;
           font-size: var(--font-md);
         }
         .icon {
@@ -125,8 +152,14 @@
           height: 36px;
           width: 56px;
         }
-        &.active .icon::before {
-          width: 56px;
+
+        &.active {
+          .name {
+            opacity: 1;
+          }
+          .icon::before {
+            width: 56px;
+          }
         }
       }
 
