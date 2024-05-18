@@ -13,6 +13,7 @@
   import Switch from '../elements/switch.vue';
   import Progress from '../elements/progress.vue';
   import Slider from '../elements/slider.vue';
+  import Chip from '../elements/chip/chip.vue';
 
   const Lang = window.app.i18n;
   const Option = window.app.options;
@@ -53,6 +54,17 @@
       },
     },
   };
+
+  function setFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+
+    document.documentElement.requestFullscreen({
+      navigationUI: 'show',
+    });
+  }
 </script>
 
 <template>
@@ -73,6 +85,30 @@
       :default-value="Player.volume * 100"
       :change="(v) => Player.setVolume(v)"
     />
+    <Slider show-value :step="5" />
+
+    <div>
+      <Chip
+        variant="filled"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="subtle"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="transparent"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+    </div>
 
     <Button
       left-icon="material-symbols:settings-outline"
@@ -100,6 +136,12 @@
       variant="transparent"
       @click="_presets.changelog"
       label="Changelog"
+    />
+
+    <Button
+      left-icon="material-symbols:fullscreen"
+      label="Fullscreen"
+      @click="() => setFullscreen()"
     />
     <div>
       <InputText

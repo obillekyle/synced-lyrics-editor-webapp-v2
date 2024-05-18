@@ -23,11 +23,11 @@
   }
 
   onMounted(() => {
-    screen.listen('screenchange', handleChange);
+    screen.listen('update', handleChange);
   });
 
   onUnmounted(() => {
-    screen.detach('screenchange', handleChange);
+    screen.detach('update', handleChange);
   });
 </script>
 

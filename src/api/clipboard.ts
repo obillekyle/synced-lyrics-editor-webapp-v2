@@ -1,11 +1,10 @@
-import { CustomEventHandler } from "./event";
+import { CustomEventHandler } from './event';
 
-type ClipboardEvents = "set";
-type ClipboardArgs = [text: string];
+type ClipboardEvents = {
+  set: [text: string];
+};
 
-
-export class Clipboard extends CustomEventHandler<ClipboardEvents, ClipboardArgs> {
-
+export class Clipboard extends CustomEventHandler<ClipboardEvents> {
   private value = '';
 
   get supported(): boolean {
@@ -13,8 +12,7 @@ export class Clipboard extends CustomEventHandler<ClipboardEvents, ClipboardArgs
   }
 
   async set(text: string) {
-
-    this.dispatchEvent("set", [text]);
+    this.dispatchEvent('set', [text]);
 
     if (this.supported) {
       await navigator.clipboard.writeText(text);
@@ -22,19 +20,11 @@ export class Clipboard extends CustomEventHandler<ClipboardEvents, ClipboardArgs
     }
 
     this.value = text;
-
   }
 
   async get() {
-
-    if (this.supported) {
-      return await navigator.clipboard.readText();
-    }
-
-    return this.value;
-
+    return this.supported ? await navigator.clipboard.readText() : this.value;
   }
 }
-
 
 export default Clipboard;

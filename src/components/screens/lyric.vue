@@ -6,10 +6,8 @@
     inject,
     onMounted,
     onUnmounted,
-    reactive,
     ref,
     shallowRef,
-    Suspense,
   } from 'vue';
   import animatedScroll from 'animated-scroll-to';
   import playingIndicator from '../playing-indicator.vue';

@@ -20,9 +20,11 @@
       values?: number[];
       min?: number;
       max?: number;
+      step?: number;
       decimal?: number;
       change?: (value: number) => void;
       showValue?: boolean;
+      showLabel?: boolean;
     }>(),
     {
       min: 0,
@@ -34,6 +36,7 @@
   const model = defineModel<number>();
   const wrapper = ref<HTMLElement | null>(null);
   const dragging = ref(false);
+  const useMD3 = true;
 
   const minVal = computed(() =>
     props.values ? Math.min(...props.values) : props.min
@@ -68,6 +71,12 @@
       return;
     }
 
+    if (props.step) {
+      const value = (offset / rect.width) * (maxVal.value - minVal.value);
+      model.value = Math.round(value / props.step) * props.step;
+      return;
+    }
+
     const value = (offset / rect.width) * (maxVal.value - minVal.value);
     model.value = Math.round(value * 10 ** props.decimal) / 10 ** props.decimal;
   }
@@ -85,15 +94,13 @@
 
   function getPosition(value: number) {
     const num = ((value - minVal.value) / (maxVal.value - minVal.value)) * 100;
-    return mapNumberToRange(num, 0, 100, 0.3, 99.4);
+    return useMD3
+      ? mapNumberToRange(num, 0, 100, 1.4, 98.4)
+      : mapNumberToRange(num, 0, 100, 0.3, 99.4);
   }
 
   const thumbPos = computed(() => {
-    const num =
-      (((model.value || 0) - minVal.value) / (maxVal.value - minVal.value)) *
-      100;
-
-    return mapNumberToRange(num, 0, 100, 0.3, 99.4);
+    return getPosition(model.value || 0);
   });
 
   watch(model, () => {
@@ -118,23 +125,26 @@
 </script>
 
 <template>
-  <div class="slider">
+  <div class="slider" :class="{ md3: useMD3 }">
     <div class="slider-value" v-if="props.showValue">
       {{ model }}
     </div>
     <div
       class="slider-wrapper"
       ref="wrapper"
+      @mousedown="dragDown"
+      @touchstart="dragDown"
       :style="{
         '--thumb-offset': thumbPos,
       }"
     >
-      <div class="slider-thumb" @mousedown="dragDown" @touchstart="dragDown" />
+      <div class="slider-thumb" />
       <input type="range" :min="minVal" :max="maxVal" v-model="model" />
       <div class="slider-track" />
       <div class="slider-labels" v-if="props.values">
         <div
           class="label"
+          v-if="props.showLabel"
           v-for="value in props.values"
           :style="{ '--offset': getPosition(value) }"
         >
@@ -154,8 +164,12 @@
 
 <style lang="scss">
   .slider {
+    --thumb-width: calc(var(--xs) * 1.5);
+    --thumb-height: var(--xl);
+    --track-height: var(--md);
+
     padding-inline: var(--lg);
-    height: calc(var(--xl) * 2);
+    height: calc(var(--thumb-height) * 2);
     width: 100%;
     user-select: none;
     display: grid;
@@ -191,7 +205,7 @@
       left: 0;
       overflow: hidden;
       right: 0;
-      height: var(--sm);
+      height: var(--track-height);
       background: var(--mono-200);
       border-radius: 999px;
       &::before {
@@ -208,8 +222,8 @@
       z-index: 1;
       position: absolute;
       left: calc(var(--thumb-offset) * 1%);
-      width: var(--sm);
-      height: calc(var(--xl) * 1.5);
+      width: var(--thumb-width);
+      height: calc(var(--thumb-height) * 2);
       border-radius: 999px;
       align-self: center;
       transform: translateX(calc((var(--thumb-offset) / 100) * -75%));
@@ -221,7 +235,9 @@
       left: 0;
       right: 0;
       width: 100%;
-      height: var(--xs);
+      display: flex;
+      align-items: center;
+      height: calc(var(--xs) * 2);
       border-radius: 999px;
 
       .dot {
@@ -251,6 +267,49 @@
         color: var(--mono-500);
         padding-top: var(--md);
         text-align: center;
+      }
+    }
+    &.md3 {
+      --thumb-width: calc(var(--xs) * 1.5);
+      --track-height: var(--lg);
+
+      height: calc(var(--thumb-height) * 2.5);
+
+      .slider-thumb {
+        height: calc(var(--thumb-height) * 2.5);
+      }
+
+      .slider-indicator {
+        > :last-child {
+          scale: 1.5;
+          margin-left: 1.1px;
+          transform-origin: left;
+        }
+      }
+
+      .slider-track {
+        background: none;
+
+        &::before {
+          right: calc(
+            ((var(--thumb-offset) - 100) * -1%) + (var(--thumb-width)) -
+              ((var(--thumb-offset)) / -100) * (var(--thumb-width) / 1.5)
+          );
+          border-radius: 2px;
+        }
+
+        &::after {
+          content: '';
+          right: 0;
+          background-color: var(--mono-200);
+          height: 100%;
+          position: absolute;
+          left: calc(
+            ((var(--thumb-offset)) * 1%) + var(--thumb-width) +
+              ((var(--thumb-offset) - 100) / -100) * (var(--thumb-width))
+          );
+          border-radius: 2px;
+        }
       }
     }
   }

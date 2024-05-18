@@ -1,11 +1,11 @@
 <script setup lang="ts">
   import { $, clamp } from '@/api/util';
-  import { type LRCArgs } from '@/api/parser';
-  import { onMounted, onUnmounted, ref, markRaw } from 'vue';
+  import { onMounted, onUnmounted, ref, markRaw, shallowRef } from 'vue';
   import iconButton from '../elements/button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
+  import type { LRCLine } from '@/api/parser';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
@@ -13,7 +13,7 @@
 
   const focus = ref(-1);
   const edit = ref(false);
-  const lyrics = markRaw(Lyrics.getJSON());
+  const lyrics = shallowRef(Lyrics.getJSON());
 
   const updateKey = ref(true);
   const timingPane = ref<HTMLElement | null>(null);
@@ -25,7 +25,7 @@
     edit.value = false;
 
     if (!focused) {
-      if (value >= lyrics.lines.length) {
+      if (value >= lyrics.value.lines.length) {
         focus.value = -1;
         return;
       }
@@ -48,31 +48,25 @@
     });
   };
 
-  const setLyricsObj = (...args: LRCArgs) => {
-    if (args[0] == 'parsed') {
-      const lrcData = Lyrics.getJSON();
-      lyrics.lines = lrcData.lines;
-      lyrics.tags = lrcData.tags;
-      return update();
-    }
+  const handleLyricsParse = () => {
+    const lrcData = Lyrics.getJSON();
+    lyrics.value = lrcData;
+    setFocus(-1);
+  };
 
-    const [event, line, index] = args;
+  const handleLineAdd = (index: number, data: LRCLine) => {
+    lyrics.value.lines.splice(index, 0, data);
+    setFocus(index);
+  };
 
-    switch (event) {
-      case 'line-added':
-        lyrics.lines.splice(index, 0, line);
-        setFocus(index);
-        break;
-      case 'line-removed':
-        lyrics.lines.splice(index, 1);
-        setFocus(index >= lyrics.lines.length ? index - 1 : index);
-        break;
-      case 'line-updated':
-        lyrics.lines[index] = line;
-        break;
-    }
+  const handleLineRemove = (index: number) => {
+    lyrics.value.lines.splice(index, 1);
+    setFocus(index >= lyrics.value.lines.length ? index - 1 : index);
+  };
 
-    update();
+  const handleLineUpdate = (index: number, data: LRCLine) => {
+    lyrics.value.lines[index] = data;
+    setFocus(index);
   };
 
   const toggleEdit = () => (edit.value = !edit.value);
@@ -80,23 +74,24 @@
     const index = focus.value;
 
     if (index == -1) return;
-    if (!lyrics.lines[index]) return;
+    if (!lyrics.value.lines[index]) return;
     if (!isFinite(Player.duration)) return;
 
-    const newIndex = index + 1 === lyrics.lines.length ? index : index + 1;
+    const newIndex =
+      index + 1 === lyrics.value.lines.length ? index : index + 1;
     const currentTime = Player.currentTime * 1000;
 
     e?.stopPropagation?.();
     setFocus(newIndex);
 
-    if (lyrics.lines[newIndex].time != currentTime) {
+    if (lyrics.value.lines[newIndex].time != currentTime) {
       Lyrics.updateLine(index, { time: currentTime });
     }
   };
 
   const adjustTime = (value: number) => {
     const index = focus.value;
-    const lrcLine = lyrics.lines[index];
+    const lrcLine = lyrics.value.lines[index];
 
     if (index == -1) return;
     if (!lrcLine) return;
@@ -118,6 +113,8 @@
 
   function handleKeyDown(e: KeyboardEvent) {
     const index = focus.value;
+    const lines = lyrics.value.lines;
+
     if (e.ctrlKey) return;
     if (edit.value) return;
 
@@ -139,10 +136,10 @@
     });
 
     processKey(Keybinds.timing.arrowDownFocus, e, () => {
-      setFocus(index + 1 >= lyrics.lines.length ? index : index + 1);
+      setFocus(index + 1 >= lines.length ? index : index + 1);
     });
     processKey(Keybinds.timing.arrowUpFocus, e, () => {
-      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.lines.length : index) - 1);
+      setFocus(index == 0 ? 0 : (index < 0 ? lines.length : index) - 1);
     });
   }
 
@@ -196,15 +193,24 @@
 
   onMounted(() => {
     const app = $('#app')!;
-    setLyricsObj('parsed', Lyrics);
-    Lyrics.addEventListener('lrc-updated', setLyricsObj);
+
+    Lyrics.addEventListener('parsed', handleLyricsParse);
+    Lyrics.addEventListener('line-added', handleLineAdd);
+    Lyrics.addEventListener('line-removed', handleLineRemove);
+    Lyrics.addEventListener('line-updated', handleLineUpdate);
+
     app.addEventListener('keydown', handleKeyDown);
     app.addEventListener('keyup', handleKeyUp);
   });
 
   onUnmounted(() => {
     const app = $('#app')!;
-    Lyrics.removeEventListener('lrc-updated', setLyricsObj);
+
+    Lyrics.removeEventListener('parsed', handleLyricsParse);
+    Lyrics.removeEventListener('line-added', handleLineAdd);
+    Lyrics.removeEventListener('line-removed', handleLineRemove);
+    Lyrics.removeEventListener('line-updated', handleLineUpdate);
+
     app.removeEventListener('keydown', handleKeyDown);
     app.removeEventListener('keyup', handleKeyUp);
   });

@@ -4,12 +4,17 @@ import { CustomEventHandler } from "./event";
 import { evaluate } from "./util/object";
 import { getParent } from "./util/dom";
 
-export type ModalEvents = 'updated';
 export type ModalKey = number | string
 export type ModalArgs =
   | ["opened", ModalKey, Modal]
   | ["closed", ModalKey, undefined]
   | ["modified", ModalKey, Modal]
+
+export type ModalEvents = {
+  opened: [key: ModalKey, modal: Modal]
+  closed: [key: ModalKey]
+  modified: [key: ModalKey, modal: Modal]
+}
 
 export type ModalActionsArgs = {
   id: ModalKey,
@@ -42,7 +47,7 @@ export type Modal = {
   }[]
 }
 
-class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
+class ModalService extends CustomEventHandler<ModalEvents> {
   private _key = 0;
   modals: { [key: ModalKey]: Modal } = {};
 
@@ -81,7 +86,7 @@ class ModalService extends CustomEventHandler<ModalEvents, ModalArgs> {
     if (!this.get(id)) return;
 
     delete this.modals[id];
-    this.dispatchEvent("updated", ["closed", id, undefined]);
+    this.dispatchEvent("updated", ["closed", id]);
   }
 
   get(id: ModalKey): Modal | undefined {

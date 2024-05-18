@@ -8,7 +8,7 @@
 </script>
 
 <template>
-  <div class="button-icon">
+  <div class="chip-icon">
     <Icon v-if="typeof icon == 'string'" :icon="icon" :width="24" />
     <component v-else="icon" :is="icon" />
   </div>

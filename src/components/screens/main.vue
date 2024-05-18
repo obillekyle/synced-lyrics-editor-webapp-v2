@@ -17,11 +17,11 @@
   }
 
   onMounted(() => {
-    screen.addEventListener('screenchange', screenChange);
+    screen.addEventListener('update', screenChange);
   });
 
   onUnmounted(() => {
-    screen.removeEventListener('screenchange', screenChange);
+    screen.removeEventListener('update', screenChange);
   });
 </script>
 

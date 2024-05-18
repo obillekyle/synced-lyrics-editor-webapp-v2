@@ -1,17 +1,21 @@
 <script setup lang="ts">
+  import { getCSSValue } from '@/api/util';
+
   withDefaults(
     defineProps<{
       value: number;
+      size?: number | string;
     }>(),
     {
       value: Infinity,
+      size: 6,
     }
   );
 </script>
 
 <template>
-  <div class="progress">
-    <div class="progress-infinite" v-if="value === Infinity"></div>
+  <div class="progress" :style="{ height: getCSSValue(size) }">
+    <div class="progress-infinite" v-if="value === Infinity" />
     <div class="progress-bar" v-else :style="`width: ${value}%`" />
   </div>
 </template>
@@ -20,7 +24,6 @@
   .progress {
     position: relative;
     width: 100%;
-    height: var(--xs);
     background: var(--mono-100);
 
     .progress-bar {

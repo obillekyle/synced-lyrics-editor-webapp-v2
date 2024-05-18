@@ -55,14 +55,14 @@
     optionsUpdate();
 
     Player.addEventListener('musicupdated', onPlayerUpdate);
-    Screen.addEventListener('screenchange', setScreen);
+    Screen.addEventListener('update', setScreen);
     Option.addEventListener('event', optionsUpdate);
     Lang.addEventListener('update', langUpdate);
   });
 
   onUnmounted(() => {
     Player.removeEventListener('musicupdated', onPlayerUpdate);
-    Screen.removeEventListener('screenchange', setScreen);
+    Screen.removeEventListener('update', setScreen);
     Option.removeEventListener('event', optionsUpdate);
     Lang.removeEventListener('ready', langUpdate);
   });

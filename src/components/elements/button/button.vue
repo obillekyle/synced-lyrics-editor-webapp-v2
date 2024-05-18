@@ -43,6 +43,7 @@
   .button {
     display: inline-flex;
     align-items: center;
+    height: 48px;
     width: fit-content;
     border-radius: var(--radius);
     gap: var(--sm);
