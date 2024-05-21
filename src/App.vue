@@ -90,7 +90,7 @@
   </template>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .loader {
     color: white;
     background: #fff;
@@ -167,6 +167,11 @@
             --app-navbar-size
           )
       );
+
+      &::-webkit-scrollbar {
+        width: 0px;
+        height: 0px;
+      }
     }
     .content-wrapper {
       inset: 0 0 var(--app-navbar-size) 0;

@@ -7,9 +7,8 @@
     onMounted,
     ref,
     type Ref,
+    onBeforeMount,
   } from 'vue';
-
-  import { Icon } from '@iconify/vue/dist/iconify.js';
 
   import Counter from './counter.vue';
   import InputIcon from './input-icon.vue';
@@ -19,6 +18,7 @@
     rightIcon?: string | Component;
     defaultValue?: string;
     modelValue?: Ref<string>;
+    span?: boolean;
   }
 
   const input = ref<HTMLInputElement | null>(null);
@@ -27,10 +27,8 @@
     default: '',
   });
 
-  onMounted(() => {
-    model.value = props.modelValue?.value
-      ? props.modelValue?.value
-      : props.defaultValue || '';
+  onBeforeMount(() => {
+    model.value ??= props.defaultValue ?? '';
   });
 
   defineExpose({
@@ -40,7 +38,11 @@
 </script>
 
 <template>
-  <div class="input-wrapper" @click="() => input?.focus()">
+  <div
+    class="input-wrapper"
+    :class="{ 'span-input': props.span }"
+    @click="() => input?.focus()"
+  >
     <InputIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
     <div class="input">
       <input type="text" v-bind="$attrs" v-model="model" ref="input" />

@@ -2,7 +2,7 @@
   import { onMounted, ref } from 'vue';
 
   import Button from '../elements/button/button.vue';
-  import InputText from '../elements/input/text.vue';
+  import InputText from '../elements/input/text-input.vue';
   import List from '../elements/list/list.vue';
   import type { ListItemType, SwipeOptions } from '../elements/list/types';
   import _presets from '../modals/_presets';
@@ -20,6 +20,7 @@
   const Player = window.app.player;
 
   const langInput = ref<HTMLInputElement | null>(null);
+  const progressVal = ref(20);
 
   const items = ref<ListItemType[]>([
     {
@@ -73,12 +74,16 @@
       :defaultChecked="Option.get('debug', false)"
       :change="(value) => Option.set('debug', value)"
     >
-      <I18nString entry="DEBUG" />
+      Use debug options
     </MasterSwitch>
 
     <MdProgress />
-    <Progress />
+    <MdProgress :value="progressVal" />
 
+    <Progress />
+    <Progress :value="progressVal" />
+
+    <Slider v-model="progressVal" />
     <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" />
     <Slider
       show-value
@@ -143,7 +148,7 @@
       label="Fullscreen"
       @click="() => setFullscreen()"
     />
-    <div>
+    <div class="lang-controller">
       <InputText
         placeholder="Language"
         left-icon="material-symbols:language"
@@ -175,6 +180,11 @@
   .debug-screen {
     display: flex;
     flex-direction: column;
+    gap: var(--sm);
+  }
+  .lang-controller {
+    display: flex;
+    align-items: center;
     gap: var(--sm);
   }
   .special-wrapper {

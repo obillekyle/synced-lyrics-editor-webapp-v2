@@ -1,5 +1,6 @@
 import Color from 'color';
 import { CustomEventHandler } from './event';
+import { mapNumberToRange } from './util';
 
 export type ColorEvents = {
   update: [color: Color, oldColor: Color];
@@ -23,7 +24,7 @@ export class Colors extends CustomEventHandler<ColorEvents> {
   shade(shade: number, alpha = 1) {
     const [h, s] = this.main.hsv().array();
     return Color({ h, s, v: shade })
-      .saturate(s * (shade / 100))
+      .desaturate(Math.abs(50 - shade) / 50)
       .lightness(shade)
       .alpha(alpha);
   }

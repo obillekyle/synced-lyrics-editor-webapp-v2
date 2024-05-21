@@ -49,6 +49,7 @@
   function dragDown(e: MouseEvent | TouchEvent) {
     e.preventDefault();
     dragging.value = true;
+    dragMove(e);
   }
 
   function dragMove(e: MouseEvent | TouchEvent) {
@@ -155,6 +156,7 @@
         <div
           class="dot"
           v-for="value in props.values"
+          :class="{ covered: value <= (model || 0) }"
           :style="{ '--offset': getPosition(value) }"
         />
       </div>
@@ -227,7 +229,7 @@
       border-radius: 999px;
       align-self: center;
       transform: translateX(calc((var(--thumb-offset) / 100) * -75%));
-      background: var(--color-700);
+      background: var(--color-600);
     }
 
     .slider-indicator {
@@ -285,6 +287,13 @@
           margin-left: 1.1px;
           transform-origin: left;
         }
+
+        .dot {
+          background-color: var(--color-700);
+          &.covered {
+            background-color: var(--color-100);
+          }
+        }
       }
 
       .slider-track {
@@ -301,7 +310,7 @@
         &::after {
           content: '';
           right: 0;
-          background-color: var(--mono-200);
+          background-color: var(--color-200);
           height: 100%;
           position: absolute;
           left: calc(

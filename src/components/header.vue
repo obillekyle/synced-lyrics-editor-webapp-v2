@@ -12,6 +12,7 @@
     timing: 'APP_TIMING',
     lyric: 'APP_LYRIC',
     debug: 'DEBUG',
+    files: 'FILES',
   };
 
   const screen = window.app.screen;

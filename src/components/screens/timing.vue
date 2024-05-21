@@ -13,7 +13,10 @@
 
   const focus = ref(-1);
   const edit = ref(false);
-  const lyrics = shallowRef(Lyrics.getJSON());
+  const lyrics = ref<ReturnType<typeof Lyrics.getJSON>>({
+    lines: [],
+    tags: {},
+  });
 
   const updateKey = ref(true);
   const timingPane = ref<HTMLElement | null>(null);
@@ -51,6 +54,7 @@
   const handleLyricsParse = () => {
     const lrcData = Lyrics.getJSON();
     lyrics.value = lrcData;
+    console.log('update');
     setFocus(-1);
   };
 
@@ -294,8 +298,10 @@
 
 <style lang="scss">
   .timing-screen {
-    padding-inline: var(--md);
+    padding-block: calc((85dvh - 112px) / 2);
     max-width: 768px;
+    width: 100%;
+    padding-inline: var(--md);
     margin-inline: auto;
     position: relative;
 

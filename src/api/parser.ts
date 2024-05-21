@@ -26,8 +26,11 @@ export type LRCData = {
 };
 
 export type LRCEvents = {
-  tag: [LRCTags];
   parsed: undefined;
+  'tag-added': [key: string, value: string];
+  'tag-update': [key: string, value: string, oldValue: string];
+  'tag-removed': [key: string, value: string];
+
   'line-updated': [index: number, data: LRCLine];
   'line-added': [index: number, data: LRCLine];
   'line-removed': [index: number, data: LRCLine];
@@ -111,7 +114,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     }
 
     this.updateCachedTime();
-    this.dispatchEvent('lrc-updated', ['parsed', this]);
+    this.dispatchEvent('parsed', undefined);
   }
 
   stringify(): string {
@@ -151,8 +154,25 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
   updateTag(key: string, value: string) {
     for (const tagName in this.tags) {
       if (tagName === key) {
+        this.dispatchEvent('tag-update', [key, value, this.tags[tagName]]);
         this.tags.value = value;
-        this.dispatchEvent('lrc-updated', ['tag', this.tags]);
+        return;
+      }
+    }
+  }
+
+  addTag(key: string, value: string) {
+    if (this.tags[key]) return;
+
+    this.tags[key] = value;
+    this.dispatchEvent('tag-added', [key, value]);
+  }
+
+  removeTag(key: string) {
+    for (const tagName in this.tags) {
+      if (tagName === key) {
+        this.dispatchEvent('tag-removed', [key, this.tags[tagName]]);
+        delete this.tags[key];
         return;
       }
     }
@@ -163,7 +183,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     this.lines = [...data.lines];
 
     this.updateCachedTime();
-    this.dispatchEvent('lrc-updated', ['parsed', this]);
+    this.dispatchEvent('parsed', undefined);
   }
 
   updateCachedTime() {
@@ -179,11 +199,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     Object.assign(this.lines[index], line);
     this._cachedTime[index] = this.lines[index].time;
 
-    this.dispatchEvent('lrc-updated', [
-      'line-updated',
-      this.lines[index],
-      index,
-    ]);
+    this.dispatchEvent('line-updated', [index, this.lines[index]]);
   }
 
   removeLine(index: number) {
@@ -191,14 +207,14 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     this.lines.splice(index, 1);
     this._cachedTime.splice(index, 1);
 
-    this.dispatchEvent('lrc-updated', ['line-removed', line, index]);
+    this.dispatchEvent('line-removed', [index, line]);
   }
 
   addLine(line: LRCLine, after: number = this.lines.length - 1) {
     this.lines.splice(after + 1, 0, line);
     this._cachedTime.splice(after + 1, 0, line.time);
 
-    this.dispatchEvent('lrc-updated', ['line-added', line, after + 1]);
+    this.dispatchEvent('line-added', [after + 1, line]);
   }
 
   timeToString(time: number, timeFixed: 2 | 3 = 2) {

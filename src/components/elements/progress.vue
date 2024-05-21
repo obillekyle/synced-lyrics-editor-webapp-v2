@@ -1,36 +1,57 @@
 <script setup lang="ts">
   import { getCSSValue } from '@/api/util';
+  import { computed } from 'vue';
 
-  withDefaults(
+  const useMD3 = true;
+
+  const props = withDefaults(
     defineProps<{
-      value: number;
+      value?: number;
       size?: number | string;
     }>(),
     {
       value: Infinity,
-      size: 6,
+      size: 4,
     }
   );
+
+  const noSpace = computed(() => {
+    return props.value < 1;
+  });
 </script>
 
 <template>
-  <div class="progress" :style="{ height: getCSSValue(size) }">
+  <div
+    class="progress"
+    :class="{ md3: useMD3, noSpace }"
+    :style="{ height: getCSSValue(size) }"
+  >
     <div class="progress-infinite" v-if="value === Infinity" />
-    <div class="progress-bar" v-else :style="`width: ${value}%`" />
+    <div class="progress-bar" v-else :style="`--value: ${value}`" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+  @import '@/assets/vars.scss';
+
   .progress {
     position: relative;
-    width: 100%;
     background: var(--mono-100);
+    border-radius: var(--md);
+    overflow: hidden;
+    width: 100%;
 
     .progress-bar {
       height: inherit;
-      background: var(--color-700);
-      transition: width 0.2s;
+      background: var(--color-600);
       overflow: hidden;
+      width: calc(var(--value) * 1%);
+      transition: width 0.25s $md-transition-stand-timing;
+      will-change: width;
+      &::before {
+        transition: left 0.25s $md-transition-stand-timing;
+        will-change: left;
+      }
     }
 
     .progress-infinite {
@@ -44,7 +65,8 @@
         top: 0;
         bottom: 0;
         height: inherit;
-        background: var(--color-700);
+        background: var(--color-600);
+        will-change: width, left, opacity;
       }
 
       &::before {
@@ -99,6 +121,49 @@
             left: 100%;
             width: 40%;
           }
+        }
+      }
+    }
+
+    &.md3 {
+      background-color: transparent;
+      border-radius: var(--md);
+
+      &.noSpace {
+        .progress-bar::before {
+          left: 0;
+        }
+      }
+
+      .progress-bar {
+        border-radius: inherit;
+
+        &::before,
+        &::after {
+          position: absolute;
+          border-radius: inherit;
+          content: '';
+          top: 0;
+          right: 0;
+          height: inherit;
+        }
+
+        &::before {
+          background: var(--color-200);
+          left: calc(var(--value) * 1% + var(--xs));
+        }
+
+        &::after {
+          aspect-ratio: 1;
+          background: var(--color-600);
+        }
+      }
+
+      .progress-infinite {
+        border-radius: inherit;
+        &::before,
+        &::after {
+          border-radius: inherit;
         }
       }
     }

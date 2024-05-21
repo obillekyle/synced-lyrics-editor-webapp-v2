@@ -16,6 +16,8 @@
     "animated-scroll-to": "2.3.0",
     "buffer": "6.0.3",
     "color": "4.2.3",
+    "dayjs": "1.11.11",
+    "dexie": "4.0.4",
     "fast-average-color": "9.4.0",
     "image-js": "0.35.5",
     "marked": "12.0.0",

@@ -4,17 +4,22 @@
 
   const svg = ref<SVGSVGElement | null>(null);
   const circle = ref<SVGCircleElement | null>(null);
+  const circle2 = ref<SVGCircleElement | null>(null);
+
+  const useMD3 = true;
 
   const props = withDefaults(
     defineProps<{
       value?: number;
       diameter?: number;
       stroke?: number;
+      space?: number;
     }>(),
     {
       value: Infinity,
       diameter: 48,
       stroke: 5,
+      space: 16,
     }
   );
 
@@ -50,9 +55,30 @@
     return '';
   });
 
+  const hasSpace = computed(() => {
+    return props.value > props.space / 2 && props.value < 100 - props.space;
+  });
+
+  const circle2StrokeDashOffset = computed(() => {
+    const offset = hasSpace.value ? props.space : 0;
+
+    const value = addPX(
+      (circleCircumference.value * props.value +
+        circleCircumference.value * offset) /
+        100
+    );
+    return value;
+  });
+
+  const circle2StrokeRotate = computed(() => {
+    const offset = hasSpace.value ? props.space / 2 : 0;
+    return (360 * (props.value + offset)) / 100 + 'deg';
+  });
+
   function attachStyles() {
     const svgRoot = svg.value!;
     const circleElem = circle.value!;
+    const circle2Elem = circle2.value;
 
     const size = addPX(props.diameter);
     svgRoot.style.width = size;
@@ -61,6 +87,14 @@
     circleElem.style.strokeDashoffset = circleStrokeDashOffset.value;
     circleElem.style.strokeDasharray = circleStrokeDashArray.value;
     circleElem.style.strokeWidth = circleStrokeWidth.value;
+
+    if (circle2Elem) {
+      circle2Elem.style.strokeWidth = circleStrokeWidth.value;
+      circle2Elem.style.strokeDasharray = circleStrokeDashArray.value;
+      circle2Elem.style.strokeDashoffset = circle2StrokeDashOffset.value;
+      circle2Elem.style.rotate = circle2StrokeRotate.value;
+    }
+
     circleElem.style.setProperty(
       '--md-progress-spinner-start-value',
       String(0.95 * circleCircumference.value)
@@ -80,7 +114,10 @@
   <transition name="md-progress-spinner" appear>
     <div
       class="md-progress-spinner md-progress-spinner-infinite"
-      :class="['md-' + (isInfinite ? 'infinite' : 'finite')]"
+      :class="[
+        useMD3 ? 'md3' : 'md2',
+        'md-' + (isInfinite ? 'infinite' : 'finite'),
+      ]"
     >
       <svg
         class="md-progress-spinner-draw"
@@ -90,12 +127,21 @@
         ref="svg"
       >
         <circle
+          class="md-progress-spinner-bg"
+          cx="50%"
+          cy="50%"
+          :r="circleRadius"
+          ref="circle2"
+          v-if="useMD3 && !isInfinite"
+        />
+
+        <circle
           class="md-progress-spinner-circle"
           cx="50%"
           cy="50%"
           :r="circleRadius"
           ref="circle"
-        ></circle>
+        />
       </svg>
     </div>
   </transition>
@@ -281,6 +327,13 @@
         transition: none;
       }
     }
+
+    &.md3 {
+      .md-progress-spinner-circle,
+      .md-progress-spinner-bg {
+        stroke-linecap: round;
+      }
+    }
   }
 
   .md-progress-spinner-draw {
@@ -296,6 +349,17 @@
     stroke: var(--color-700);
     transform-origin: center;
     transition: stroke-dashoffset 0.25s $md-transition-stand-timing;
+    will-change: stroke-dashoffset, stroke-dasharray, stroke-width,
+      animation-name, r;
+  }
+
+  .md-progress-spinner-bg {
+    fill: none;
+    stroke: var(--mono-200);
+    transform-origin: center;
+    transition:
+      stroke-dashoffset 0.25s $md-transition-stand-timing,
+      rotate 0.25s $md-transition-stand-timing;
     will-change: stroke-dashoffset, stroke-dasharray, stroke-width,
       animation-name, r;
   }

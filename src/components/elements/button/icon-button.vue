@@ -5,17 +5,22 @@
     type HTMLAttributes,
     type ReservedProps,
   } from 'vue';
-  import { rippleEffect } from '@/api/util';
+  import {
+    getCSSValue,
+    rippleEffect,
+    type CSSMetricUnits,
+    type AppSizes,
+  } from '@/api/util';
   import { as } from '../../keybinds/keys';
 
   interface IconButtonProps extends /* @vue-ignore */ ButtonHTMLAttributes {
     icon: string;
     wrapper?: HTMLAttributes & ReservedProps;
-    size?: number;
+    size?: AppSizes | number | String;
   }
 
   withDefaults(defineProps<IconButtonProps>(), {
-    size: 24,
+    size: 'xs',
   });
 
   defineOptions({
@@ -31,7 +36,12 @@
     :type="as<any>($attrs.type || 'button')"
   >
     <div class="icon-wrapper" v-bind="wrapper" :onclick="rippleEffect">
-      <Icon :icon="icon" :width="size" />
+      <Icon
+        :icon="icon"
+        :style="{
+          fontSize: getCSSValue(size, 'px', 'size'),
+        }"
+      />
     </div>
   </button>
 </template>

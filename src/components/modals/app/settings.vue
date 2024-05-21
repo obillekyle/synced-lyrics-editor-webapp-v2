@@ -1,21 +1,19 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
 
   import type { ModalActionsArgs } from '@/api/modals';
   import { $, evaluate, type MaybeFunction } from '@/api/util';
   import { Icon } from '@iconify/vue';
 
-  import I18nString from '../elements/i18n-string.vue';
-  import IconButton from '../elements/button/icon-button.vue';
-  import Switch from '../elements/switch.vue';
-  import _presets from './_presets';
+  import I18nString from '../../elements/i18n-string.vue';
+  import IconButton from '../../elements/button/icon-button.vue';
+  import Switch from '../../elements/switch.vue';
+  import _presets from '../_presets';
 
   const Options = window.app.options;
   const Lang = window.app.i18n;
 
-  defineProps<{
-    actions: ModalActionsArgs;
-  }>();
+  const fns = inject<ModalActionsArgs>('fns')!;
 
   const shown = ref(false);
   const active = ref('general');
@@ -212,12 +210,15 @@
       },
     };
   });
+
+  onMounted(() => Lang.listen('update', update));
+  onUnmounted(() => Lang.detach('update', update));
 </script>
 
 <template>
   <div class="settings-wrapper" :shown="shown" @click="update">
     <header>
-      <icon-button
+      <IconButton
         v-if="shown"
         icon="material-symbols:arrow-back"
         class="back"
@@ -227,7 +228,7 @@
       <I18nString element="div" class="title" entry="SETTINGS" />
       <icon-button
         icon="material-symbols:close"
-        @click="() => actions.close()"
+        @click="() => fns.close()"
         title="Close"
       />
     </header>
@@ -320,17 +321,21 @@
   .settings-wrapper {
     display: grid;
     width: minmax(0px, 768px);
+    height: minmax(0px, 100vh);
     grid-template-columns: 250px 1fr;
     grid-template-rows: var(--app-header-height) 1fr;
     grid-template-areas:
       'header header'
       'panel screen';
-    overflow: hidden;
     header {
       padding-inline: var(--md);
       grid-area: header;
+      position: sticky;
+      top: 0;
+      background: var(--background-secondary);
       display: flex;
       align-items: center;
+      z-index: 10;
 
       .back {
         display: none;
@@ -367,6 +372,7 @@
 
     .settings-screen {
       max-width: 100%;
+      overflow-y: auto;
       .entry {
         align-items: center;
         grid-template-areas:

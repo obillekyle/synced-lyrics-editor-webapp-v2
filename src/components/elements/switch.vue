@@ -1,10 +1,5 @@
 <script setup lang="ts">
-  import {
-    type InputHTMLAttributes,
-    ref,
-    onMounted,
-inject,
-  } from 'vue';
+  import { type InputHTMLAttributes, ref, onMounted, inject } from 'vue';
   import { addPX, evaluate } from '@/api/util';
 
   interface SwitchProps extends /* @vue-ignore */ InputHTMLAttributes {
@@ -19,7 +14,7 @@ inject,
   });
 
   const props = withDefaults(defineProps<SwitchProps>(), {
-    size: 24,
+    size: 32,
   });
 
   function handleClick() {
@@ -92,7 +87,7 @@ inject,
     &::after {
       scale: 0.85;
       left: calc(var(--size) * 0.8);
-      background-color: var(--color-400);
+      background-color: var(--color-300);
     }
   }
 
