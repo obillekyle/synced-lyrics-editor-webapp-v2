@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { IndexType } from '@/api/util/files';
+  import type { IndexType } from '@/api/files';
   import { Icon } from '@iconify/vue';
   import { computed, onMounted, ref, watch } from 'vue';
   import IconButton from '../elements/button/icon-button.vue';

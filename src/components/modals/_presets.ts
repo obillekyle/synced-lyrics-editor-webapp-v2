@@ -8,7 +8,7 @@ import keyBindsGuide from '../keybinds/guide.vue';
 import loadLyrics from './app/loadLyrics.vue';
 import { h } from 'vue';
 import Rename from './files/rename.vue';
-import FileManager from '@/api/util/files';
+import FileManager from '@/api/files';
 import New from './files/new.vue';
 
 function download() {

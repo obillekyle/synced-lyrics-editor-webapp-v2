@@ -1,5 +1,5 @@
 import type { types } from 'sass';
-import { CustomEventHandler } from '../event';
+import { CustomEventHandler } from './event';
 import Dexie from 'dexie';
 
 export type FolderIndex = {
@@ -232,10 +232,10 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
 
     if (item) {
       Object.assign(item, {
-        getData: async () => await this.getFileData(item.store),
+        getData: async () => item && (await this.getFileData(item.store)),
         modifyData: async (data: File | Blob) =>
-          await this.modifyData(item.store, data),
-        delete: async () => await this.delete(item.key!),
+          item && (await this.modifyData(item.store, data)),
+        delete: async () => item && (await this.delete(item.key!)),
       });
       return item as any;
     }
@@ -269,10 +269,12 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
     if (item) {
       return {
         ...item,
-        delete: async () => await this.delete(item.key!),
-        list: async () => await this.ls(item.key!),
-        getAbsolutePath: () => FileManager.toPath(item.path, item.name),
-        rename: async (name: string) => await this.rename(item.key!, name),
+        delete: async () => (item && (await this.delete(item.key!))) || false,
+        list: async () => (item && (await this.ls(item?.key!))) || [],
+        getAbsolutePath: () =>
+          (item && FileManager.toPath(item.path, item.name)) || '',
+        rename: async (name: string) =>
+          (item && (await this.rename(item.key!, name))) || false,
       };
     }
   }

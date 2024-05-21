@@ -10,7 +10,7 @@ import options from '@/app/options';
 import presets from '@/components/modals/_presets';
 import process from 'process';
 import type { Screens } from './app/main';
-import FileManager from './api/util/files';
+import FileManager from './api/files';
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
 const appVerString = import.meta.env.VITE_VERSION ?? 'unknown';
