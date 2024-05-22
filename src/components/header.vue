@@ -72,6 +72,7 @@
   body:has(.app-header[data-screen='lyric']) {
     --app-header-color: transparent;
   }
+  
   .app-header {
     height: var(--app-header-height);
     padding-inline: var(--sm);

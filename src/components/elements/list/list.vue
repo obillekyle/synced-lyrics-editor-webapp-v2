@@ -2,18 +2,15 @@
   import { provide } from 'vue';
   import { addPX } from '@/api/util';
   import ListItem from './list-item.vue';
-  import type { ListItemType, ListProps } from './types';
+  import type { ListProps } from './types';
 
   const props = withDefaults(defineProps<ListProps>(), {
     swipe: 'off',
     listComp: 'div',
+    items: () => [],
   });
 
-  const items = defineModel<ListItemType[]>({
-    default: [],
-  });
-
-  provide('items', items);
+  provide('items', props.items);
   provide('parentProps', props);
 </script>
 

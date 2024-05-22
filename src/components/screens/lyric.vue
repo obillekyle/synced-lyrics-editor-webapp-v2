@@ -18,7 +18,7 @@
   const Lyrics = window.app.lyric;
   const Lang = window.app.i18n;
 
-  const lyrics = shallowRef(Lyrics.getJSON());
+  const lyrics = shallowRef(Lyrics.getRaw());
   const bypass = ref(false);
 
   const previewPane = ref<HTMLElement | null>(null);
@@ -27,7 +27,7 @@
   const lang = Lang.lang;
 
   const lrcChange = () => {
-    lyrics.value = Lyrics.getJSON();
+    lyrics.value = Lyrics.getRaw();
   };
 
   function handleCurrentIndex(this: MusicService) {

@@ -20,9 +20,11 @@ export type ListItemType<T extends Record<string, any> = {}> = {
 
 export type ListProps = {
   sortable?: boolean;
+  items?: ListItemType[];
   swipe?: 'dismiss' | 'custom' | 'off';
   listComp?: string | Component;
   swipeDistance?: number;
+  onReorder?: (from: number, to: number) => void;
   onDismiss?: (id: number) => void;
   swipeOptions?: SwipeOptions;
 };

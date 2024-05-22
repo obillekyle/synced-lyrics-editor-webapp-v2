@@ -55,11 +55,15 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     lrc && this.parse(lrc);
   }
 
-  getJSON(): LRCData {
+  getRaw(): LRCData {
     return {
       tags: { ...this.tags },
       lines: [...this.lines],
     };
+  }
+
+  getJSON(): string {
+    return JSON.stringify(this.getRaw());
   }
 
   parse(data: string) {
@@ -179,6 +183,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
   }
 
   import(data: LRCData) {
+    console.log(data);
     this.tags = { ...data.tags };
     this.lines = [...data.lines];
 

@@ -59,7 +59,7 @@ class FileStore extends Dexie {
   constructor() {
     super('files');
     this.version(1).stores({
-      index: '++key, path, type, name, created, modified',
+      index: '++key, path, type, name, store, created, modified',
       data: '++key, store',
     });
   }
@@ -313,8 +313,12 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
 
   async createFile(path: string, name: string, data: File | Blob) {
     if (!FileManager.validName(name)) return;
-    if (!(await this.isFolder(path))) return;
     if (await this.exists(path, name)) return;
+
+    if (!(await this.isFolder(path))) {
+      const entry = FileManager.getPathEntry(path);
+      await this.createFolder(entry.path, entry.name);
+    }
 
     const id = await this.store.data.add({ data });
     const fileId = await this.store.index.add({

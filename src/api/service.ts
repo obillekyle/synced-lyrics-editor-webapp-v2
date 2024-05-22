@@ -44,7 +44,7 @@ class MusicService extends Audio {
     };
   }
 
-  async updateFile(file?: File, opts?: AudioOptions) {
+  async updateFile(file?: File | Blob, opts?: AudioOptions) {
     if (!file) return false;
     this.reset(true);
 

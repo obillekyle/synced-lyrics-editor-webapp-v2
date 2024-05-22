@@ -19,6 +19,7 @@
   import List from '../elements/list/list.vue';
   import type { ListItemType } from '../elements/list/types';
   import TimingList from './timing-list.vue';
+  import IconButton from '../elements/button/icon-button.vue';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
@@ -62,7 +63,7 @@
   };
 
   const handleLyricsParse = () => {
-    const lrcData = Lyrics.getJSON();
+    const lrcData = Lyrics.getRaw();
 
     lines.value = lrcData.lines.map((line) => ({
       id: line.id,
@@ -250,7 +251,7 @@
   });
 
   function dismissLine(id: number) {
-    Lyrics.removeFromId(id);
+    Lyrics.removeLine(id);
     console.log('dismissed', id);
   }
 </script>
@@ -258,7 +259,7 @@
 <template>
   <div class="timing-screen-drag" v-if="sortMode">
     <List
-      v-model="lines"
+      :items="lines"
       :list-comp="TimingList"
       :on-dismiss="dismissLine"
       swipe="dismiss"
@@ -281,13 +282,13 @@
         {{ Lyrics.timeToString(props.time) }}
       </div>
       <div v-if="focus == index" class="edit-icon-container">
-        <icon-button
+        <IconButton
           v-show="edit"
           title="Save"
           icon="material-symbols:done"
           @click="() => saveValue(index)"
         />
-        <icon-button
+        <IconButton
           v-show="!edit"
           title="Edit"
           @click="toggleEdit"
@@ -313,7 +314,7 @@
       </div>
 
       <div class="timing-buttons" v-if="focus == index">
-        <icon-button
+        <IconButton
           @click="
             () =>
               (Player.currentTime = clamp(
@@ -350,6 +351,23 @@
 </template>
 
 <style lang="scss">
+  .timing-screen-drag {
+    width: 100%;
+    height: 100%;
+    padding-inline: var(--md);
+    margin-inline: auto;
+    position: relative;
+    max-width: 768px;
+    .list:empty::after {
+      content: 'There are no lines';
+      text-align: center;
+      display: block;
+      padding-block: var(--md);
+      font-size: var(--font-xl);
+      color: var(--mono-700);
+    }
+  }
+
   .timing-screen {
     padding-block: calc((85dvh - 112px) / 2);
     max-width: 768px;

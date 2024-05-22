@@ -6,8 +6,8 @@
   const Lyrics = window.app.lyric;
   const Options = window.app.options;
 
-  const value = ref(Lyrics.stringify());
   const mobile = isMobile();
+  const value = ref(Lyrics.stringify());
   const codeEditor = Options.get('experimentalCodeEditor', false);
 
   const setValue = () => {
@@ -15,11 +15,11 @@
   };
 
   onMounted(() => {
-    Lyrics.addEventListener('lrc-updated', setValue);
+    Lyrics.addEventListener('parsed', setValue);
   });
 
   onUnmounted(() => {
-    Lyrics.removeEventListener('lrc-updated', setValue);
+    Lyrics.removeEventListener('parsed', setValue);
     Lyrics.parse(value.value);
   });
 </script>

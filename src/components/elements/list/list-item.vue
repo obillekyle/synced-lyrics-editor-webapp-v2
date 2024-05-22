@@ -14,7 +14,7 @@
   const parentProps = inject<ListProps>('parentProps')!;
   const swipeEvent = ref<MouseEvent | TouchEvent | null>(null);
   const arrangeEvent = ref<MouseEvent | TouchEvent | null>(null);
-  const items = inject<Ref<ListItemType[]>>('items')!;
+  const items = inject<ListItemType[]>('items')!;
   const content = ref<HTMLElement | null>(null);
   const wrapper = ref<HTMLElement | null>(null);
   const value = ref(0);
@@ -70,10 +70,9 @@
     const element = content.value!;
     element.style.removeProperty('transition');
     element.style.left = value.value > 0 ? '100%' : '-100%';
-    evaluate(parentProps.onDismiss, props.index);
 
     setTimeout(() => {
-      items.value.splice(props.index, 1);
+      evaluate(parentProps.onDismiss, props.index);
     }, 200);
   }
 
@@ -135,7 +134,7 @@
     const index = Math.floor(y / 56);
 
     if (index !== props.index) {
-      items.value.splice(index, 0, items.value.splice(props.index, 1)[0]);
+      evaluate(parentProps.onReorder, props.index, index);
     }
 
     element.style.top = addPX(y);
