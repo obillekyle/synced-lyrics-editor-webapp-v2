@@ -47,13 +47,6 @@
         console.log('left');
       },
     },
-    right: {
-      color: 'orange',
-      icon: 'material-symbols:mark-as-unread-outline-rounded',
-      handler: () => {
-        console.log('right');
-      },
-    },
   };
 
   function setFullscreen() {

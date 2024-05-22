@@ -17,6 +17,8 @@
 
   const screen = window.app.screen;
   const current = ref(screen.current);
+
+  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
   const showTranslate = inject<Ref<boolean>>('showTranslate')!;
 
   function handleChange(value: typeof current.value) {
@@ -41,6 +43,15 @@
         <Switch v-model="showTranslate" title="Translate" />
         <Divider direction="y" size="24" margin="none" />
       </template>
+
+      <template v-if="current === 'timing'">
+        <IconButton
+          :icon="sortMode ? 'mdi:sort-ascending' : 'mdi:clock-edit-outline'"
+          :onclick="() => (sortMode = !sortMode)"
+        />
+        <Divider direction="y" size="24" margin="none" />
+      </template>
+
       <IconButton
         :onclick="presets.uploadNewLrc"
         class="icon-button"

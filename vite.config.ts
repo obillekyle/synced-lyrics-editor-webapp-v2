@@ -85,6 +85,7 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -95,20 +96,21 @@ export default defineConfig({
         chunkFileNames: (chunkInfo) => {
           const name = chunkInfo.name;
           const version = (dependencies as any)[name];
+          if (name === 'vendor' && !version) return 'bin/vendor.js';
 
           return `modules/${name}_${version}.js`;
         },
 
         assetFileNames: (assetInfo) => {
           const { name: _name, ext } = path.parse(assetInfo.name!);
-          if (ext === '.css') {
-            return `styles/${_name}${ext}`;
-          }
-          return `assets/${_name}${ext}`;
+          return ext === '.css'
+            ? `styles/${_name}${ext}`
+            : `assets/${_name}${ext}`;
         },
 
         entryFileNames: (_entry) => {
-          return 'app.js';
+          console.log(_entry);
+          return 'bin/[name].js';
         },
       },
     },

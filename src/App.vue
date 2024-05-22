@@ -23,6 +23,7 @@
   const debug = ref(false);
   const ready = ref(false);
   const showTranslate = ref(false);
+  const timingSort = ref(false);
 
   function onPlayerUpdate(this: MusicService) {
     Colors.set(Player.picture?.color || '#ccc');
@@ -48,6 +49,8 @@
   provide('app-theme', theme);
   provide('app-debug', debug);
   provide('showTranslate', showTranslate);
+  provide('app-timing-sort', timingSort);
+
 
   onMounted(() => {
     langUpdate();

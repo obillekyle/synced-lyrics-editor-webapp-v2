@@ -1,21 +1,21 @@
 import type { Component } from 'vue';
 
 export type SwipeOptions = {
-  left: {
+  left?: {
     icon: string | Component;
     color: string;
     handler: () => void;
   };
-  right: {
+  right?: {
     icon: string | Component;
     color: string;
     handler: () => void;
   };
 };
 
-export type ListItemType = {
+export type ListItemType<T extends Record<string, any> = {}> = {
   id: number;
-  props: Record<string, any>;
+  props: T;
 };
 
 export type ListProps = {
@@ -25,4 +25,4 @@ export type ListProps = {
   swipeDistance?: number;
   onDismiss?: (id: number) => void;
   swipeOptions?: SwipeOptions;
-}
+};

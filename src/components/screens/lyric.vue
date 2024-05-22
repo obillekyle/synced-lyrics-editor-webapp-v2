@@ -123,7 +123,9 @@
 
 <style lang="scss">
   .preview-screen {
+    padding-block: calc((85dvh - 112px) / 2);
     color: var(--color-900-20);
+    padding-inline: var(--md);
 
     &:empty::after {
       content: 'No lyric available';

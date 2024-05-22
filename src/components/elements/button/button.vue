@@ -47,15 +47,15 @@
     height: var(--size-lg);
     width: fit-content;
     border-radius: var(--radius);
-    gap: var(--sm);
     overflow: hidden;
     border: none;
     font: inherit;
     font-weight: 600;
     color: var(--color-100);
     background: var(--color-700);
-    padding-inline: var(--lg);
     transition: opacity 0.2s;
+    padding-inline: var(--md);
+    gap: var(--md);
     box-shadow: 0 2px 6px #0005;
     transition:
       filter 0.2s,

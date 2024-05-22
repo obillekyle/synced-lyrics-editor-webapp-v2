@@ -1,11 +1,24 @@
 <script setup lang="ts">
   import { $, clamp } from '@/api/util';
-  import { onMounted, onUnmounted, ref, markRaw, shallowRef } from 'vue';
+  import {
+    onMounted,
+    onUnmounted,
+    ref,
+    markRaw,
+    shallowRef,
+    watch,
+    computed,
+    inject,
+    type Ref,
+  } from 'vue';
   import iconButton from '../elements/button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
-  import type { LRCLine } from '@/api/parser';
+  import type { LRCData, LRCLine, LRCTags } from '@/api/parser';
+  import List from '../elements/list/list.vue';
+  import type { ListItemType } from '../elements/list/types';
+  import TimingList from './timing-list.vue';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
@@ -13,14 +26,11 @@
 
   const focus = ref(-1);
   const edit = ref(false);
-  const lyrics = ref<ReturnType<typeof Lyrics.getJSON>>({
-    lines: [],
-    tags: {},
-  });
+  const lines = ref<ListItemType<LRCLine>[]>([]);
+  const tags = ref<LRCTags>({});
 
-  const updateKey = ref(true);
+  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
   const timingPane = ref<HTMLElement | null>(null);
-  const update = () => (updateKey.value = !updateKey.value);
 
   const setFocus = (value: typeof focus.value) => {
     if (focus.value == value) return;
@@ -28,7 +38,7 @@
     edit.value = false;
 
     if (!focused) {
-      if (value >= lyrics.value.lines.length) {
+      if (value >= lines.value.length) {
         focus.value = -1;
         return;
       }
@@ -53,23 +63,28 @@
 
   const handleLyricsParse = () => {
     const lrcData = Lyrics.getJSON();
-    lyrics.value = lrcData;
-    console.log('update');
+
+    lines.value = lrcData.lines.map((line) => ({
+      id: line.id,
+      props: line,
+    }));
+
+    tags.value = lrcData.tags;
     setFocus(-1);
   };
 
   const handleLineAdd = (index: number, data: LRCLine) => {
-    lyrics.value.lines.splice(index, 0, data);
+    lines.value.splice(index, 0, { id: data.id, props: data });
     setFocus(index);
   };
 
   const handleLineRemove = (index: number) => {
-    lyrics.value.lines.splice(index, 1);
-    setFocus(index >= lyrics.value.lines.length ? index - 1 : index);
+    lines.value.splice(index, 1);
+    setFocus(index >= lines.value.length ? index - 1 : index);
   };
 
   const handleLineUpdate = (index: number, data: LRCLine) => {
-    lyrics.value.lines[index] = data;
+    lines.value[index] = { id: data.id, props: data };
     setFocus(index);
   };
 
@@ -78,29 +93,28 @@
     const index = focus.value;
 
     if (index == -1) return;
-    if (!lyrics.value.lines[index]) return;
+    if (!lines.value[index]) return;
     if (!isFinite(Player.duration)) return;
 
-    const newIndex =
-      index + 1 === lyrics.value.lines.length ? index : index + 1;
+    const newIndex = index + 1 === lines.value.length ? index : index + 1;
     const currentTime = Player.currentTime * 1000;
 
     e?.stopPropagation?.();
     setFocus(newIndex);
 
-    if (lyrics.value.lines[newIndex].time != currentTime) {
+    if (lines.value[newIndex].props.time != currentTime) {
       Lyrics.updateLine(index, { time: currentTime });
     }
   };
 
   const adjustTime = (value: number) => {
     const index = focus.value;
-    const lrcLine = lyrics.value.lines[index];
+    const lrcLine = lines.value[index];
 
     if (index == -1) return;
     if (!lrcLine) return;
 
-    const time = lrcLine.time + value;
+    const time = lrcLine.props.time + value;
 
     Lyrics.updateLine(index, {
       time: time < 0 ? 0 : time,
@@ -112,12 +126,15 @@
     const value = element?.value ?? '';
     toggleEdit();
 
-    Lyrics.updateLine(index, { data: value, type: 'single' });
+    Lyrics.updateLine(index, {
+      data: value.replace(/\n/g, ''),
+      type: 'single',
+    });
   }
 
   function handleKeyDown(e: KeyboardEvent) {
     const index = focus.value;
-    const lines = lyrics.value.lines;
+    const lyrics = lines.value;
 
     if (e.ctrlKey) return;
     if (edit.value) return;
@@ -140,10 +157,10 @@
     });
 
     processKey(Keybinds.timing.arrowDownFocus, e, () => {
-      setFocus(index + 1 >= lines.length ? index : index + 1);
+      setFocus(index + 1 >= lyrics.length ? index : index + 1);
     });
     processKey(Keybinds.timing.arrowUpFocus, e, () => {
-      setFocus(index == 0 ? 0 : (index < 0 ? lines.length : index) - 1);
+      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.length : index) - 1);
     });
   }
 
@@ -191,12 +208,25 @@
 
     processKey(Keybinds.timing.toggleEditMode, e, () => {
       toggleEdit();
-      setTimeout(() => $('.lrc-line.active .data')?.focus(), 100);
     });
   }
 
+  watch(edit, (value) => {
+    if (value) {
+      setTimeout(() => {
+        const element = $<HTMLInputElement>(`.lrc-line.active .data`);
+        if (element) {
+          element.focus();
+          element.setSelectionRange(0, element.value.length);
+        }
+      }, 100);
+    }
+  });
+
   onMounted(() => {
     const app = $('#app')!;
+
+    handleLyricsParse();
 
     Lyrics.addEventListener('parsed', handleLyricsParse);
     Lyrics.addEventListener('line-added', handleLineAdd);
@@ -218,12 +248,26 @@
     app.removeEventListener('keydown', handleKeyDown);
     app.removeEventListener('keyup', handleKeyUp);
   });
+
+  function dismissLine(id: number) {
+    Lyrics.removeFromId(id);
+    console.log('dismissed', id);
+  }
 </script>
 
 <template>
-  <div :data-update="updateKey" class="timing-screen" ref="timingPane">
+  <div class="timing-screen-drag" v-if="sortMode">
+    <List
+      v-model="lines"
+      :list-comp="TimingList"
+      :on-dismiss="dismissLine"
+      swipe="dismiss"
+    />
+  </div>
+
+  <div class="timing-screen" ref="timingPane" v-else>
     <div
-      :key="index"
+      :key="id"
       :data-index="index"
       @click="setFocus(index)"
       class="lrc-line"
@@ -231,10 +275,10 @@
         active: focus == index,
         edit,
       }"
-      v-for="({ data, time }, index) in lyrics.lines"
+      v-for="({ id, props }, index) in lines"
     >
-      <div class="time" @click="() => (Player.currentTime = time / 1000)">
-        {{ Lyrics.timeToString(time) }}
+      <div class="time" @click="() => (Player.currentTime = props.time / 1000)">
+        {{ Lyrics.timeToString(props.time) }}
       </div>
       <div v-if="focus == index" class="edit-icon-container">
         <icon-button
@@ -251,23 +295,32 @@
         />
       </div>
 
-      <input class="data" v-if="focus == index && edit" :defaultValue="data" />
+      <textarea
+        class="data"
+        v-if="focus == index && edit"
+        :defaultValue="props.data"
+      />
 
       <div class="data" v-else>
         <div
           :key="index"
-          v-for="({ line }, index) in data"
-          v-if="typeof data == 'object'"
+          v-if="typeof props.data == 'object'"
+          v-for="({ line }, index) in props.data"
         >
           {{ line }}
         </div>
-        <template v-else>{{ data }}</template>
+        <template v-else>{{ props.data }}</template>
       </div>
 
       <div class="timing-buttons" v-if="focus == index">
         <icon-button
           @click="
-            () => (Player.currentTime = clamp(0, time / 1000, Player.duration))
+            () =>
+              (Player.currentTime = clamp(
+                0,
+                props.time / 1000,
+                Player.duration
+              ))
           "
           :disabled="!isFinite(Player.duration)"
           title="Player current time"
@@ -390,8 +443,16 @@
         border-top: 1px solid var(--color-800-10);
       }
 
+      textarea.data {
+        word-break: break-word;
+        white-space: none;
+        resize: none;
+        font: inherit;
+        font-size: var(--font-xl);
+      }
+
       .data {
-        font-size: calc(var(--font-xl));
+        font-size: var(--font-xl);
 
         width: clamp(200px, 100%, 100%);
         white-space: pre-wrap;

@@ -210,6 +210,15 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     this.dispatchEvent('line-removed', [index, line]);
   }
 
+  removeFromId(id: number) {
+    const index = this.lines.findIndex((line) => line.id === id);
+    if (index !== -1) {
+      this.removeLine(index);
+    }
+
+    return index;
+  }
+
   addLine(line: LRCLine, after: number = this.lines.length - 1) {
     this.lines.splice(after + 1, 0, line);
     this._cachedTime.splice(after + 1, 0, line.time);
