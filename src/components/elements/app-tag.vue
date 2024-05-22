@@ -7,17 +7,16 @@
 <style scoped lang="scss">
   .tag {
     height: var(--xl);
-    background-color: orangered;
-    color: white;
+    background-color: var(--color-200);
     display: grid;
     place-items: center;
     position: fixed;
     text-transform: uppercase;
     font-weight: 600;
     font-size: var(--font-sm);
-    left: -25px;
-    top: 15px;
-    width: 100px;
+    left: -2.5rem;
+    top: 0.75rem;
+    width: 8.25rem;
     rotate: -45deg;
     z-index: 10;
     transition: opacity 0.3s;

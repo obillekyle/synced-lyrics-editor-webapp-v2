@@ -127,8 +127,8 @@
         <icon-button
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(-5)"
+          :title="i18n('PLAYER_BACKWARD')"
           id="seek-backward"
-          title=""
           icon="material-symbols:fast-rewind"
         />
         <MdProgress
@@ -164,8 +164,8 @@
         <icon-button
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(5)"
+          :title="i18n('PLAYER_FORWARD')"
           id="seek-forward"
-          title="Seek Forward"
           icon="material-symbols:fast-forward"
         />
       </div>
@@ -289,7 +289,7 @@
           <divider direction="y" :size="24" margin="sm" />
 
           <icon-button
-            id="repeat"
+            id="repeat2"
             title="Repeat / Loop"
             icon="material-symbols:repeat"
             :onclick="() => setLoop()"
@@ -373,7 +373,7 @@
           }
 
           .artist {
-            color: gray;
+            color: darkgray;
           }
         }
       }
@@ -409,7 +409,8 @@
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
 
-      #repeat:not([active='true']) {
+      #repeat:not([active='true']),
+      #repeat2:not([active='true']) {
         opacity: 0.5;
       }
 
@@ -496,7 +497,8 @@
             flex-wrap: nowrap;
             justify-content: center;
 
-            #repeat:not([active='true']) {
+            #repeat:not([active='true']),
+            #repeat2:not([active='true']) {
               opacity: 0.5;
             }
           }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
   import { type InputHTMLAttributes, ref, onMounted, inject } from 'vue';
-  import { addPX, evaluate } from '@/api/util';
+  import { addPX, evaluate, getCSSValue, type AppSizes } from '@/api/util';
 
-  interface SwitchProps extends /* @vue-ignore */ InputHTMLAttributes {
-    size?: number | string;
+  interface SwitchProps
+    extends /* @vue-ignore */ Omit<InputHTMLAttributes, 'size'> {
+    size?: AppSizes | number | String;
     change?: (v: boolean) => any;
     defaultChecked?: boolean;
   }
@@ -14,7 +15,7 @@
   });
 
   const props = withDefaults(defineProps<SwitchProps>(), {
-    size: 32,
+    size: 'sm',
   });
 
   function handleClick() {
@@ -38,7 +39,7 @@
   <div
     class="switch-wrapper"
     @click="() => inputRef?.click()"
-    :style="`--size: ${addPX(size)}`"
+    :style="`--size: ${getCSSValue(size, 'px', 'size')}`"
   >
     <input
       type="checkbox"

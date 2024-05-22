@@ -1,6 +1,7 @@
-import type { types } from 'sass';
 import { CustomEventHandler } from './event';
-import Dexie from 'dexie';
+import type { Dexie as DexieType } from 'dexie';
+
+const Dexie = (await import('dexie')).default;
 
 export type FolderIndex = {
   key?: number;
@@ -52,8 +53,8 @@ export type PathEntry = {
 };
 
 class FileStore extends Dexie {
-  index!: Dexie.Table<IndexType, number>;
-  data!: Dexie.Table<StoreType, number>;
+  index!: DexieType.Table<IndexType, number>;
+  data!: DexieType.Table<StoreType, number>;
 
   constructor() {
     super('files');

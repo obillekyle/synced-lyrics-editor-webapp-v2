@@ -75,13 +75,13 @@
 
   onMounted(() => {
     lrcChange();
-    Lyrics.addEventListener('lrc-updated', lrcChange);
+    Lyrics.addEventListener('parsed', lrcChange);
     Player.addEventListener('timeupdate', handleCurrentIndex);
     Player.addEventListener('musicupdated', resetIndex);
   });
 
   onUnmounted(() => {
-    Lyrics.removeEventListener('lrc-updated', lrcChange);
+    Lyrics.removeEventListener('parsed', lrcChange);
     Player.removeEventListener('timeupdate', handleCurrentIndex);
     Player.removeEventListener('musicupdated', resetIndex);
   });

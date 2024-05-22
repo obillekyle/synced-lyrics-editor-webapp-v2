@@ -32,8 +32,11 @@ export default defineConfig({
       pwaAssets: {
         overrideManifestIcons: true,
         preset: minimal2023Preset,
-        htmlPreset: "2023",
+        htmlPreset: '2023',
         includeHtmlHeadLinks: true,
+      },
+      workbox: {
+        cleanupOutdatedCaches: false,
       },
       manifest: {
         name: 'Synced Lyrics Editor',
@@ -81,6 +84,7 @@ export default defineConfig({
     'process.env.NODE_DEBUG': false,
   },
   build: {
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -109,6 +113,5 @@ export default defineConfig({
       },
     },
     minify: true,
-    sourcemap: true,
   },
 });

@@ -2,6 +2,7 @@
 
 html {
   touch-action: none;
+  font-size: 14px;
 }
 
 body {
@@ -29,31 +30,30 @@ body {
   --app-navbar-color: var(--background-secondary);
   --app-modal-color: var(--background-secondary);
 
-  --app-header-height: 66px;
-  --app-player-height: 71px;
-  --app-navbar-size: 88px;
+  --app-header-height: 4.125rem;
+  --app-player-height: 4.4375rem;
+  --app-navbar-size: 5.5rem;
 
-  --font-xs: 12px;
-  --font-sm: 14px;
-  --font-md: 16px;
-  --font-lg: 18px;
-  --font-xl: 20px;
+  --font-xs: 0.75rem;
+  --font-sm: 1rem;
+  --font-md: 1.125rem;
+  --font-lg: 1.25rem;
+  --font-xl: 1.5rem;
 
-  --header-size: 24px;
+  --header-size: 1.5rem;
   --header-weight: 600;
 
-  --xs: 4px;
-  --sm: 8px;
-  --md: 12px;
-  --lg: 16px;
-  --xl: 20px;
+  --xs: 0.25rem;
+  --sm: 0.5rem;
+  --md: 1rem;
+  --lg: 1.5rem;
+  --xl: 2rem;
 
-  --size-xs: 24px;
-  --size-sm: 32px;
-  --size-md: 40px;
-  --size-lg: 48px;
-  --size-xl: 56px;
-
+  --size-xs: 1.5rem;
+  --size-sm: 2rem;
+  --size-md: 2.5rem;
+  --size-lg: 3rem;
+  --size-xl: 3.5rem;
   --album-color: rgb(255, 187, 187);
 }
 

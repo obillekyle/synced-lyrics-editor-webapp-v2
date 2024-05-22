@@ -82,7 +82,6 @@
         <div class="primary">
           <Button
             :key="key"
-            :role="action.role"
             :title="action.text"
             :label="action.text"
             :disabled="action.disabled"
@@ -95,7 +94,6 @@
           <Button
             :key="key"
             variant="outline"
-            :role="action.role"
             :title="action.text"
             :label="action.text"
             :disabled="action.disabled"

@@ -56,25 +56,27 @@ function changelog() {
   const modals = window.app.modals;
   const options = window.app.options;
 
-  modals.open({
-    icon: 'material-symbols:book-2-outline',
-    id: 'changelog',
-    title: i18n('CHANGELOG'),
-    content: changelogScreen,
-    actions: [
-      {
-        text: i18n('DO_NOT_SHOW_AGAIN'),
-        role: 'secondary',
-        onClick: ({ close }) => {
-          options.set('showChangeLog', false);
-          close();
+  fetch('./changelog.md').then(async (res) => {
+    modals.open({
+      icon: 'material-symbols:book-2-outline',
+      id: 'changelog',
+      title: i18n('CHANGELOG'),
+      content: h(changelogScreen, { data: await res.text() }),
+      actions: [
+        {
+          text: i18n('DO_NOT_SHOW_AGAIN'),
+          role: 'secondary',
+          onClick: ({ close }) => {
+            options.set('showChangeLog', false);
+            close();
+          },
         },
-      },
-      {
-        text: i18n('CLOSE'),
-        onClick: ({ close }) => close(),
-      },
-    ],
+        {
+          text: i18n('CLOSE'),
+          onClick: ({ close }) => close(),
+        },
+      ],
+    });
   });
 }
 

@@ -30,7 +30,7 @@
     :class="variant"
     type="button"
     :style="`--radius: ${getCSSValue(radius.toString())};`"
-    @click="rippleEffect"
+    @pointerdown="rippleEffect"
   >
     <ButtonIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
     <div class="label">

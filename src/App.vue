@@ -70,7 +70,7 @@
 
 <template>
   <div class="loader" :class="{ ready }">
-    <img src="/logo.svg" height="96px" />
+    <img alt="App Logo" src="/logo.svg" width="96" height="96" />
     <Progress :value="Infinity" />
   </div>
 
