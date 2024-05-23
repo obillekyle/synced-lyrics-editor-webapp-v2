@@ -1,11 +1,25 @@
 <script setup lang="ts">
   import { $, clamp } from '@/api/util';
-  import { type LRCArgs } from '@/api/parser';
-  import { onMounted, onUnmounted, ref, markRaw } from 'vue';
+  import {
+    onMounted,
+    onUnmounted,
+    ref,
+    markRaw,
+    shallowRef,
+    watch,
+    computed,
+    inject,
+    type Ref,
+  } from 'vue';
   import iconButton from '../elements/button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
+  import type { LRCLine, LRCTags } from '@/api/parser';
+  import List from '../elements/list/list.vue';
+  import type { ListItemType } from '../elements/list/types';
+  import TimingList from './timing-list.vue';
+  import IconButton from '../elements/button/icon-button.vue';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
@@ -13,11 +27,11 @@
 
   const focus = ref(-1);
   const edit = ref(false);
-  const lyrics = markRaw(Lyrics.getJSON());
+  const lines = ref<ListItemType<LRCLine>[]>([]);
+  const tags = ref<LRCTags>({});
 
-  const updateKey = ref(true);
+  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
   const timingPane = ref<HTMLElement | null>(null);
-  const update = () => (updateKey.value = !updateKey.value);
 
   const setFocus = (value: typeof focus.value) => {
     if (focus.value == value) return;
@@ -25,7 +39,7 @@
     edit.value = false;
 
     if (!focused) {
-      if (value >= lyrics.lines.length) {
+      if (value >= lines.value.length) {
         focus.value = -1;
         return;
       }
@@ -48,31 +62,31 @@
     });
   };
 
-  const setLyricsObj = (...args: LRCArgs) => {
-    if (args[0] == 'parsed') {
-      const lrcData = Lyrics.getJSON();
-      lyrics.lines = lrcData.lines;
-      lyrics.tags = lrcData.tags;
-      return update();
-    }
+  const handleLyricsParse = () => {
+    const lrcData = Lyrics.getRaw();
 
-    const [event, line, index] = args;
+    lines.value = lrcData.lines.map((line) => ({
+      id: line.id,
+      props: line,
+    }));
 
-    switch (event) {
-      case 'line-added':
-        lyrics.lines.splice(index, 0, line);
-        setFocus(index);
-        break;
-      case 'line-removed':
-        lyrics.lines.splice(index, 1);
-        setFocus(index >= lyrics.lines.length ? index - 1 : index);
-        break;
-      case 'line-updated':
-        lyrics.lines[index] = line;
-        break;
-    }
+    tags.value = lrcData.tags;
+    setFocus(-1);
+  };
 
-    update();
+  const handleLineAdd = (index: number, data: LRCLine) => {
+    lines.value.splice(index, 0, { id: data.id, props: data });
+    setFocus(index);
+  };
+
+  const handleLineRemove = (index: number) => {
+    lines.value.splice(index, 1);
+    setFocus(index >= lines.value.length ? index - 1 : index);
+  };
+
+  const handleLineUpdate = (index: number, data: LRCLine) => {
+    lines.value[index] = { id: data.id, props: data };
+    setFocus(index);
   };
 
   const toggleEdit = () => (edit.value = !edit.value);
@@ -80,28 +94,28 @@
     const index = focus.value;
 
     if (index == -1) return;
-    if (!lyrics.lines[index]) return;
+    if (!lines.value[index]) return;
     if (!isFinite(Player.duration)) return;
 
-    const newIndex = index + 1 === lyrics.lines.length ? index : index + 1;
+    const newIndex = index + 1 === lines.value.length ? index : index + 1;
     const currentTime = Player.currentTime * 1000;
 
     e?.stopPropagation?.();
     setFocus(newIndex);
 
-    if (lyrics.lines[newIndex].time != currentTime) {
+    if (lines.value[newIndex].props.time != currentTime) {
       Lyrics.updateLine(index, { time: currentTime });
     }
   };
 
   const adjustTime = (value: number) => {
     const index = focus.value;
-    const lrcLine = lyrics.lines[index];
+    const lrcLine = lines.value[index];
 
     if (index == -1) return;
     if (!lrcLine) return;
 
-    const time = lrcLine.time + value;
+    const time = lrcLine.props.time + value;
 
     Lyrics.updateLine(index, {
       time: time < 0 ? 0 : time,
@@ -113,11 +127,16 @@
     const value = element?.value ?? '';
     toggleEdit();
 
-    Lyrics.updateLine(index, { data: value, type: 'single' });
+    Lyrics.updateLine(index, {
+      data: value.replace(/\n/g, ''),
+      type: 'single',
+    });
   }
 
   function handleKeyDown(e: KeyboardEvent) {
     const index = focus.value;
+    const lyrics = lines.value;
+
     if (e.ctrlKey) return;
     if (edit.value) return;
 
@@ -139,10 +158,10 @@
     });
 
     processKey(Keybinds.timing.arrowDownFocus, e, () => {
-      setFocus(index + 1 >= lyrics.lines.length ? index : index + 1);
+      setFocus(index + 1 >= lyrics.length ? index : index + 1);
     });
     processKey(Keybinds.timing.arrowUpFocus, e, () => {
-      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.lines.length : index) - 1);
+      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.length : index) - 1);
     });
   }
 
@@ -190,30 +209,66 @@
 
     processKey(Keybinds.timing.toggleEditMode, e, () => {
       toggleEdit();
-      setTimeout(() => $('.lrc-line.active .data')?.focus(), 100);
     });
   }
 
+  watch(edit, (value) => {
+    if (value) {
+      setTimeout(() => {
+        const element = $<HTMLInputElement>(`.lrc-line.active .data`);
+        if (element) {
+          element.focus();
+          element.setSelectionRange(0, element.value.length);
+        }
+      }, 100);
+    }
+  });
+
   onMounted(() => {
     const app = $('#app')!;
-    setLyricsObj('parsed', Lyrics);
-    Lyrics.addEventListener('lrc-updated', setLyricsObj);
+
+    handleLyricsParse();
+
+    Lyrics.addEventListener('parsed', handleLyricsParse);
+    Lyrics.addEventListener('line-added', handleLineAdd);
+    Lyrics.addEventListener('line-removed', handleLineRemove);
+    Lyrics.addEventListener('line-updated', handleLineUpdate);
+
     app.addEventListener('keydown', handleKeyDown);
     app.addEventListener('keyup', handleKeyUp);
   });
 
   onUnmounted(() => {
     const app = $('#app')!;
-    Lyrics.removeEventListener('lrc-updated', setLyricsObj);
+
+    Lyrics.removeEventListener('parsed', handleLyricsParse);
+    Lyrics.removeEventListener('line-added', handleLineAdd);
+    Lyrics.removeEventListener('line-removed', handleLineRemove);
+    Lyrics.removeEventListener('line-updated', handleLineUpdate);
+
     app.removeEventListener('keydown', handleKeyDown);
     app.removeEventListener('keyup', handleKeyUp);
   });
+
+  function dismissLine(id: number) {
+    Lyrics.removeLine(id);
+  }
 </script>
 
 <template>
-  <div :data-update="updateKey" class="timing-screen" ref="timingPane">
+  <div class="timing-screen-drag" v-if="sortMode">
+    <div class="guide">Swipe left or right to remove</div>
+    <List
+      :items="lines"
+      :list-comp="TimingList"
+      :on-dismiss="dismissLine"
+      swipe="dismiss"
+    />
+  </div>
+
+  <div class="timing-screen" ref="timingPane" v-else>
     <div
-      :key="index"
+      :key="id"
       :data-index="index"
       @click="setFocus(index)"
       class="lrc-line"
@@ -221,19 +276,19 @@
         active: focus == index,
         edit,
       }"
-      v-for="({ data, time }, index) in lyrics.lines"
+      v-for="({ id, props }, index) in lines"
     >
-      <div class="time" @click="() => (Player.currentTime = time / 1000)">
-        {{ Lyrics.timeToString(time) }}
+      <div class="time" @click="() => (Player.currentTime = props.time / 1000)">
+        {{ Lyrics.timeToString(props.time) }}
       </div>
       <div v-if="focus == index" class="edit-icon-container">
-        <icon-button
+        <IconButton
           v-show="edit"
           title="Save"
           icon="material-symbols:done"
           @click="() => saveValue(index)"
         />
-        <icon-button
+        <IconButton
           v-show="!edit"
           title="Edit"
           @click="toggleEdit"
@@ -241,23 +296,32 @@
         />
       </div>
 
-      <input class="data" v-if="focus == index && edit" :defaultValue="data" />
+      <textarea
+        class="data"
+        v-if="focus == index && edit"
+        :defaultValue="props.data"
+      />
 
       <div class="data" v-else>
         <div
           :key="index"
-          v-for="({ line }, index) in data"
-          v-if="typeof data == 'object'"
+          v-if="typeof props.data == 'object'"
+          v-for="({ line }, index) in props.data"
         >
           {{ line }}
         </div>
-        <template v-else>{{ data }}</template>
+        <template v-else>{{ props.data }}</template>
       </div>
 
       <div class="timing-buttons" v-if="focus == index">
-        <icon-button
+        <IconButton
           @click="
-            () => (Player.currentTime = clamp(0, time / 1000, Player.duration))
+            () =>
+              (Player.currentTime = clamp(
+                0,
+                props.time / 1000,
+                Player.duration
+              ))
           "
           :disabled="!isFinite(Player.duration)"
           title="Player current time"
@@ -287,9 +351,37 @@
 </template>
 
 <style lang="scss">
-  .timing-screen {
+  .timing-screen-drag {
+    width: 100%;
+    height: 100%;
     padding-inline: var(--md);
+    margin-inline: auto;
+    position: relative;
     max-width: 768px;
+    .list:empty::after {
+      content: 'There are no lines';
+      text-align: center;
+      display: block;
+      padding-block: var(--md);
+      font-size: var(--font-xl);
+      color: var(--mono-700);
+    }
+
+    .guide {
+      top: 0;
+      z-index: 10;
+      position: sticky;
+      background: var(--background-body);
+      text-align: center;
+      padding: var(--xl);
+    }
+  }
+
+  .timing-screen {
+    padding-block: calc((85dvh - 112px) / 2);
+    max-width: 768px;
+    width: 100%;
+    padding-inline: var(--md);
     margin-inline: auto;
     position: relative;
 
@@ -378,8 +470,16 @@
         border-top: 1px solid var(--color-800-10);
       }
 
+      textarea.data {
+        word-break: break-word;
+        white-space: none;
+        resize: none;
+        font: inherit;
+        font-size: var(--font-xl);
+      }
+
       .data {
-        font-size: calc(var(--font-xl));
+        font-size: var(--font-xl);
 
         width: clamp(200px, 100%, 100%);
         white-space: pre-wrap;

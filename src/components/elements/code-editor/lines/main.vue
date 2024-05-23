@@ -276,7 +276,7 @@
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .tooltip {
     position: fixed;
     left: -100dvw;

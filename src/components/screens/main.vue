@@ -5,6 +5,7 @@
   import editScreen from './edit.vue';
   import previewScreen from './lyric.vue';
   import timingScreen from './timing.vue';
+  import filesScreen from './files.vue';
 
   const screen = window.app.screen;
   const options = window.app.options;
@@ -17,11 +18,11 @@
   }
 
   onMounted(() => {
-    screen.addEventListener('screenchange', screenChange);
+    screen.addEventListener('update', screenChange);
   });
 
   onUnmounted(() => {
-    screen.removeEventListener('screenchange', screenChange);
+    screen.removeEventListener('update', screenChange);
   });
 </script>
 
@@ -31,12 +32,15 @@
     <timing-screen v-if="activeScreen == 'timing'" />
     <preview-screen v-if="activeScreen == 'lyric'" />
     <debug-screen v-if="activeScreen == 'debug'" />
+    <files-screen v-if="activeScreen == 'files'" />
   </div>
 </template>
 
 <style lang="scss">
   .app-main-content {
-    padding-block: 40dvh;
+    display: grid;
+    align-items: center;
+    height: 100%;
     > * {
       transform: translateY(48px);
       animation: slide-up 0.15s forwards;

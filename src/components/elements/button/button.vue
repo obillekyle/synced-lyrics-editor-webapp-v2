@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { type ButtonHTMLAttributes, type Component } from 'vue';
 
-  import { type AppSizes, getCSSValue } from '@/api/util';
+  import { type AppSizes, getCSSValue, rippleEffect } from '@/api/util';
 
   import ButtonIcon from './button-icon.vue';
 
@@ -30,6 +30,7 @@
     :class="variant"
     type="button"
     :style="`--radius: ${getCSSValue(radius.toString())};`"
+    @pointerdown="rippleEffect"
   >
     <ButtonIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
     <div class="label">
@@ -43,20 +44,26 @@
   .button {
     display: inline-flex;
     align-items: center;
+    height: var(--size-lg);
     width: fit-content;
     border-radius: var(--radius);
-    gap: var(--sm);
+    overflow: hidden;
     border: none;
     font: inherit;
     font-weight: 600;
     color: var(--color-100);
     background: var(--color-700);
-    padding: var(--sm) var(--md);
     transition: opacity 0.2s;
+    padding-inline: var(--md);
+    gap: var(--md);
     box-shadow: 0 2px 6px #0005;
     transition:
       filter 0.2s,
       background-color 0.2s;
+
+    & + & {
+      margin-inline-start: var(--xs);
+    }
 
     &:hover {
       filter: brightness(1.2);
@@ -96,6 +103,11 @@
       &:hover {
         background: var(--color-400-10);
       }
+    }
+
+    &:disabled {
+      background-color: var(--mono-300-50);
+      color: var(--mono-500);
     }
   }
 </style>

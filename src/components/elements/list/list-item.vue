@@ -1,11 +1,5 @@
 <script setup lang="ts">
-  import {
-    inject,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    type Ref,
-  } from 'vue';
+  import { inject, onBeforeUnmount, onMounted, ref, type Ref } from 'vue';
 
   import { addPX, evaluate } from '@/api/util';
   import { Icon } from '@iconify/vue/dist/iconify.js';
@@ -20,7 +14,7 @@
   const parentProps = inject<ListProps>('parentProps')!;
   const swipeEvent = ref<MouseEvent | TouchEvent | null>(null);
   const arrangeEvent = ref<MouseEvent | TouchEvent | null>(null);
-  const items = inject<Ref<ListItemType[]>>('items')!;
+  const items = inject<ListItemType[]>('items')!;
   const content = ref<HTMLElement | null>(null);
   const wrapper = ref<HTMLElement | null>(null);
   const value = ref(0);
@@ -52,8 +46,23 @@
         : oldEvent.touches[0].clientX;
 
     offset = clientX - oldX;
+    const registerSwipe = Math.abs(offset) > 32;
 
-    element.style.left = addPX(Math.abs(offset) > 32 ? offset : 0);
+    offset =
+      offset > 0 &&
+      parentProps.swipe === 'custom' &&
+      !parentProps.swipeOptions?.left
+        ? offset * 0.2
+        : offset;
+
+    offset =
+      offset < 0 &&
+      parentProps.swipe === 'custom' &&
+      !parentProps.swipeOptions?.right
+        ? offset * 0.1
+        : offset;
+
+    element.style.left = addPX(registerSwipe ? offset : 0);
     value.value = offset;
   }
 
@@ -61,10 +70,9 @@
     const element = content.value!;
     element.style.removeProperty('transition');
     element.style.left = value.value > 0 ? '100%' : '-100%';
-    evaluate(parentProps.onDismiss, props.index);
 
     setTimeout(() => {
-      items.value.splice(props.index, 1);
+      evaluate(parentProps.onDismiss, props.index);
     }, 200);
   }
 
@@ -85,8 +93,8 @@
         }
         case 'custom': {
           value.value > 0
-            ? evaluate(parentProps.swipeOptions?.left.handler, props.index)
-            : evaluate(parentProps.swipeOptions?.right.handler, props.index);
+            ? evaluate(parentProps.swipeOptions?.left?.handler, props.index)
+            : evaluate(parentProps.swipeOptions?.right?.handler, props.index);
         }
       }
     }
@@ -100,7 +108,7 @@
     e.preventDefault();
     const element = wrapper.value!;
     arrangeEvent.value = null;
-    element.style.removeProperty('transition');
+    element.classList.remove('dragged');
     element.style.top = addPX(props.index * 56);
     document.body.style.removeProperty('cursor');
     lastTop.value = props.index * 56;
@@ -126,7 +134,7 @@
     const index = Math.floor(y / 56);
 
     if (index !== props.index) {
-      items.value.splice(index, 0, items.value.splice(props.index, 1)[0]);
+      evaluate(parentProps.onReorder, props.index, index);
     }
 
     element.style.top = addPX(y);
@@ -137,7 +145,7 @@
     if (!wrapper.value) return;
     if (arrangeEvent.value) return;
     if (!parentProps.sortable) return;
-    wrapper.value.style.transition = 'none';
+    wrapper.value.classList.add('dragged');
     arrangeEvent.value = e;
   }
 
@@ -195,16 +203,17 @@
       </div>
     </div>
     <div class="swipe-indicator" v-if="parentProps.swipe === 'custom'">
-      <div
-        :key="k"
-        :class="k"
-        v-for="(i, k) in parentProps.swipeOptions"
-        :style="{ background: i.color }"
-        v-show="k == 'left' ? value > 0 : value < 0"
-      >
-        <Icon v-if="typeof i.icon == 'string'" :icon="i.icon" :width="24" />
-        <component v-else :is="i.icon" />
-      </div>
+      <template :key="k" v-for="(i, k) in parentProps.swipeOptions">
+        <div
+          :class="k"
+          v-if="typeof i == 'object'"
+          :style="{ background: i.color }"
+          v-show="k == 'left' ? value > 0 : value < 0"
+        >
+          <Icon v-if="typeof i.icon == 'string'" :icon="i.icon" :width="24" />
+          <component v-else :is="i.icon" />
+        </div>
+      </template>
     </div>
   </div>
 </template>

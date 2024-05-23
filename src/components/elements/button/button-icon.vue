@@ -3,13 +3,12 @@
   import { ref, type Component } from 'vue';
 
   defineProps<{
-    class: string | string[] | Record<string, boolean> | undefined;
     icon: string | Component;
   }>();
 </script>
 
 <template>
-  <div class="button-icon" :class="class">
+  <div class="button-icon">
     <Icon v-if="typeof icon == 'string'" :icon="icon" :width="24" />
     <component v-else="icon" :is="icon" />
   </div>

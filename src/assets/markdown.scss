@@ -1,51 +1,70 @@
-.marked-content {  
-  font-family: 'Roboto Flex', Arial, Helvetica, sans-serif; 
+.marked-content {
+  font-family: 'Roboto Flex', Arial, Helvetica, sans-serif;
   line-height: 1.5;
 
-  p { 
+  p {
     margin-bottom: 1.2em;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-weight: bold;
     margin-top: 1.5em;
     margin-bottom: 0.8em;
   }
 
-  h1 { font-size: 2.2em; }
-  h2 { font-size: 1.8em; } 
+  h1 {
+    font-size: 2.2em;
+  }
+  h2 {
+    font-size: 1.8em;
+  }
 
   a {
-    color: #007bff; 
+    color: #007bff;
     text-decoration: underline;
   }
 
-  ul, ol, li {
+  ul,
+  ol,
+  li {
     margin-left: 1em;
   }
 
-  ul, ol {
+  ul,
+  ol {
     margin-bottom: 1.2em;
   }
 
-  em, i { font-style: italic; }
-  strong, b { font-weight: bold; }
+  em,
+  i {
+    font-style: italic;
+  }
+  strong,
+  b {
+    font-weight: bold;
+  }
 
-  code { 
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    padding: 0.2em 0.4em;
+  code {
+    background-color: #7777;
+    border: 1px solid #777a;
+    border-radius: 0.2em;
+    padding: 0.1em 0.4em;
     font-family: monospace;
   }
 
-  pre code { 
-    display: block; 
-    overflow-x: auto; 
+  pre code {
+    display: block;
+    overflow-x: auto;
     padding: 1em;
   }
 
   blockquote {
-    border-left: 5px solid #eee; 
+    border-left: 5px solid #eee;
     padding-left: 1em;
     color: #666;
     font-style: italic;

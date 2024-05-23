@@ -6,10 +6,8 @@
     inject,
     onMounted,
     onUnmounted,
-    reactive,
     ref,
     shallowRef,
-    Suspense,
   } from 'vue';
   import animatedScroll from 'animated-scroll-to';
   import playingIndicator from '../playing-indicator.vue';
@@ -20,7 +18,7 @@
   const Lyrics = window.app.lyric;
   const Lang = window.app.i18n;
 
-  const lyrics = shallowRef(Lyrics.getJSON());
+  const lyrics = shallowRef(Lyrics.getRaw());
   const bypass = ref(false);
 
   const previewPane = ref<HTMLElement | null>(null);
@@ -29,7 +27,7 @@
   const lang = Lang.lang;
 
   const lrcChange = () => {
-    lyrics.value = Lyrics.getJSON();
+    lyrics.value = Lyrics.getRaw();
   };
 
   function handleCurrentIndex(this: MusicService) {
@@ -77,13 +75,13 @@
 
   onMounted(() => {
     lrcChange();
-    Lyrics.addEventListener('lrc-updated', lrcChange);
+    Lyrics.addEventListener('parsed', lrcChange);
     Player.addEventListener('timeupdate', handleCurrentIndex);
     Player.addEventListener('musicupdated', resetIndex);
   });
 
   onUnmounted(() => {
-    Lyrics.removeEventListener('lrc-updated', lrcChange);
+    Lyrics.removeEventListener('parsed', lrcChange);
     Player.removeEventListener('timeupdate', handleCurrentIndex);
     Player.removeEventListener('musicupdated', resetIndex);
   });
@@ -125,7 +123,9 @@
 
 <style lang="scss">
   .preview-screen {
+    padding-block: calc((85dvh - 112px) / 2);
     color: var(--color-900-20);
+    padding-inline: var(--md);
 
     &:empty::after {
       content: 'No lyric available';

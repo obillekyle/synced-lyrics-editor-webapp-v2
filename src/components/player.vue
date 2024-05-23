@@ -17,7 +17,8 @@
   import floatingKeybind from './keybinds/main.vue';
   import _presets from './modals/_presets';
   import Seeker from './seeker.vue';
-  import MdProgress from './elements/md-progress.vue';
+  import MdProgress from './elements/progress/circular-progress.vue';
+  import IconButton from './elements/button/icon-button.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -124,11 +125,11 @@
       <floating-keybind v-if="showKeyBinds" />
 
       <div class="controls">
-        <icon-button
+        <IconButton
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(-5)"
-          id="seek-backward"
-          title=""
+          :title="i18n('PLAYER_BACKWARD')"
+          class="seek-backward"
           icon="material-symbols:fast-rewind"
         />
         <MdProgress
@@ -144,7 +145,6 @@
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.playPause()"
           class="icon-button play-button"
-          id="play-button"
           :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
           type="button"
         >
@@ -161,11 +161,11 @@
             />
           </div>
         </button>
-        <icon-button
+        <IconButton
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(5)"
-          id="seek-forward"
-          title="Seek Forward"
+          :title="i18n('PLAYER_FORWARD')"
+          class="seek-forward"
           icon="material-symbols:fast-forward"
         />
       </div>
@@ -252,7 +252,7 @@
           <icon-button
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.fastSeek(-5)"
-            id="seek-backward"
+            class="seek-backward"
             title="Seek Backward"
             icon="material-symbols:fast-rewind"
           />
@@ -261,7 +261,6 @@
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.playPause()"
             class="icon-button play-button"
-            id="play-button"
             title="Play/Pause"
             type="button"
           >
@@ -289,7 +288,7 @@
           <divider direction="y" :size="24" margin="sm" />
 
           <icon-button
-            id="repeat"
+            id="repeat2"
             title="Repeat / Loop"
             icon="material-symbols:repeat"
             :onclick="() => setLoop()"
@@ -373,7 +372,7 @@
           }
 
           .artist {
-            color: gray;
+            color: darkgray;
           }
         }
       }
@@ -409,7 +408,8 @@
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
 
-      #repeat:not([active='true']) {
+      #repeat:not([active='true']),
+      #repeat2:not([active='true']) {
         opacity: 0.5;
       }
 
@@ -450,7 +450,7 @@
         }
 
         .controls {
-          > :not(#play-button) {
+          > :not(.play-button) {
             display: none;
           }
           margin-left: auto;
@@ -496,7 +496,8 @@
             flex-wrap: nowrap;
             justify-content: center;
 
-            #repeat:not([active='true']) {
+            #repeat:not([active='true']),
+            #repeat2:not([active='true']) {
               opacity: 0.5;
             }
           }

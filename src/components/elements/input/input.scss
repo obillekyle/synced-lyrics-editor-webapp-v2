@@ -3,11 +3,14 @@
   align-items: center;
   align-self: center;
   border: 1px solid #7777;
-  min-height: 36px;
+  min-height: var(--size-xl);
   border-radius: var(--xs);
-  background: var(--color-100);
   filter: grayscale(1);
   width: max-content;
+
+  &.span-input {
+    width: 100%;
+  }
 
   .input-icon {
     display: inherit;
@@ -18,18 +21,19 @@
   .input {
     position: relative;
     height: 100%;
+    width: 100%;
     display: flex;
     min-height: inherit;
   }
 
   &:not(:has(.left-icon)) {
     .input {
-      padding-left: var(--sm);
+      padding-left: var(--lg);
     }
   }
   &:not(:has(.right-icon, .input-number-arrows)) {
     .input {
-      padding-right: var(--sm);
+      padding-right: var(--lg);
     }
   }
 
@@ -45,6 +49,7 @@
     outline: none;
     background: none;
     height: 100%;
+    width: 100%;
     min-height: inherit;
     font: inherit;
     color: inherit;

@@ -2,23 +2,25 @@
   import { onMounted, ref } from 'vue';
 
   import Button from '../elements/button/button.vue';
-  import InputText from '../elements/input/text.vue';
+  import InputText from '../elements/input/text-input.vue';
   import List from '../elements/list/list.vue';
   import type { ListItemType, SwipeOptions } from '../elements/list/types';
   import _presets from '../modals/_presets';
   import DebugListComp from './debug-list-comp.vue';
   import MasterSwitch from '../elements/master-switch.vue';
   import I18nString from '../elements/i18n-string.vue';
-  import MdProgress from '../elements/md-progress.vue';
+  import MdProgress from '../elements/progress/circular-progress.vue';
   import Switch from '../elements/switch.vue';
-  import Progress from '../elements/progress.vue';
+  import Progress from '../elements/progress/linear-progress.vue';
   import Slider from '../elements/slider.vue';
+  import Chip from '../elements/chip/chip.vue';
 
   const Lang = window.app.i18n;
   const Option = window.app.options;
   const Player = window.app.player;
 
   const langInput = ref<HTMLInputElement | null>(null);
+  const progressVal = ref(20);
 
   const items = ref<ListItemType[]>([
     {
@@ -45,14 +47,18 @@
         console.log('left');
       },
     },
-    right: {
-      color: 'orange',
-      icon: 'material-symbols:mark-as-unread-outline-rounded',
-      handler: () => {
-        console.log('right');
-      },
-    },
   };
+
+  function setFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+
+    document.documentElement.requestFullscreen({
+      navigationUI: 'show',
+    });
+  }
 </script>
 
 <template>
@@ -61,18 +67,51 @@
       :defaultChecked="Option.get('debug', false)"
       :change="(value) => Option.set('debug', value)"
     >
-      <I18nString entry="DEBUG" />
+      Use debug options
     </MasterSwitch>
 
     <MdProgress />
-    <Progress />
+    <MdProgress :value="progressVal" />
 
+    <Progress />
+    <Progress :value="progressVal" />
+
+    <MdProgress :value="progressVal">
+      <MdProgress :diameter="24" :stroke="3" />
+    </MdProgress>
+
+    <Slider v-model="progressVal" />
     <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" />
+    <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" show-label />
     <Slider
       show-value
       :default-value="Player.volume * 100"
       :change="(v) => Player.setVolume(v)"
     />
+    <Slider show-value :step="5" />
+
+    <div>
+      <Chip
+        variant="filled"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="subtle"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="transparent"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+    </div>
 
     <Button
       left-icon="material-symbols:settings-outline"
@@ -101,7 +140,13 @@
       @click="_presets.changelog"
       label="Changelog"
     />
-    <div>
+
+    <Button
+      left-icon="material-symbols:fullscreen"
+      label="Fullscreen"
+      @click="() => setFullscreen()"
+    />
+    <div class="lang-controller">
       <InputText
         placeholder="Language"
         left-icon="material-symbols:language"
@@ -133,6 +178,11 @@
   .debug-screen {
     display: flex;
     flex-direction: column;
+    gap: var(--sm);
+  }
+  .lang-controller {
+    display: flex;
+    align-items: center;
     gap: var(--sm);
   }
   .special-wrapper {

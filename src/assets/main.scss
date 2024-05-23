@@ -1,5 +1,8 @@
+@import './modals.scss';
+
 html {
   touch-action: none;
+  font-size: 14px;
 }
 
 body {
@@ -16,8 +19,8 @@ body {
     'Open Sans',
     'Helvetica Neue',
     sans-serif;
-  --background-body: #ffffff;
-  --background-secondary: #eeeeee;
+  --background-body: var(--color-50, #fff);
+  --background-secondary: var(--color-100, #eee);
   --app-player-color: #eeeeee;
 
   font-smooth: never;
@@ -27,32 +30,44 @@ body {
   --app-navbar-color: var(--background-secondary);
   --app-modal-color: var(--background-secondary);
 
-  --app-header-height: 66px;
-  --app-player-height: 71px;
-  --app-navbar-size: 88px;
+  --app-header-height: 4.125rem;
+  --app-player-height: 4.4375rem;
+  --app-navbar-size: 5.5rem;
 
-  --font-xs: 12px;
-  --font-sm: 14px;
-  --font-md: 16px;
-  --font-lg: 18px;
-  --font-xl: 20px;
+  --font-xs: 0.75rem;
+  --font-sm: 0.875rem;
+  --font-md: 1rem;
+  --font-lg: 1.125rem;
+  --font-xl: 1.25rem;
 
-  --header-size: 24px;
+  --header-size: 1.5rem;
   --header-weight: 600;
 
-  --xs: 4px;
-  --sm: 8px;
-  --md: 12px;
-  --lg: 16px;
-  --xl: 20px;
+  --xs: 0.25rem;
+  --sm: 0.5rem;
+  --md: 0.75rem;
+  --lg: 1rem;
+  --xl: 1.25rem;
+
+  --size-xs: 1.5rem;
+  --size-sm: 2rem;
+  --size-md: 2.5rem;
+  --size-lg: 3rem;
+  --size-xl: 3.5rem;
+
+  --icon-xs: 0.75rem;
+  --icon-sm: 1rem;
+  --icon-md: 1.5rem;
+  --icon-lg: 1.75rem;
+  --icon-xl: 2rem;
 
   --album-color: rgb(255, 187, 187);
 }
 
 body.dark {
-  --background-body: #111111;
-  --background-secondary: #333333;
-  --app-player-color: #202020;
+  --background-body: var(--color-50, #111);
+  --background-secondary: var(--color-100, #333);
+  --app-player-color: var(--color-100, #333);
 }
 
 * {
@@ -85,11 +100,9 @@ body.dark {
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (min-width: 600px) {
   html {
-    --app-header-height: 56px;
-    --app-player-height: 64px;
-    --app-navbar-size: 90px;
+    font-size: 16px;
   }
 }
 
@@ -141,6 +154,11 @@ button {
     }
   }
 
+  &:disabled .icon-wrapper {
+    color: var(--mono-500);
+    pointer-events: none;
+  }
+
   &:hover:not(:disabled) .icon-wrapper {
     background-color: var(--color-600-20);
     cursor: pointer;
@@ -165,24 +183,22 @@ main {
 .ripple {
   position: absolute;
   border-radius: 999px;
-  transform: translate(-4%, -4%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
   opacity: 0;
   scale: 0.2;
-  transform-origin: center;
-  background-color: var(--color-700-30);
-  animation: rippled 0.5s forwards;
+  transform-origin: left top;
+  background-color: var(--mono-700-20);
+  animation: rippled 0.5s forwards ease-out;
 }
 
 @keyframes rippled {
   60% {
     opacity: 1;
-    scale: 1.5;
-    transform: translate(-25%, -25%);
+    scale: 2;
   }
   100% {
     opacity: 0;
-    scale: 2;
-    transform: translate(-100%, -100%);
+    scale: 2.5;
   }
 }

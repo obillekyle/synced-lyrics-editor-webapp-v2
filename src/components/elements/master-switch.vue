@@ -1,9 +1,5 @@
 <script setup lang="ts">
-  import {
-    type HTMLAttributes,
-    watch,
-    onBeforeMount,
-  } from 'vue';
+  import { type HTMLAttributes, watch, onBeforeMount } from 'vue';
   import Switch from './switch.vue';
   import { evaluate } from '@/api/util';
   interface MasterSwitchProps extends /* @vue-ignore */ HTMLAttributes {
@@ -23,7 +19,6 @@
   });
 
   onBeforeMount(() => {
-    console.log(props.defaultChecked, value.value);
     value.value ??= props.defaultChecked ?? false;
   });
 
@@ -50,12 +45,12 @@
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    background: var(--color-300);
-    padding: var(--xl) var(--lg);
-    border-radius: var(--xl);
+    background: var(--color-200);
+    padding: var(--size-sm) var(--size-xs);
+    border-radius: var(--size-sm);
     color: var(--color-1000);
     text-transform: capitalize;
-    box-shadow: 0 4px 8px #0005;
+    font-size: var(--font-lg);
     z-index: 100;
 
     .toggle {
@@ -63,7 +58,7 @@
       position: absolute;
       display: grid;
       align-items: center;
-      right: var(--lg);
+      right: var(--xl);
       top: 0;
       bottom: 0;
     }

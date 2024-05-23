@@ -1,39 +1,55 @@
-type EventItem<T extends string, O extends any, P extends any[]> =
-  | Record<T | string, (((this: O, ...args: P) => any) | never)[]>
+type CustomEventCallback<T extends any[] | undefined> = T extends any[]
+  ? ((...args: T) => any) | (() => any)
+  : () => any;
 
-type CustomEventCallback<T extends any[]> = ((...args: T) => any) | (() => any)
+type EventType = {
+  [key: string]: any[] | undefined;
+};
 
-export class CustomEventHandler<Events extends string, Args extends any[] = any[]> {
-  private events: Partial<EventItem<Events, this, Args>> = {}
+export class CustomEventHandler<Events extends EventType = {}> {
+  private events: { [key: string]: any[] } = {};
 
-  addEventListener(type: Events, callback: CustomEventCallback<Args>) {
-    this.events[type] = this.events[type] ?? [];
-    this.events[type]!.push(callback);
+  addEventListener<EK extends keyof Events | String>(
+    type: EK,
+    callback: EK extends keyof Events
+      ? CustomEventCallback<Events[EK]>
+      : () => any
+  ): void;
+  addEventListener(type: string, callback: () => any): void {
+    this.events[type.toString()] = this.events[type] ?? [];
+
+    const index = this.events[type]!.indexOf(callback);
+    index < 0 && this.events[type]!.push(callback);
   }
 
-  dispatchEvent(event: Events, args: Args) {
-    for (let callback of this.events[event] || []) {
-      callback.call(this, ...args)
+  dispatchEvent<EK extends keyof Events | String>(
+    event: EK,
+    args: EK extends keyof Events ? Events[EK] : any[]
+  ): void;
+  dispatchEvent(event: string, args: any[] = []): void {
+    for (let callback of this.events[event] ?? []) {
+      callback.call(this, ...args);
     }
   }
 
-  removeEventListener(type: Events, callback?: CustomEventCallback<Args>) {
+  removeEventListener<EK extends keyof Events | String>(
+    type: EK,
+    callback: EK extends keyof Events
+      ? CustomEventCallback<Events[EK]>
+      : () => any
+  ): void;
+  removeEventListener(type: string, callback: () => any): void {
     if (!this.events[type]) return;
 
-    if (!callback) {
-      delete this.events[type];
-    } else {
-      const index = this.events[type]!.indexOf(callback);
-      index >= 0 && this.events[type]!.splice(index, 1);
-    }
+    const index = this.events[type]!.indexOf(callback);
+    index >= 0 && this.events[type]!.splice(index, 1);
   }
 
-  emit = this.dispatchEvent
-  on = this.addEventListener
-  listen = this.addEventListener
-  attach = this.addEventListener
-  detach = this.removeEventListener
-
+  emit = this.dispatchEvent;
+  on = this.addEventListener;
+  listen = this.addEventListener;
+  attach = this.addEventListener;
+  detach = this.removeEventListener;
 
   removeAllEvents() {
     this.events = {};

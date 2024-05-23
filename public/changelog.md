@@ -1,3 +1,38 @@
+### **May 23, 2024**
+
+**v2.0.7a**: QoL changes
+
+**Changes:**
+
+<ins>v2.0.6a ... v2.0.7a</ins>
+
+- App: Added session saving, all of your changes will be saved to locally and reloaded when you revisit the site.
+- App: You can now install the app as a PWA, so you can use this site as an offline app.
+- App: Adjusted app sizes.
+- App: Adjusted app colors.
+- App: Performance improvements.
+- Preview: Cache all translated lyrics.
+- Timing: Added a new screen mode for timing 'list'. From here you can delete lines faster by swiping a line left or right.
+- Settings: Added new language: Filipino.
+- Settings: 'showKeybinds' is now disabled by default.
+
+**Other:**
+
+- App: Bump version code (8)
+- App: Added robots.txt.
+- App: Adjusted colors logic.
+- App: Added a manifest.json file and a service worker.
+- App: Improved lighthouse scores.
+- Element: Added new components 'Select'.
+- Element: Renamed 'ProgressSpinner' to 'CircularProgress' and 'LineProgress' to 'LinearProgress'.
+- Element: Added new component states useMD3 for 'Slider', 'CircularProgress', and 'LinearProgress' components.
+- Events: Adjusted types.
+- FileManager: Added a new FileManager class.
+- Screen: Added new screen mode 'files'.
+- Parser: Added 'id' property to every lines.
+- Parser: renamed 'getJSON' to 'getRaw' and created a new 'getJSON' function.
+- Player: Fixed 'reset' event not being called when player is resetted.
+
 ### **May 17, 2024**
 
 **v2.0.6a**: Translatable preview lyrics

@@ -9,21 +9,20 @@
   import NavigationBar from '../elements/navigation-bar/main.vue';
   import _presets from '../modals/_presets';
   import AppLogo from './app-logo.vue';
+  import { AppScreens } from '@/app/main';
 
   const Screen = window.app.screen;
   const screenIndex = ref(0);
 
   const debug = inject<Ref<boolean>>('app-debug')!;
 
-  const screens = ['edit', 'timing', 'lyric', 'debug'];
-
   function onScreenUpdate() {
-    screenIndex.value = screens.indexOf(Screen.current);
+    screenIndex.value = AppScreens.indexOf(Screen.current);
   }
 
   watch(screenIndex, (value) => {
-    if (screens[value] != Screen.current) {
-      Screen.set(screens[value] as any);
+    if (AppScreens[value] != Screen.current) {
+      Screen.set(AppScreens[value] as any);
     }
   });
 
@@ -53,6 +52,9 @@
     </NavigationItem>
     <NavigationItem icon="material-symbols:bug-report-outline" v-if="debug">
       <I18nString entry="DEBUG" />
+    </NavigationItem>
+    <NavigationItem icon="material-symbols:folder-outline" v-if="debug">
+      <I18nString entry="FILES" fallback="Files" />
     </NavigationItem>
     <NavigationEntry
       id="nav-item-settings"

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-  import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
+  import { onMounted, onUnmounted, ref } from 'vue';
   import ContentEditable from '../elements/code-editor/main.vue';
   import { lrcTextFormatter } from '@/app/formatter';
   import { isMobile } from '@/api/util';
   const Lyrics = window.app.lyric;
   const Options = window.app.options;
 
-  const value = ref(Lyrics.stringify());
   const mobile = isMobile();
+  const value = ref(Lyrics.stringify());
   const codeEditor = Options.get('experimentalCodeEditor', false);
 
   const setValue = () => {
@@ -15,11 +15,11 @@
   };
 
   onMounted(() => {
-    Lyrics.addEventListener('lrc-updated', setValue);
+    Lyrics.addEventListener('parsed', setValue);
   });
 
   onUnmounted(() => {
-    Lyrics.removeEventListener('lrc-updated', setValue);
+    Lyrics.removeEventListener('parsed', setValue);
     Lyrics.parse(value.value);
   });
 </script>
@@ -27,11 +27,20 @@
 <template>
   <div class="edit-screen">
     <template v-if="codeEditor">
-      <textarea class="mobile-editor" v-if="mobile" v-model="value" />
+      <textarea
+        aria-label="Edit Lyrics"
+        class="mobile-editor"
+        v-if="mobile"
+        v-model="value"
+      />
       <ContentEditable v-else v-model="value" :formatter="lrcTextFormatter" />
     </template>
     <template v-else>
-      <textarea class="mobile-editor" v-model="value" />
+      <textarea
+        aria-label="Edit Lyrics"
+        class="mobile-editor"
+        v-model="value"
+      />
     </template>
   </div>
 </template>

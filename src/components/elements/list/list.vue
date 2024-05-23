@@ -2,18 +2,15 @@
   import { provide } from 'vue';
   import { addPX } from '@/api/util';
   import ListItem from './list-item.vue';
-  import type { ListItemType, ListProps } from './types';
+  import type { ListProps } from './types';
 
   const props = withDefaults(defineProps<ListProps>(), {
     swipe: 'off',
     listComp: 'div',
+    items: () => [],
   });
 
-  const items = defineModel<ListItemType[]>({
-    default: [],
-  });
-
-  provide('items', items);
+  provide('items', props.items);
   provide('parentProps', props);
 </script>
 
@@ -38,11 +35,16 @@
     .list-item {
       width: 100%;
       display: flex;
-      background: var(--background-secondary);
       position: absolute;
       transition: top 0.1s;
       user-select: none;
       height: 56px;
+
+      &.dragged {
+        z-index: 10;
+        transition: none;
+        box-shadow: 0 0px 6px var(--mono-200-40);
+      }
     }
 
     .list-content {
@@ -50,7 +52,7 @@
       width: 100%;
       display: flex;
       height: inherit;
-      background: inherit;
+      background: var(--background-secondary);
       transition: left 0.1s;
       z-index: 2;
 

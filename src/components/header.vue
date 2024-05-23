@@ -12,10 +12,13 @@
     timing: 'APP_TIMING',
     lyric: 'APP_LYRIC',
     debug: 'DEBUG',
+    files: 'FILES',
   };
 
   const screen = window.app.screen;
   const current = ref(screen.current);
+
+  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
   const showTranslate = inject<Ref<boolean>>('showTranslate')!;
 
   function handleChange(value: typeof current.value) {
@@ -23,11 +26,11 @@
   }
 
   onMounted(() => {
-    screen.listen('screenchange', handleChange);
+    screen.listen('update', handleChange);
   });
 
   onUnmounted(() => {
-    screen.detach('screenchange', handleChange);
+    screen.detach('update', handleChange);
   });
 </script>
 
@@ -40,6 +43,16 @@
         <Switch v-model="showTranslate" title="Translate" />
         <Divider direction="y" size="24" margin="none" />
       </template>
+
+      <template v-if="current === 'timing'">
+        <IconButton
+          :icon="!sortMode ? 'mdi:sort-ascending' : 'mdi:clock-edit-outline'"
+          :onclick="() => (sortMode = !sortMode)"
+          title="Switch sorting mode"
+        />
+        <Divider direction="y" size="24" margin="none" />
+      </template>
+
       <IconButton
         :onclick="presets.uploadNewLrc"
         class="icon-button"
@@ -60,6 +73,7 @@
   body:has(.app-header[data-screen='lyric']) {
     --app-header-color: transparent;
   }
+
   .app-header {
     height: var(--app-header-height);
     padding-inline: var(--sm);

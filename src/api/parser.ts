@@ -1,41 +1,53 @@
-import { CustomEventHandler } from "./event"
+import { CustomEventHandler } from './event';
+import { getUnique } from './util';
 
 export type LRCTags = Record<string, string>;
 
-export type LRCLine = {
-  type: "single",
-  time: number,
-  data: string,
-} | {
-  type: "multi",
-  time: number,
-  data: {
-    offset: number,
-    line: string,
-  }[]
-}
+export type LRCLine =
+  | {
+      id: number;
+      type: 'single';
+      time: number;
+      data: string;
+    }
+  | {
+      id: number;
+      type: 'multi';
+      time: number;
+      data: {
+        offset: number;
+        line: string;
+      }[];
+    };
 
 export type LRCData = {
-  tags: LRCTags
-  lines: LRCLine[]
-}
+  tags: LRCTags;
+  lines: LRCLine[];
+};
 
-export type LRCEvents =
-  | "lrc-updated"
+export type LRCEvents = {
+  parsed: undefined;
+  'tag-added': [key: string, value: string];
+  'tag-update': [key: string, value: string, oldValue: string];
+  'tag-removed': [key: string, value: string];
 
-export type LRCArgs =
-  | ["tag", LRCTags]
-  | ["line-updated", LRCLine, number]
-  | ["line-added", LRCLine, number]
-  | ["line-removed", LRCLine, number]
-  | ["parsed", LRCParser]
+  'line-updated': [index: number, data: LRCLine];
+  'line-added': [index: number, data: LRCLine];
+  'line-removed': [index: number, data: LRCLine];
+};
 
-export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
+export class LRCParser extends CustomEventHandler<LRCEvents> {
   private _cachedTime: number[] = [];
-  public tags: LRCTags = {}
-  public lines: LRCLine[] = []
-  get EMPTYLINE(): LRCLine { return { type: "single", time: 0, data: "" }; }
-
+  public tags: LRCTags = {};
+  public lines: LRCLine[] = [];
+  get EMPTYLINE(): LRCLine {
+    return {
+      id: getUnique(),
+      type: 'single',
+      time: 0,
+      data: '',
+    };
+  }
 
   constructor(lrc?: string) {
     super();
@@ -43,11 +55,15 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
     lrc && this.parse(lrc);
   }
 
-  getJSON(): LRCData {
+  getRaw(): LRCData {
     return {
       tags: { ...this.tags },
-      lines: [...this.lines]
-    }
+      lines: [...this.lines],
+    };
+  }
+
+  getJSON(): string {
+    return JSON.stringify(this.getRaw());
   }
 
   parse(data: string) {
@@ -63,27 +79,28 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
           continue;
         }
 
-        data = data.trim()
+        data = data.trim();
         const time = this.timeToNumber(timeString!);
         const multiMatch = data.match(/(.*)(\[\d{2}:\d{2}.\d{2,3}\].*)/);
 
         if (!multiMatch) {
-          this.lines.push({ type: "single", time, data });
+          this.lines.push({ id: getUnique(), type: 'single', time, data });
           continue;
         }
 
         const lyric: LRCLine = {
-          type: "multi",
+          id: getUnique(),
+          type: 'multi',
           time: time,
-          data: []
-        }
+          data: [],
+        };
 
-        const [, firstString, multi] = multiMatch
-        lyric.data.push({ offset: 0, line: firstString || "" });
+        const [, firstString, multi] = multiMatch;
+        lyric.data.push({ offset: 0, line: firstString || '' });
 
-        const multiLines = multi.split("[");
+        const multiLines = multi.split('[');
         for (const multiLine of multiLines) {
-          const array = multiLine.match((/(\d{2}:\d{2}.\d{2,3})\](.*)/));
+          const array = multiLine.match(/(\d{2}:\d{2}.\d{2,3})\](.*)/);
           if (array) {
             const [, timeRaw, line] = array;
             const offset = this.timeToNumber(timeRaw) - time;
@@ -93,55 +110,73 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
       }
 
       this.lines.push({
-        type: "single",
+        id: getUnique(),
+        type: 'single',
         time: 0,
-        data: line
+        data: line,
       });
     }
 
     this.updateCachedTime();
-    this.dispatchEvent("lrc-updated", ["parsed", this]);
+    this.dispatchEvent('parsed', undefined);
   }
 
   stringify(): string {
     let first = true;
-    let finalString = "";
+    let finalString = '';
     for (const tagName in this.tags) {
-      finalString += first ? "" : "\n";
+      finalString += first ? '' : '\n';
       finalString += `[${tagName}:${this.tags[tagName]}]`;
       first = false;
     }
     for (const line of this.lines) {
-      finalString += first ? "" : "\n";
+      finalString += first ? '' : '\n';
       first = false;
 
       const time = this.timeToString(line.time);
-      if (line.type === "single") {
+      if (line.type === 'single') {
         finalString += `[${time}] ${line.data}`;
       }
 
-      if (line.type === "multi") {
+      if (line.type === 'multi') {
         let concat = `[${time}] `;
 
         for (const data of line.data) {
-          if (data.offset = 0) {
+          if ((data.offset = 0)) {
             concat += data.line;
             continue;
           }
           const multiTime = this.timeToString(line.time + data.offset);
           concat += `[${multiTime}]${data.line}`;
         }
-        finalString += concat
+        finalString += concat;
       }
     }
-    return finalString
+    return finalString;
   }
 
   updateTag(key: string, value: string) {
     for (const tagName in this.tags) {
       if (tagName === key) {
+        this.dispatchEvent('tag-update', [key, value, this.tags[tagName]]);
         this.tags.value = value;
-        this.dispatchEvent("lrc-updated", ["tag", this.tags]);
+        return;
+      }
+    }
+  }
+
+  addTag(key: string, value: string) {
+    if (this.tags[key]) return;
+
+    this.tags[key] = value;
+    this.dispatchEvent('tag-added', [key, value]);
+  }
+
+  removeTag(key: string) {
+    for (const tagName in this.tags) {
+      if (tagName === key) {
+        this.dispatchEvent('tag-removed', [key, this.tags[tagName]]);
+        delete this.tags[key];
         return;
       }
     }
@@ -152,7 +187,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
     this.lines = [...data.lines];
 
     this.updateCachedTime();
-    this.dispatchEvent("lrc-updated", ["parsed", this]);
+    this.dispatchEvent('parsed', undefined);
   }
 
   updateCachedTime() {
@@ -162,11 +197,13 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
     }
   }
 
-  updateLine(index: number, line: Partial<LRCLine>) {
+  updateLine(index: number, line: Omit<Partial<LRCLine>, 'id'>) {
+    'id' in line && delete line.id;
+
     Object.assign(this.lines[index], line);
     this._cachedTime[index] = this.lines[index].time;
 
-    this.dispatchEvent("lrc-updated", ["line-updated", this.lines[index], index]);
+    this.dispatchEvent('line-updated', [index, this.lines[index]]);
   }
 
   removeLine(index: number) {
@@ -174,19 +211,28 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
     this.lines.splice(index, 1);
     this._cachedTime.splice(index, 1);
 
-    this.dispatchEvent("lrc-updated", ["line-removed", line, index]);
+    this.dispatchEvent('line-removed', [index, line]);
+  }
+
+  removeFromId(id: number) {
+    const index = this.lines.findIndex((line) => line.id === id);
+    if (index !== -1) {
+      this.removeLine(index);
+    }
+
+    return index;
   }
 
   addLine(line: LRCLine, after: number = this.lines.length - 1) {
     this.lines.splice(after + 1, 0, line);
     this._cachedTime.splice(after + 1, 0, line.time);
 
-    this.dispatchEvent("lrc-updated", ["line-added", line, after + 1]);
+    this.dispatchEvent('line-added', [after + 1, line]);
   }
 
   timeToString(time: number, timeFixed: 2 | 3 = 2) {
     const mins = Math.floor(time / 60000);
-    const secs = Math.floor(time / 1000 % 60);
+    const secs = Math.floor((time / 1000) % 60);
     const msec = Math.floor(time) % 1000;
 
     const minutes = mins.toString().padStart(2, '0');
@@ -211,8 +257,8 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
     const array = useCache ? this._cachedTime : this.lines;
     for (let i = 0; i < array.length; i++) {
       const line = this.lines[i];
-      const item = array[i]
-      const time = typeof item == 'number' ? item : line.time
+      const item = array[i];
+      const time = typeof item == 'number' ? item : line.time;
       if (time > timestamp) {
         return i - 1;
       }
@@ -222,18 +268,18 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
 
   currentLine(timestamp: number): LRCLine | undefined {
     const index = this.findIndex(timestamp);
-    return this.lines[index]
+    return this.lines[index];
   }
 
   previousLine(timestamp: number): LRCLine | undefined {
     const index = this.findIndex(timestamp);
     if (index <= 0) return undefined;
-    return this.lines[index - 1]
+    return this.lines[index - 1];
   }
 
   nextLine(timestamp: number): LRCLine | undefined {
     const index = this.findIndex(timestamp);
-    return this.lines[index + 1]
+    return this.lines[index + 1];
   }
 
   reset() {
@@ -243,4 +289,4 @@ export class LRCParser extends CustomEventHandler<LRCEvents, LRCArgs> {
   }
 }
 
-export default LRCParser
+export default LRCParser;

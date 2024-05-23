@@ -2,15 +2,13 @@ import { evaluate, interval } from "./util";
 
 import { CustomEventHandler } from "./event";
 
-type OptionsEvent =
-  | 'event'
-
-export type OptionsArgs =
-  | ['added', { key: string, value: any }]
-  | ['removed', { key: string, value: any }]
-  | ['modified', { key: string, oldValue: any, newValue: any }]
-  | ['loaded', undefined]
-  | ['saved', undefined]
+type OptionsEvent = {
+  added: [key: string, value: any]
+  removed: [key: string, value: any]
+  modified: [key: string, oldValue: any, newValue: any]
+  loaded: undefined
+  saved: undefined
+}
 
 export type OptionsConfig<T> = {
   localSaving: boolean
@@ -27,7 +25,7 @@ type MapRecord = { [key: string]: any }
 
 
 class Options<O extends object = MapRecord>
-  extends CustomEventHandler<OptionsEvent, OptionsArgs> {
+  extends CustomEventHandler<OptionsEvent> {
 
   private lastMod = 0;
   private config: OptionsConfig<O> = {
