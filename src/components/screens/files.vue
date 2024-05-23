@@ -6,6 +6,7 @@
   import TextInput from '../elements/input/text-input.vue';
   import _presets from '../modals/_presets';
   import dayjs from 'dayjs';
+  import { toFileSize } from '@/api/util';
 
   const FM = window.app.files;
 
@@ -135,7 +136,10 @@
         <div v-if="file.type === 'file'" class="entry file">
           <Icon icon="material-symbols:file-open-outline-sharp" :width="24" />
           <div class="name">{{ file.name }}</div>
-          <div class="size" v-if="'size' in file">{{ file.size }}</div>
+          <div class="size">{{ toFileSize(file.size, 'byte') }}</div>
+          <div class="modified">
+            {{ dayjs(file.modified).format('YYYY/MM/DD h:mm A') }}
+          </div>
         </div>
         <div
           v-if="file.type === 'folder'"
@@ -144,7 +148,6 @@
         >
           <Icon icon="material-symbols:folder-outline-sharp" :width="24" />
           <div class="name">{{ file.name }}</div>
-          <div class="size" v-if="'size' in file">{{ file.size }}</div>
           <div class="modified">
             {{ dayjs(file.modified).format('YYYY/MM/DD h:mm A') }}
           </div>

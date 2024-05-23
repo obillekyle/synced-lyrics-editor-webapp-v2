@@ -25,6 +25,7 @@ export type AudioDetails = {
 
 const updatedEvent = new CustomEvent('musicupdated', { bubbles: false });
 const seekedEvent = new CustomEvent('seeked', { bubbles: false });
+const resetEvent = new CustomEvent('reset', { bubbles: false });
 
 class MusicService extends Audio {
   constructor();
@@ -66,7 +67,7 @@ class MusicService extends Audio {
 
       this.load();
     } catch (e) {
-      console.log(e);
+      console.error(e);
       return false;
     }
 
@@ -161,7 +162,9 @@ class MusicService extends Audio {
 
     this.currentTime = 0;
 
+    this.dispatchEvent(resetEvent);
     this.load();
+
     if (!ignore) {
       this.dispatchEvent(updatedEvent);
     }

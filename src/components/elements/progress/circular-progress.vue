@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { addPX } from '@/api/util';
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch, type Component } from 'vue';
 
   const svg = ref<SVGSVGElement | null>(null);
   const circle = ref<SVGCircleElement | null>(null);
@@ -13,13 +13,11 @@
       value?: number;
       diameter?: number;
       stroke?: number;
-      space?: number;
     }>(),
     {
       value: Infinity,
       diameter: 48,
       stroke: 5,
-      space: 16,
     }
   );
 
@@ -55,12 +53,13 @@
     return '';
   });
 
+  const space = computed(() => props.stroke * 2.5);
   const hasSpace = computed(() => {
-    return props.value > props.space / 2 && props.value < 100 - props.space;
+    return props.value > space.value / 2.5 && props.value < 100 - space.value;
   });
 
   const circle2StrokeDashOffset = computed(() => {
-    const offset = hasSpace.value ? props.space : 0;
+    const offset = hasSpace.value ? space.value : 0;
 
     const value = addPX(
       (circleCircumference.value * props.value +
@@ -71,7 +70,7 @@
   });
 
   const circle2StrokeRotate = computed(() => {
-    const offset = hasSpace.value ? props.space / 2 : 0;
+    const offset = hasSpace.value ? space.value / 2 : 0;
     return (360 * (props.value + offset)) / 100 + 'deg';
   });
 
@@ -143,6 +142,16 @@
           ref="circle"
         />
       </svg>
+
+      <div
+        class="content"
+        :style="{
+          width: addPX(diameter - stroke * 2),
+          height: addPX(diameter - stroke * 2),
+        }"
+      >
+        <slot></slot>
+      </div>
     </div>
   </transition>
 </template>
@@ -281,6 +290,19 @@
     width: max-content;
     height: max-content;
     align-self: center;
+
+    .content {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      &:empty {
+        display: none;
+      }
+    }
+
     &.md-infinite {
       animation: md-progress-spinner-rotate 2s linear infinite;
 

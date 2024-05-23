@@ -55,6 +55,12 @@ body {
   --size-lg: 3rem;
   --size-xl: 3.5rem;
 
+  --icon-xs: 0.75rem;
+  --icon-sm: 1rem;
+  --icon-md: 1.5rem;
+  --icon-lg: 1.75rem;
+  --icon-xl: 2rem;
+
   --album-color: rgb(255, 187, 187);
 }
 
@@ -94,11 +100,9 @@ body.dark {
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (min-width: 600px) {
   html {
-    --app-header-height: 56px;
-    --app-player-height: 64px;
-    --app-navbar-size: 90px;
+    font-size: 16px;
   }
 }
 

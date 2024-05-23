@@ -46,12 +46,11 @@
     align-items: center;
     flex-wrap: nowrap;
     background: var(--color-200);
-    padding: var(--xl);
-    border-radius: var(--xl);
+    padding: var(--size-sm) var(--size-xs);
+    border-radius: var(--size-sm);
     color: var(--color-1000);
     text-transform: capitalize;
     font-size: var(--font-lg);
-    font-weight: 500;
     z-index: 100;
 
     .toggle {
@@ -59,7 +58,7 @@
       position: absolute;
       display: grid;
       align-items: center;
-      right: var(--lg);
+      right: var(--xl);
       top: 0;
       bottom: 0;
     }

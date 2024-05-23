@@ -183,7 +183,6 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
   }
 
   import(data: LRCData) {
-    console.log(data);
     this.tags = { ...data.tags };
     this.lines = [...data.lines];
 

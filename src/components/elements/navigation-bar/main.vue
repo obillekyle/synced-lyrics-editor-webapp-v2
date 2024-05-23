@@ -55,9 +55,9 @@
         overflow: hidden;
         justify-self: center;
         place-items: center;
-        width: 48px;
-        height: 28px;
-        font-size: 24px;
+        width: var(--size-lg);
+        height: var(--icon-lg);
+        font-size: var(--icon-md);
         contain: content;
         transition: background-color 0.2s;
         * {
@@ -69,7 +69,7 @@
           display: block;
           position: absolute;
           inset: 0;
-          width: 24px;
+          width: var(--size-sm);
           margin-inline: auto;
           transition:
             width 0.2s,
@@ -121,7 +121,7 @@
         color: var(--color-900);
         &::before {
           background-color: var(--color-400);
-          width: 48px;
+          width: var(--size-lg);
         }
       }
     }
@@ -144,13 +144,13 @@
       .nav-item {
         margin-bottom: 0;
         .name {
-          max-height: 24px;
+          max-height: var(--size-sm);
           font-size: var(--font-md);
         }
         .icon {
-          font-size: 28px;
-          height: 36px;
-          width: 56px;
+          font-size: var(--icon-lg);
+          height: var(--size-sm);
+          width: var(--size-xl);
         }
 
         &.active {
@@ -158,7 +158,7 @@
             opacity: 1;
           }
           .icon::before {
-            width: 56px;
+            width: var(--size-xl);
           }
         }
       }

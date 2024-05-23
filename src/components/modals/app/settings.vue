@@ -328,7 +328,7 @@
       'header header'
       'panel screen';
     header {
-      padding-inline: var(--md);
+      padding-inline: var(--lg);
       grid-area: header;
       position: sticky;
       top: 0;
@@ -361,7 +361,7 @@
 
     .entry {
       display: grid;
-      padding: var(--lg) var(--md);
+      padding: var(--xl) var(--lg);
       &:hover {
         background-color: var(--color-600-10);
       }

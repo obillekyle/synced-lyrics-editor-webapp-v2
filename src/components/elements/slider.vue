@@ -139,7 +139,7 @@
         '--thumb-offset': thumbPos,
       }"
     >
-      <div class="slider-thumb" />
+      <div class="slider-thumb" :data-value="model" :dragging />
       <input type="range" :min="minVal" :max="maxVal" v-model="model" />
       <div class="slider-track" />
       <div class="slider-labels" v-if="props.values">
@@ -167,8 +167,8 @@
 <style lang="scss">
   .slider {
     --thumb-width: calc(var(--xs) * 1.5);
-    --thumb-height: var(--xl);
-    --track-height: var(--md);
+    --thumb-height: var(--lg);
+    --track-height: var(--sm);
 
     padding-inline: var(--lg);
     height: calc(var(--thumb-height) * 2);
@@ -228,8 +228,32 @@
       height: calc(var(--thumb-height) * 2);
       border-radius: 999px;
       align-self: center;
-      transform: translateX(calc((var(--thumb-offset) / 100) * -75%));
+      transform: translateX(-50%);
       background: var(--color-600);
+
+      &::after {
+        content: attr(data-value);
+        position: absolute;
+        top: 0;
+        left: 50%;
+        padding: var(--xs) var(--sm);
+        background: var(--mono-100);
+        transform: translate(-50%, -100%);
+        font-size: var(--font-sm);
+        color: var(--mono-1000);
+        border-radius: var(--xs);
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px #0005;
+        opacity: 0;
+      }
+
+      &[dragging='true'] {
+        background: var(--color-700);
+        &::after {
+          transform: translate(-50%, -125%);
+          opacity: 1;
+        }
+      }
     }
 
     .slider-indicator {
@@ -244,12 +268,15 @@
 
       .dot {
         left: calc(var(--offset) * 1%);
-        transform: translateX(calc((var(--offset) / 100) * -100%));
+        transform: translateX(calc(var(--offset) * -0.5%));
         position: absolute;
         width: var(--xs);
         height: var(--xs);
         border-radius: 999px;
-        background: var(--color-400);
+        background: var(--color-500);
+        &.covered {
+          background: var(--color-200);
+        }
       }
     }
 
@@ -264,16 +291,18 @@
       .label {
         position: absolute;
         left: calc(var(--offset) * 1%);
-        transform: translateX(calc(((var(--offset) / 100) * -75%)));
+        transform: translateX(calc(var(--offset) * -0.5%));
         font-size: var(--sm);
         color: var(--mono-500);
         padding-top: var(--md);
+        width: max-content;
         text-align: center;
       }
     }
     &.md3 {
-      --thumb-width: calc(var(--xs) * 1.5);
-      --track-height: var(--lg);
+      --thumb-width: var(--xs);
+      --thumb-height: var(--xl);
+      --track-height: var(--md);
 
       height: calc(var(--thumb-height) * 2.5);
 
@@ -300,10 +329,7 @@
         background: none;
 
         &::before {
-          right: calc(
-            ((var(--thumb-offset) - 100) * -1%) + (var(--thumb-width)) -
-              ((var(--thumb-offset)) / -100) * (var(--thumb-width) / 1.5)
-          );
+          width: calc((var(--thumb-offset) * 1%) - (var(--thumb-width) * 1.5));
           border-radius: 2px;
         }
 
@@ -313,10 +339,7 @@
           background-color: var(--color-200);
           height: 100%;
           position: absolute;
-          left: calc(
-            ((var(--thumb-offset)) * 1%) + var(--thumb-width) +
-              ((var(--thumb-offset) - 100) / -100) * (var(--thumb-width))
-          );
+          left: calc(((var(--thumb-offset) * 1%) + (var(--thumb-width) * 1.5)));
           border-radius: 2px;
         }
       }

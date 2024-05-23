@@ -4,7 +4,7 @@
   import type MusicService from './api/service';
   import AppTag from './components/elements/app-tag.vue';
   import I18nString from './components/elements/i18n-string.vue';
-  import Progress from './components/elements/progress.vue';
+  import Progress from './components/elements/progress/linear-progress.vue';
   import AppHeader from './components/header.vue';
   import Modals from './components/modals/main.vue';
   import NavigationBar from './components/navigation/navigation-bar.vue';
@@ -40,6 +40,11 @@
     !(await Files.exists('/editor', 'audio.bin'))
       ? await Files.createFile('/editor', 'audio.bin', file)
       : await Files.modifyFile('/editor/audio.bin', file);
+  }
+
+  async function onPlayerReset(this: MusicService) {
+    Colors.set(Player.picture?.color || '#ccc');
+    await Files.delete('/editor/audio.bin');
   }
 
   function langUpdate() {
@@ -108,6 +113,7 @@
     intervalKey.value = interval(saveLyrics, 1000);
 
     Player.addEventListener('musicupdated', onPlayerUpdate);
+    Player.addEventListener('reset', onPlayerReset);
     Screen.addEventListener('update', setScreen);
     Option.addEventListener('event', optionsUpdate);
     Lang.addEventListener('update', langUpdate);
@@ -119,6 +125,7 @@
       removeInterval(intervalKey.value);
     }
     Player.removeEventListener('musicupdated', onPlayerUpdate);
+    Player.removeEventListener('reset', onPlayerReset);
     Screen.removeEventListener('update', setScreen);
     Option.removeEventListener('event', optionsUpdate);
     Lang.removeEventListener('ready', langUpdate);
@@ -131,9 +138,9 @@
     <Progress :value="Infinity" />
   </div>
 
+  <Styles />
   <template v-if="ready">
     <I18nString entry="ALPHA" :element="AppTag" />
-    <Styles />
     <div class="content-wrapper">
       <AppHeader />
       <main tabindex="0">
@@ -167,6 +174,7 @@
     }
     &.ready {
       opacity: 0;
+      visibility: hidden;
       pointer-events: none;
     }
   }

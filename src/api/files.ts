@@ -254,7 +254,6 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
         .and((item) => item.type === 'folder')
         .first()) as FolderIndex | undefined;
     } else {
-      console.log(pathOrKey);
       if (!FileManager.validPath(pathOrKey)) return;
 
       const entry = FileManager.getPathEntry(pathOrKey);
@@ -283,6 +282,24 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
   async getFileData(store: number) {
     const item = await this.store.data.where('key').equals(store).first();
     return item?.data;
+  }
+
+  async readFile(path: string) {
+    const item = await this.getFile(path);
+    return item && (await this.getFileData(item.store));
+  }
+
+  async getTotalUsage() {
+    return await this.store.index
+      .where('size')
+      .notEqual('undefined')
+      .toArray()
+      .then((array) =>
+        array.reduce((a, b) => {
+          'size' in b && (a += b.size);
+          return a;
+        }, 0)
+      );
   }
 
   async modifyFile(path: string, data: File | Blob) {

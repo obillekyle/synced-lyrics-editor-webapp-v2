@@ -41,8 +41,6 @@
       }
     }
 
-    console.log(val);
-
     if (isFinite(min)) {
       if (min > val) {
         model.value = min;

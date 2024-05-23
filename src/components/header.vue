@@ -46,8 +46,9 @@
 
       <template v-if="current === 'timing'">
         <IconButton
-          :icon="sortMode ? 'mdi:sort-ascending' : 'mdi:clock-edit-outline'"
+          :icon="!sortMode ? 'mdi:sort-ascending' : 'mdi:clock-edit-outline'"
           :onclick="() => (sortMode = !sortMode)"
+          title="Switch sorting mode"
         />
         <Divider direction="y" size="24" margin="none" />
       </template>
@@ -72,7 +73,7 @@
   body:has(.app-header[data-screen='lyric']) {
     --app-header-color: transparent;
   }
-  
+
   .app-header {
     height: var(--app-header-height);
     padding-inline: var(--sm);

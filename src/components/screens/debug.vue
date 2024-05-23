@@ -9,9 +9,9 @@
   import DebugListComp from './debug-list-comp.vue';
   import MasterSwitch from '../elements/master-switch.vue';
   import I18nString from '../elements/i18n-string.vue';
-  import MdProgress from '../elements/md-progress.vue';
+  import MdProgress from '../elements/progress/circular-progress.vue';
   import Switch from '../elements/switch.vue';
-  import Progress from '../elements/progress.vue';
+  import Progress from '../elements/progress/linear-progress.vue';
   import Slider from '../elements/slider.vue';
   import Chip from '../elements/chip/chip.vue';
 
@@ -76,8 +76,13 @@
     <Progress />
     <Progress :value="progressVal" />
 
+    <MdProgress :value="progressVal">
+      <MdProgress :diameter="24" :stroke="3" />
+    </MdProgress>
+
     <Slider v-model="progressVal" />
     <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" />
+    <Slider :values="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" show-label />
     <Slider
       show-value
       :default-value="Player.volume * 100"

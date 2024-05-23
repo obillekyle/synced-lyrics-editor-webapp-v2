@@ -15,7 +15,7 @@
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
-  import type { LRCData, LRCLine, LRCTags } from '@/api/parser';
+  import type { LRCLine, LRCTags } from '@/api/parser';
   import List from '../elements/list/list.vue';
   import type { ListItemType } from '../elements/list/types';
   import TimingList from './timing-list.vue';
@@ -252,12 +252,12 @@
 
   function dismissLine(id: number) {
     Lyrics.removeLine(id);
-    console.log('dismissed', id);
   }
 </script>
 
 <template>
   <div class="timing-screen-drag" v-if="sortMode">
+    <div class="guide">Swipe left or right to remove</div>
     <List
       :items="lines"
       :list-comp="TimingList"
@@ -365,6 +365,15 @@
       padding-block: var(--md);
       font-size: var(--font-xl);
       color: var(--mono-700);
+    }
+
+    .guide {
+      top: 0;
+      z-index: 10;
+      position: sticky;
+      background: var(--background-body);
+      text-align: center;
+      padding: var(--xl);
     }
   }
 

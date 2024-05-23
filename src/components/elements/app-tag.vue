@@ -16,7 +16,7 @@
     font-size: var(--font-sm);
     left: -2.5rem;
     top: 0.75rem;
-    width: 8.25rem;
+    width: 7.5rem;
     rotate: -45deg;
     z-index: 10;
     transition: opacity 0.3s;

@@ -25,7 +25,6 @@
 
   function handleCompositionStart(event: CompositionEvent) {
     console.clear();
-    console.log(event);
     composition_pos.value = charPos.value;
     char.value = charPos.value + event.data.length;
     lines.value[line.value].text = insertAt(
@@ -36,9 +35,6 @@
   }
 
   function handleCompositionUpdate(event: CompositionEvent) {
-    console.log(event);
-    console.log('update', event.data);
-
     if (!composition_pos.value) return;
 
     char.value = composition_pos.value + event.data.length;
@@ -55,9 +51,6 @@
   }
 
   function handleCompositionEnd(event: CompositionEvent) {
-    console.log(event);
-    console.log('end', event.data);
-
     if (!composition_pos.value) return;
 
     lines.value[line.value].text = replaceRange(

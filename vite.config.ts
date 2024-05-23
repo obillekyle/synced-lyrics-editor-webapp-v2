@@ -109,7 +109,6 @@ export default defineConfig({
         },
 
         entryFileNames: (_entry) => {
-          console.log(_entry);
           return 'bin/[name].js';
         },
       },
