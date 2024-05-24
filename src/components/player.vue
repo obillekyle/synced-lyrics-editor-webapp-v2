@@ -6,7 +6,7 @@
   import { i18n } from '@/app/i18n';
   import { Icon } from '@iconify/vue';
 
-  import Divider from './divider.vue';
+  import Divider from './elements/divider.vue';
   import I18nString from './elements/i18n-string.vue';
   import iconButton from './elements/button/icon-button.vue';
   import {
@@ -36,6 +36,8 @@
 
   const playPause = () => (playing.value = !Player.paused);
   function onMusicUpdate(this: MusicService): void {
+    console.log('callupdate');
+
     playing.value = false;
     metadata.value = Player.getDetails();
     picture.value = Player.picture;
@@ -79,19 +81,36 @@
   }
 
   function handleKeyDown(e: KeyboardEvent) {
-    if (Screen.current == 'timing') return;
+    if (Screen.current != 'edit') {
+      processKey(Keybinds.uploadLRC, e, handlers.uploadLRC);
+      processKey(Keybinds.uploadAudio, e, handlers.uploadAudio);
+      processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
+    }
 
-    processKey(Keybinds.uploadLRC, e, handlers.uploadLRC);
-    processKey(Keybinds.uploadAudio, e, handlers.uploadAudio);
-    processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
+    if (Screen.current != 'edit' && Screen.current != 'timing') {
+      processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
+      processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
+    }
+
+    processKey(Keybinds.tabHome, e, () => Screen.set('home'));
+    processKey(Keybinds.tabEdit, e, () => Screen.set('edit'));
+    processKey(Keybinds.tabTiming, e, () => Screen.set('timing'));
+    processKey(Keybinds.tabLyrics, e, () => Screen.set('lyric'));
     processKey(Keybinds.showKeybinds, e, handlers.showKeybinds);
 
-    processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
-    processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
+    processKey(Keybinds.settings, e, () => _presets.openSettings());
   }
 
   function updateShown() {
     showKeyBinds.value = Option.get('showKeyBinds', false);
+  }
+
+  function playerError() {
+    loading.value = false;
+  }
+
+  function playerLoading() {
+    loading.value = true;
   }
 
   onMounted(() => {
@@ -102,6 +121,9 @@
     Player.addEventListener('pause', playPause);
     Player.addEventListener('timeupdate', handleTimeUpdate);
     Player.addEventListener('musicupdated', onMusicUpdate);
+    Player.addEventListener('error', playerError);
+    Player.addEventListener('loading', playerLoading);
+
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('keydown', handleKeyDown);
     Option.addEventListener('event', updateShown);
@@ -112,6 +134,9 @@
     Player.removeEventListener('pause', playPause);
     Player.removeEventListener('timeupdate', handleTimeUpdate);
     Player.removeEventListener('musicupdated', onMusicUpdate);
+    Player.removeEventListener('error', playerError);
+    Player.removeEventListener('loading', playerLoading);
+
     window.removeEventListener('keyup', handleKeyUp);
     window.removeEventListener('keydown', handleKeyDown);
     Option.removeEventListener('event', updateShown);

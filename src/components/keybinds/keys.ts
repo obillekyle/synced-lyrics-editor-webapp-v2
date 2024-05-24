@@ -6,7 +6,7 @@ type ActiveKeys = {
   ctrl: boolean;
   alt: boolean;
   shift: boolean;
-}
+};
 
 export type KeyEvents = Record<string, (...args: any[]) => any>;
 
@@ -17,15 +17,15 @@ export type BindItems = {
 };
 
 export type KeyBind = {
-  label?: string,
+  label?: string;
   /** ```ts
-   * (property) special: [ ctrl  ,  alt   , shift  ,  meta  ]
+   * (property) special?: [ ctrl  ,  alt   , shift  ,  meta  ] | undefined
    * ```
-   *  */
-  special?: [boolean, boolean, boolean, boolean],
-  key: string,
-  block?: boolean,
-}
+   */
+  special?: [boolean, boolean, boolean, boolean];
+  key: string;
+  block?: boolean;
+};
 
 export type Binds<T> = {
   readonly none: T;
@@ -36,39 +36,45 @@ export type Binds<T> = {
 
 export type KeyBinds<T> = {
   player: {
-    playPause: T,
-    seekForward: T,
-    seekBackward: T,
-  }
+    playPause: T;
+    seekForward: T;
+    seekBackward: T;
+  };
 
   timing: {
-    adjustTimeForward: T,
-    adjustTimeBackward: T,
-    arrowUpFocus: T,
-    arrowDownFocus: T,
+    adjustTimeForward: T;
+    adjustTimeBackward: T;
+    arrowUpFocus: T;
+    arrowDownFocus: T;
 
-    addNewLine: T,
-    addNewLineReverse: T,
+    addNewLine: T;
+    addNewLineReverse: T;
 
-    deleteLine: T,
+    deleteLine: T;
 
-    setLineTiming: T,
-    toggleEditMode: T,
-    unfocusLine: T,
-  }
+    setLineTiming: T;
+    toggleEditMode: T;
+    unfocusLine: T;
+  };
 
-  uploadLRC: T,
-  downloadLRC: T,
-  uploadAudio: T,
-  showKeybinds: T,
-}
+  uploadLRC: T;
+  downloadLRC: T;
+  uploadAudio: T;
+  showKeybinds: T;
 
+  tabHome: T;
+  tabEdit: T;
+  tabTiming: T;
+  tabLyrics: T;
+
+  settings: T;
+};
 
 export function KeyboardGuides(): KeyBinds<BindItems> {
   const Player = window.app.player;
   const Screen = window.app.screen;
   const Lyrics = window.app.lyric;
-  const Keybinds = window.app.options.get('keybinds', defaultKeys);
+  const Keybinds = getKeybinds();
 
   return {
     player: {
@@ -86,27 +92,26 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
         key: Keybinds.player.seekForward,
         label: () => (Screen.current === 'timing' ? 'Seek +1s' : 'Seek +5s'),
         cond: () => isFinite(Player.duration),
-      }
+      },
     },
     timing: {
       adjustTimeForward: {
         key: Keybinds.timing.adjustTimeForward,
         label: 'Adjust line time by +100ms',
         cond: () =>
-          Screen.current === 'timing'
-          && Player.paused
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
-
+          Screen.current === 'timing' &&
+          Player.paused &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
       },
       adjustTimeBackward: {
         key: Keybinds.timing.adjustTimeBackward,
         label: 'Adjust line time by -100ms',
         cond: () =>
-          Screen.current === 'timing'
-          && Player.paused
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
+          Screen.current === 'timing' &&
+          Player.paused &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
       },
       arrowUpFocus: {
         key: Keybinds.timing.arrowUpFocus,
@@ -122,9 +127,9 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 
             if (!elem && count > 0) return true;
 
-            return count > 0 && index - 1 >= 0 && elem
+            return count > 0 && index - 1 >= 0 && elem;
           }
-        }
+        },
       },
       arrowDownFocus: {
         key: Keybinds.timing.arrowDownFocus,
@@ -140,205 +145,264 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 
             if (!elem && count > 0) return true;
 
-            return count > 0 && index + 1 < count && elem
-          };
-        }
+            return count > 0 && index + 1 < count && elem;
+          }
+        },
       },
       toggleEditMode: {
         key: Keybinds.timing.toggleEditMode,
         label: 'Edit current line',
         cond: () =>
-          Screen.current === 'timing'
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
+          Screen.current === 'timing' &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
       },
       addNewLine: {
         key: Keybinds.timing.addNewLine,
         label: () => {
           if (Lyrics.lines.length === 0) return 'Add new line';
 
-          return $('.lrc-line.active') ?
-            'Add new line after focused' :
-            'Add new line at the end'
+          return $('.lrc-line.active')
+            ? 'Add new line after focused'
+            : 'Add new line at the end';
         },
-        cond: () =>
-          Screen.current === 'timing'
-          && !$('.lrc-line.edit')
+        cond: () => Screen.current === 'timing' && !$('.lrc-line.edit'),
       },
       addNewLineReverse: {
         key: Keybinds.timing.addNewLineReverse,
         label: 'Add new line before focused',
         cond: () =>
-          Screen.current === 'timing'
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
+          Screen.current === 'timing' &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
       },
       deleteLine: {
         key: Keybinds.timing.deleteLine,
         label: () =>
-          $('.lrc-line.active') ?
-            'Delete focused line' :
-            'Delete last line',
+          $('.lrc-line.active') ? 'Delete focused line' : 'Delete last line',
         cond: () =>
-          Screen.current === 'timing'
-          && Lyrics.lines.length > 0
-          && !$('.lrc-line.edit')
+          Screen.current === 'timing' &&
+          Lyrics.lines.length > 0 &&
+          !$('.lrc-line.edit'),
       },
       setLineTiming: {
         key: Keybinds.timing.setLineTiming,
         label: 'Set line time',
         cond: () =>
-          Screen.current === 'timing'
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
+          Screen.current === 'timing' &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
       },
       unfocusLine: {
         key: Keybinds.timing.unfocusLine,
         label: 'Unfocus current line',
         cond: () =>
-          Screen.current === 'timing'
-          && Lyrics.lines.length > 0
-          && $('.lrc-line.active:not(.edit)')
-      }
+          Screen.current === 'timing' &&
+          Lyrics.lines.length > 0 &&
+          $('.lrc-line.active:not(.edit)'),
+      },
     },
     downloadLRC: {
       key: Keybinds.downloadLRC,
       label: 'Download LRC',
       cond: () =>
-        Screen.current !== 'edit'
-        && Lyrics.lines.length > 0
-        && !$('.lrc-line.edit')
+        Screen.current !== 'edit' &&
+        Lyrics.lines.length > 0 &&
+        !$('.lrc-line.edit'),
     },
     uploadAudio: {
       key: Keybinds.uploadAudio,
       label: 'Upload audio',
-      cond: () =>
-        Screen.current !== 'edit'
-        && !$('.lrc-line.edit')
+      cond: () => Screen.current !== 'edit' && !$('.lrc-line.edit'),
     },
     uploadLRC: {
       key: Keybinds.uploadLRC,
       label: 'Upload LRC',
-      cond: () =>
-        Screen.current !== 'edit'
-        && !$('.lrc-line.edit')
+      cond: () => Screen.current !== 'edit' && !$('.lrc-line.edit'),
     },
     showKeybinds: {
       key: Keybinds.showKeybinds,
       label: 'Show keybinds',
-      cond: () =>
-        Screen.current !== 'edit'
-        && !$('.lrc-line.edit')
-    }
-  }
+      cond: () => Screen.current !== 'edit' && !$('.lrc-line.edit'),
+    },
+
+    settings: {
+      key: Keybinds.settings,
+      label: 'Settings',
+      cond: () => !$('.lrc-line.edit'),
+    },
+
+    tabHome: {
+      key: Keybinds.tabHome,
+      label: 'To Home tab',
+      cond: () => !$('.lrc-line.edit'),
+    },
+
+    tabEdit: {
+      key: Keybinds.tabEdit,
+      label: 'To Edit tab',
+      cond: () => !$('.lrc-line.edit'),
+    },
+
+    tabTiming: {
+      key: Keybinds.tabTiming,
+      label: 'To Timing tab',
+      cond: () => !$('.lrc-line.edit'),
+    },
+
+    tabLyrics: {
+      key: Keybinds.tabLyrics,
+      label: 'To Lyric tab',
+      cond: () => !$('.lrc-line.edit'),
+    },
+  };
 }
 
 export const keyEquivalent: Record<string, string | undefined> = {
-  ArrowUp: "↑",
-  ArrowDown: "↓",
-  ArrowLeft: "←",
-  ArrowRight: "→",
-  Space: "⎵",
-  " ": "⎵",
-}
+  ArrowUp: '↑',
+  ArrowDown: '↓',
+  ArrowLeft: '←',
+  ArrowRight: '→',
+  Space: '⎵',
+  ' ': '⎵',
+};
 
 export const defaultKeys: KeyBinds<KeyBind> = {
   player: {
     playPause: {
-      label: "Play/Pause",
+      label: 'Play/Pause',
       special: [false, false, false, false],
-      key: " ",
+      key: ' ',
     },
     seekForward: {
-      label: "Seek Forward",
+      label: 'Seek Forward',
       special: [false, false, false, false],
-      key: "ArrowRight",
+      key: 'ArrowRight',
     },
     seekBackward: {
-      label: "Seek Backward",
+      label: 'Seek Backward',
       special: [false, false, false, false],
-      key: "ArrowLeft",
-    }
+      key: 'ArrowLeft',
+    },
   },
   timing: {
     adjustTimeForward: {
-      label: "Adjust Time Forward",
+      label: 'Adjust Time Forward',
       special: [false, false, false, false],
-      key: "ArrowRight",
+      key: 'ArrowRight',
       block: true,
     },
     adjustTimeBackward: {
-      label: "Adjust Time Backward",
+      label: 'Adjust Time Backward',
       special: [false, false, false, false],
-      key: "ArrowLeft",
+      key: 'ArrowLeft',
       block: true,
     },
     arrowUpFocus: {
-      label: "Arrow Up Focus",
+      label: 'Arrow Up Focus',
       special: [false, false, false, false],
       block: true,
-      key: "ArrowUp",
+      key: 'ArrowUp',
     },
     arrowDownFocus: {
-      label: "Arrow Down Focus",
+      label: 'Arrow Down Focus',
       special: [false, false, false, false],
       block: true,
-      key: "ArrowDown",
+      key: 'ArrowDown',
     },
     deleteLine: {
-      label: "Delete Line",
+      label: 'Delete Line',
       special: [false, false, false, false],
-      key: "Delete",
+      key: 'Backspace',
     },
 
     addNewLine: {
-      label: "Add New Line",
+      label: 'Add New Line',
       special: [false, false, false, false],
-      key: "Insert",
+      key: 'Insert',
     },
     addNewLineReverse: {
-      label: "Add New Line Reverse",
+      label: 'Add New Line Reverse',
       special: [false, false, true, false],
-      key: "Insert",
+      key: 'Insert',
     },
     toggleEditMode: {
-      label: "Toggle Edit Mode",
+      label: 'Toggle Edit Mode',
       special: [false, false, false, false],
-      key: "E",
+      key: 'E',
     },
     setLineTiming: {
-      label: "Set Line Timing",
+      label: 'Set Line Timing',
       special: [false, false, false, false],
-      key: "Enter",
+      key: 'Enter',
     },
     unfocusLine: {
-      label: "Unfocus Line",
+      label: 'Unfocus Line',
       special: [false, false, false, false],
-      key: "Escape",
-    }
+      key: 'Escape',
+    },
   },
 
   uploadLRC: {
-    label: "Upload LRC",
+    label: 'Upload LRC',
     special: [true, false, false, false],
-    key: "L",
+    block: true,
+    key: 'L',
   },
   downloadLRC: {
-    label: "Download LRC",
+    label: 'Download LRC',
     special: [true, false, false, false],
-    key: "S",
+    block: true,
+    key: 'S',
   },
   uploadAudio: {
-    label: "Upload Audio",
+    label: 'Upload Audio',
     special: [true, false, false, false],
-    key: "M",
+    block: true,
+    key: 'M',
   },
   showKeybinds: {
-    label: "Show Keybinds",
+    label: 'Show Keybinds',
     special: [true, false, false, false],
-    key: "/",
-  }
-}
+    block: true,
+    key: '/',
+  },
+
+  tabHome: {
+    label: 'To Home Mode',
+    special: [true, false, true, false],
+    block: true,
+    key: '~',
+  },
+
+  tabEdit: {
+    label: 'To Edit Mode',
+    special: [true, false, true, false],
+    block: true,
+    key: 'E',
+  },
+
+  tabTiming: {
+    label: 'To Timing Mode',
+    special: [true, false, true, false],
+    block: true,
+    key: 'R',
+  },
+
+  tabLyrics: {
+    label: 'To Lyric Mode',
+    special: [true, false, true, false],
+    block: true,
+    key: 'P',
+  },
+
+  settings: {
+    label: 'To Settings Mode',
+    special: [true, false, false, false],
+    block: true,
+    key: ',',
+  },
+};
 
 export const keyHandlers = {
   player: {
@@ -354,7 +418,6 @@ export const keyHandlers = {
       const Player = window.app.player;
       Player.fastSeek(-5);
     },
-
   },
 
   timing: {
@@ -366,48 +429,51 @@ export const keyHandlers = {
     addNewLine: () => {
       const Lyrics = window.app.lyric;
       Lyrics.addLine(Lyrics.EMPTYLINE);
-    }
+    },
   },
 
   uploadLRC: _presets.uploadNewLrc,
   downloadLRC: _presets.download,
   showKeybinds: _presets.showKeyBinds,
 
-
   uploadAudio: () => {
-    openFilePicker(async (file) => {
-      if (!file) return;
+    openFilePicker(
+      async (file) => {
+        if (!file) return;
 
-      const Player = window.app.player;
-      const Modals = window.app.modals;
-      const success = await Player.updateFile(file)
+        const Player = window.app.player;
+        const Modals = window.app.modals;
+        const success = await Player.updateFile(file);
 
-      if (success) {
-        const lrc = Player.metadata?.common.lyrics;
-        if (lrc?.length) _presets.useAudioLRC();
-        return
-      }
+        if (success) {
+          const lrc = Player.metadata?.common.lyrics;
+          if (lrc?.length) _presets.useAudioLRC();
+          return;
+        }
 
-      Modals.open({
-        icon: 'material-symbols:error-outline',
-        id: 'not-audio-file',
-        title: 'Not an audio file',
-        content: 'Please select an audio file',
-        actions: [
-          {
-            text: 'OK',
-            onClick: ({ close }) => close(),
-          }
-        ]
-      })
+        Modals.open({
+          icon: 'material-symbols:error-outline',
+          id: 'not-audio-file',
+          title: 'Not an audio file',
+          content: 'Please select an audio file',
+          actions: [
+            {
+              text: 'OK',
+              onClick: ({ close }) => close(),
+            },
+          ],
+        });
+      },
+      { accept: 'audio/*' }
+    );
+  },
+};
 
-
-    }, { accept: 'audio/*' });
-  }
-}
-
-
-export function processKey(keybind: KeyBind | string, event: KeyboardEvent, handler?: (event: KeyboardEvent) => any) {
+export function processKey(
+  keybind: KeyBind | string,
+  event: KeyboardEvent,
+  handler?: (event: KeyboardEvent) => any
+) {
   if (typeof keybind == 'string') keybind = { key: keybind };
   keybind.special ??= [false, false, false, false];
 
@@ -424,10 +490,10 @@ export function processKey(keybind: KeyBind | string, event: KeyboardEvent, hand
 }
 
 export function getKeybinds() {
-  return window.app.options.get('keybinds', defaultKeys)
+  return defaultKeys;
 }
 
 // temp fix for syntax highlighting vue
 export function as<T extends any>(obj: any): T {
-  return obj
+  return obj;
 }

@@ -45,13 +45,14 @@
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    background: var(--color-200);
+    background: var(--color-800);
     padding: var(--size-sm) var(--size-xs);
     border-radius: var(--size-sm);
-    color: var(--color-1000);
+    color: var(--color-0);
     text-transform: capitalize;
     font-size: var(--font-lg);
     z-index: 100;
+    box-shadow: 0 0 0.5rem #0005;
 
     .toggle {
       pointer-events: none;

@@ -12,6 +12,7 @@
   import LrcScreen from './components/screens/main.vue';
   import Styles from './components/styles.vue';
   import { interval, removeInterval } from './api/util';
+  import { defaultColor } from '@/app/main';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -30,7 +31,7 @@
   const intervalKey = ref<number>();
 
   async function onPlayerUpdate(this: MusicService) {
-    Colors.set(Player.picture?.color || '#ccc');
+    Colors.set(Player.picture?.color || defaultColor);
 
     if (!isFinite(Player.duration)) return;
 
@@ -43,7 +44,7 @@
   }
 
   async function onPlayerReset(this: MusicService) {
-    Colors.set(Player.picture?.color || '#ccc');
+    Colors.set(Player.picture?.color || defaultColor);
     await Files.delete('/editor/audio.bin');
   }
 

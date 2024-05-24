@@ -13,8 +13,9 @@ class Screen<IDS extends string | number> extends CustomEventHandler<
 
   set current(screen: IDS) {
     if (screen === this.screen) return;
-    this.dispatchEvent('update', [screen, this.screen]);
+    const old = this.screen;
     this.screen = screen;
+    this.dispatchEvent('update', [screen, old]);
   }
 
   get current(): IDS {

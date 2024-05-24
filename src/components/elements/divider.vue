@@ -34,7 +34,7 @@
     align-self: center;
     justify-self: center;
     display: block;
-    background-color: #7777;
+    background-color: var(--mono-500-50);
   }
 
   .divider.x {

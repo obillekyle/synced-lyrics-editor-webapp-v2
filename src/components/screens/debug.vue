@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue';
+  import { markRaw, ref } from 'vue';
 
   import Button from '../elements/button/button.vue';
   import InputText from '../elements/input/text-input.vue';
@@ -8,7 +8,6 @@
   import _presets from '../modals/_presets';
   import DebugListComp from './debug-list-comp.vue';
   import MasterSwitch from '../elements/master-switch.vue';
-  import I18nString from '../elements/i18n-string.vue';
   import MdProgress from '../elements/progress/circular-progress.vue';
   import Switch from '../elements/switch.vue';
   import Progress from '../elements/progress/linear-progress.vue';
@@ -22,7 +21,7 @@
   const langInput = ref<HTMLInputElement | null>(null);
   const progressVal = ref(20);
 
-  const items = ref<ListItemType[]>([
+  const items = markRaw<ListItemType[]>([
     {
       id: 8,
       props: {
@@ -166,7 +165,7 @@
       <List
         sortable
         swipe="custom"
-        v-model="items"
+        :items="items"
         :list-comp="DebugListComp"
         :swipe-options="options"
       />

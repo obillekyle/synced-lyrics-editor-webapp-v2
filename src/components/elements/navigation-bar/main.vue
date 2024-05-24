@@ -1,21 +1,19 @@
 <script setup lang="ts">
-  import { type HTMLAttributes, provide, ref, type Ref } from 'vue';
+  import type { NavigationBarProps } from './type';
+  import { type HTMLAttributes, provide, ref } from 'vue';
 
-  interface NavigationBarProps extends /* @vue-ignore */ HTMLAttributes {
-    active: Ref<number>;
-    labels?: 'hidden' | 'always' | 'active';
-  }
+  interface Props
+    extends NavigationBarProps,
+      /* @vue-ignore */ HTMLAttributes {}
 
-  withDefaults(defineProps<NavigationBarProps>(), {
+  const props = withDefaults(defineProps<Props>(), {
     labels: 'always',
+    active: -1,
   });
   const count = ref(0);
   const parent = ref<HTMLDivElement | null>(null);
-  const model = defineModel('active', {
-    default: 0,
-  });
 
-  provide('activeItem', model);
+  provide('parent-props', props);
   provide('parent', parent);
   provide('count', count);
 </script>
@@ -120,7 +118,7 @@
       .icon {
         color: var(--color-900);
         &::before {
-          background-color: var(--color-400);
+          background-color: var(--color-200);
           width: var(--size-lg);
         }
       }

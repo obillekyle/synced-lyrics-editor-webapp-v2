@@ -9,7 +9,7 @@
   import NavigationBar from '../elements/navigation-bar/main.vue';
   import _presets from '../modals/_presets';
   import AppLogo from './app-logo.vue';
-  import { AppScreens } from '@/app/main';
+  import { AppScreens, type Screens } from '@/app/main';
 
   const Screen = window.app.screen;
   const screenIndex = ref(0);
@@ -17,43 +17,62 @@
   const debug = inject<Ref<boolean>>('app-debug')!;
 
   function onScreenUpdate() {
-    screenIndex.value = AppScreens.indexOf(Screen.current);
+    const index = AppScreens.indexOf(Screen.current);
+    if (screenIndex.value !== index) {
+      screenIndex.value = index;
+    }
   }
 
-  watch(screenIndex, (value) => {
-    if (AppScreens[value] != Screen.current) {
-      Screen.set(AppScreens[value] as any);
-    }
-  });
+  function setScreen(index: number) {
+    screenIndex.value = index;
+    Screen.set(AppScreens[index]);
+  }
 
   onMounted(() => {
     onScreenUpdate();
-    Screen.addEventListener('screenchange', onScreenUpdate);
+    Screen.addEventListener('update', onScreenUpdate);
   });
 
   onUnmounted(() => {
-    Screen.removeEventListener('screenchange', onScreenUpdate);
+    Screen.removeEventListener('update', onScreenUpdate);
   });
 </script>
 
 <template>
-  <NavigationBar v-model:active="screenIndex" labels="active">
+  <NavigationBar :active="screenIndex" labels="active" :change="setScreen">
     <NavigationContent>
       <AppLogo />
     </NavigationContent>
-    <NavigationItem icon="material-symbols:edit-outline">
+    <NavigationItem
+      icon="material-symbols:edit-outline"
+      :value="AppScreens.indexOf('edit')"
+    >
       <I18nString entry="APP_EDIT" />
     </NavigationItem>
-    <NavigationItem icon="material-symbols:hourglass-outline">
+    <NavigationItem
+      icon="material-symbols:hourglass-outline"
+      :value="AppScreens.indexOf('timing')"
+    >
       <I18nString entry="APP_TIMING" />
     </NavigationItem>
-    <NavigationItem icon="material-symbols:queue-music">
+    <NavigationItem
+      icon="material-symbols:queue-music"
+      :value="AppScreens.indexOf('lyric')"
+    >
       <I18nString entry="APP_LYRIC" />
     </NavigationItem>
-    <NavigationItem icon="material-symbols:bug-report-outline" v-if="debug">
+    <NavigationItem
+      icon="material-symbols:bug-report-outline"
+      v-if="debug"
+      :value="AppScreens.indexOf('debug')"
+    >
       <I18nString entry="DEBUG" />
     </NavigationItem>
-    <NavigationItem icon="material-symbols:folder-outline" v-if="debug">
+    <NavigationItem
+      icon="material-symbols:folder-outline"
+      v-if="debug"
+      :value="AppScreens.indexOf('files')"
+    >
       <I18nString entry="FILES" fallback="Files" />
     </NavigationItem>
     <NavigationEntry

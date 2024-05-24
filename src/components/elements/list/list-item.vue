@@ -21,7 +21,6 @@
   const lastTop = ref(0);
 
   function swipeDown(e: MouseEvent | TouchEvent) {
-    e.preventDefault();
     const target = e.target as HTMLElement;
     if (!content.value) return;
     if (target.matches('.draggable')) return;
@@ -33,9 +32,7 @@
   function swipeMove(e: MouseEvent | TouchEvent) {
     const oldEvent: MouseEvent | TouchEvent | null = swipeEvent.value;
     if (!oldEvent) return;
-    e.preventDefault();
 
-    document.body.style.cursor = 'grabbing';
     const element = content.value!;
     let offset = 0;
 
@@ -46,13 +43,18 @@
         : oldEvent.touches[0].clientX;
 
     offset = clientX - oldX;
+
     const registerSwipe = Math.abs(offset) > 32;
+
+    if (registerSwipe) {
+      e.preventDefault();
+    }
 
     offset =
       offset > 0 &&
       parentProps.swipe === 'custom' &&
       !parentProps.swipeOptions?.left
-        ? offset * 0.2
+        ? offset * 0.1
         : offset;
 
     offset =
@@ -62,6 +64,7 @@
         ? offset * 0.1
         : offset;
 
+    document.body.style.cursor = 'grabbing';
     element.style.left = addPX(registerSwipe ? offset : 0);
     value.value = offset;
   }
@@ -125,18 +128,17 @@
         ? oldEvent.clientY
         : oldEvent.touches[0].clientY;
 
-    document.body.style.cursor = 'grabbing';
-
     const element = wrapper.value!;
     const offset = clientY - oldY;
 
-    const y = lastTop.value + offset;
+    const y = lastTop.value + offset + 2;
     const index = Math.floor(y / 56);
 
     if (index !== props.index) {
       evaluate(parentProps.onReorder, props.index, index);
     }
 
+    document.body.style.cursor = 'grabbing';
     element.style.top = addPX(y);
   }
 

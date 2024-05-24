@@ -1,10 +1,11 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
 
-  import debugScreen from './debug.vue';
+  import homeScreen from './home.vue';
   import editScreen from './edit.vue';
-  import previewScreen from './lyric.vue';
   import timingScreen from './timing.vue';
+  import previewScreen from './lyric.vue';
+  import debugScreen from './debug.vue';
   import filesScreen from './files.vue';
 
   const screen = window.app.screen;
@@ -28,6 +29,7 @@
 
 <template>
   <div class="app-main-content">
+    <home-screen v-if="activeScreen == 'home'" />
     <edit-screen v-if="activeScreen == 'edit'" />
     <timing-screen v-if="activeScreen == 'timing'" />
     <preview-screen v-if="activeScreen == 'lyric'" />

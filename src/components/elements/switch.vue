@@ -58,14 +58,13 @@
     width: calc(var(--size) * 1.8);
     height: var(--size);
     border-radius: var(--size);
-    background-color: var(--mono-100);
     box-shadow:
       0 0 0 2px var(--mono-500),
-      0 0 8px #0004;
-
+      0 0 8px var(--mono-700);
     input {
       display: none;
     }
+    transition: box-shadow 0.15s ease;
   }
 
   .switch-wrapper::after {
@@ -83,7 +82,9 @@
 
   .switch-wrapper:has(input:checked) {
     background-color: var(--color-800);
-    box-shadow: 0 0 0 2px var(--color-800);
+    box-shadow:
+      0 0 0 2px var(--color-800),
+      0 0 0 4px var(--mono-100-20);
 
     &::after {
       scale: 0.85;

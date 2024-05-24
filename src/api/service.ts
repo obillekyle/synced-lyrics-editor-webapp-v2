@@ -1,6 +1,5 @@
 import { FastAverageColor } from 'fast-average-color';
 import type { IAudioMetadata } from 'music-metadata-browser';
-
 import { clamp } from './util';
 
 const fac = new FastAverageColor();
@@ -26,6 +25,8 @@ export type AudioDetails = {
 const updatedEvent = new CustomEvent('musicupdated', { bubbles: false });
 const seekedEvent = new CustomEvent('seeked', { bubbles: false });
 const resetEvent = new CustomEvent('reset', { bubbles: false });
+const loadingEvent = new CustomEvent('loading', { bubbles: false });
+const errorEvent = new CustomEvent('error', { bubbles: false });
 
 class MusicService extends Audio {
   constructor();
@@ -47,6 +48,7 @@ class MusicService extends Audio {
 
   async updateFile(file?: File | Blob, opts?: AudioOptions) {
     if (!file) return false;
+    this.dispatchEvent(loadingEvent);
     this.reset(true);
 
     try {
@@ -67,7 +69,6 @@ class MusicService extends Audio {
 
       this.load();
     } catch (e) {
-      console.error(e);
       return false;
     }
 
@@ -162,10 +163,10 @@ class MusicService extends Audio {
 
     this.currentTime = 0;
 
-    this.dispatchEvent(resetEvent);
     this.load();
 
     if (!ignore) {
+      this.dispatchEvent(resetEvent);
       this.dispatchEvent(updatedEvent);
     }
   }

@@ -30,7 +30,7 @@ function update() {
   if (version < 1) {
     options.set('lastVersion', 'v2.0.1a');
     options.set('keybinds', defaultKeys);
-    options.set('screen', 'timing');
+    options.set('screen', 'home');
     options.set('bypassLrcWarn', false);
   }
 

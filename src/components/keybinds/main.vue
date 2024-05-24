@@ -84,7 +84,10 @@
         v-for="(item2, _id) in as<Record<string, BindItems>>(item)"
       >
         <entry
-          v-if="matches(item2.key.special) && evaluate(item2.cond, keyActive)"
+          v-if="
+            matches(item2.key.special) &&
+            evaluate(item2.cond ?? true, keyActive)
+          "
           :name="evaluate(item2.label, keyActive)"
           :keys="item2.key"
         />

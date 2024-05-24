@@ -1,4 +1,5 @@
 export const AppScreens = [
+  'home',
   'edit',
   'timing',
   'lyric',
@@ -6,3 +7,4 @@ export const AppScreens = [
   'files',
 ] as const;
 export type Screens = (typeof AppScreens)[number];
+export const defaultColor = 'rgb(76, 255, 165)';

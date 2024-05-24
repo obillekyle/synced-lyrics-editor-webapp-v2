@@ -22,6 +22,8 @@
   const text = ref('');
 
   function updateText() {
+    if (props.entry === '') return;
+
     const value = I18N.get(props.entry, props.args);
     if (value === props.entry) {
       text.value = props.fallback || props.entry;

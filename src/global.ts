@@ -9,12 +9,12 @@ import Screen from '@/api/screen';
 import options from '@/app/options';
 import presets from '@/components/modals/_presets';
 import process from 'process';
-import type { Screens } from './app/main';
+import { defaultColor, type Screens } from './app/main';
 import FileManager from './api/files';
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
 const appVerString = import.meta.env.VITE_VERSION ?? 'unknown';
-const screen = new Screen(options.get('screen', 'timing'));
+const screen = new Screen(options.get('screen', 'home'));
 const lang = options.get('lang', 'en');
 
 declare global {
@@ -42,7 +42,7 @@ window.app = {
   version: appVer,
   version_string: appVerString,
 
-  colors: new Colors(),
+  colors: new Colors(defaultColor),
   player: new MusicService(),
   modals: new ModalService(),
   lyric: new LRCParser(),

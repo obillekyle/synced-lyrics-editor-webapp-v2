@@ -10,18 +10,21 @@
   } from 'vue';
 
   import { Icon } from '@iconify/vue';
+  import { evaluate } from '@/api/util';
+  import type { NavigationBarProps } from './type';
 
   interface NavigationItemProps
     extends /** @vue-ignore */ ButtonHTMLAttributes {
     name?: string;
     icon: string;
+    value?: number;
   }
 
-  defineProps<NavigationItemProps>();
+  const props = defineProps<NavigationItemProps>();
   const index = ref<number>(0);
   const element = ref<HTMLElement | null>(null);
   const count = inject<Ref<number>>('count')!;
-  const active = inject<Ref<number>>('activeItem')!;
+  const parentProps = inject<NavigationBarProps>('parent-props')!;
   const parent = inject<Ref<HTMLDivElement | null>>('parent')!;
 
   defineOptions({
@@ -34,6 +37,12 @@
       index.value = Array.from(parent.value.children)
         .filter((e) => e.matches('button.nav-item'))
         .indexOf(element.value!);
+    }
+  }
+
+  function setValue() {
+    if (parentProps.active !== props.value ?? index.value) {
+      evaluate(parentProps.change, props.value ?? index.value);
     }
   }
 
@@ -53,9 +62,9 @@
   <button
     ref="element"
     v-bind="$attrs"
-    @click="() => (active = index)"
+    @click="setValue"
     class="nav-item special"
-    :class="{ active: index == active }"
+    :class="{ active: (value ?? index) == parentProps.active }"
   >
     <div class="icon">
       <Icon :icon="icon" />

@@ -5,9 +5,11 @@
   import IconButton from './elements/button/icon-button.vue';
   import presets from './modals/_presets';
   import Switch from './elements/switch.vue';
-  import Divider from './divider.vue';
+  import Divider from './elements/divider.vue';
+  import type { Screens } from '@/app/main';
 
-  const screenNames = {
+  const screenNames: Record<Screens, string> = {
+    home: 'HOME',
     edit: 'APP_EDIT',
     timing: 'APP_TIMING',
     lyric: 'APP_LYRIC',
