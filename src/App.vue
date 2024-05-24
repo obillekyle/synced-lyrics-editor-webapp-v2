@@ -169,13 +169,12 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    transition: opacity 0.3s;
+    transition: opacity 0.4s;
     .progress {
       width: clamp(0px, 96px, 500px);
     }
     &.ready {
       opacity: 0;
-      visibility: hidden;
       pointer-events: none;
     }
   }
