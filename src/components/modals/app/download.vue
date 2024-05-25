@@ -81,7 +81,7 @@
       element="button"
       entry="PLAYER_AUDIO_TITLE"
       :class="['chip-button', presets[1] && 'active']"
-      :onclick="() => togglePreset(0)"
+      :onclick="() => togglePreset(1)"
     />
     <button
       :class="['chip-button', presets[2] && 'active']"
