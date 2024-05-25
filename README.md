@@ -1,4 +1,4 @@
-<div style="text-align: center; text-wrap: balance;">
+<div align="center" style="text-wrap: balance;">
 
 <a href="https://sle.okyle.xyz"><img src="public/assets/logo.png" alt="SLEv2 Logo" title="View Live" width="80" style="max-width: 100%;"></a>
 
@@ -6,7 +6,7 @@
 
 </div>
 
-<div style="text-align: center; text-wrap: balance;">
+<div align="center" style="text-wrap: balance;">
 
 ### Straightforward LRC Maker and Editor.
 
