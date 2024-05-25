@@ -1,3 +1,20 @@
+### **May 25, 2024**
+
+**v2.0.7b**: PWA Hotfix
+
+<ins>v2.0.7a ... v2.0.7a_2</ins>
+
+**Changes:**
+- App: Bump version code (9).
+- App: Fixed for offline PWA staying at the splash screen.
+- App: Added a one-time startup homepage.
+- Keybinds: Added tab switching keybinds, you can see them at the keybinds screen — <kbd>CTRL + /</kbd>.
+- Download: Fixed the title chip toggles the artist chip instead of itself.
+- Fixed navigation bar incorrectly handle state changes.
+- Improve resource caching.
+- Updated meta tags.
+- Added MIT license
+
 ### **May 23, 2024**
 
 **v2.0.7a**: QoL changes
@@ -62,7 +79,7 @@
 
 **Changes:**
 
-<ins>v2.0.4b ... v2.0.5a</ins>
+<ins>v2.0.4a_2 ... v2.0.5a</ins>
 
 - App: Added loading screen
 - App: Added debug mode
@@ -81,7 +98,7 @@
 
 **Changes:**
 
-<ins>v2.0.4a ... v2.0.4b</ins>
+<ins>v2.0.4a ... v2.0.4a_2</ins>
 
 - Editor: Added zooming.
 - Editor: Better handling of IME input.

@@ -28,7 +28,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['**/*.{svg,png,jpg,gif,webp,ico,woff2}'],
+      includeAssets: ['**/*.{svg,png,jpg,gif,webp,ico,woff2,json,md}'],
       pwaAssets: {
         overrideManifestIcons: true,
         preset: minimal2023Preset,
