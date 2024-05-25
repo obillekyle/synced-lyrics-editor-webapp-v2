@@ -1,41 +1,57 @@
-# Synced Lyrics Editor v2
+<div style="text-align: center; text-wrap: balance;">
 
-View Live:\
-[![View Live](/public/assets/visit.png)](https://sle.okyle.xyz)
+<a href="https://sle.okyle.xyz"><img src="public/assets/logo.png" alt="SLEv2 Logo" title="View Live" width="80" style="max-width: 100%;"></a>
 
-## Recommended IDE Setup
+# Synced Lyrics Editor and Maker
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+</div>
 
-## Type Support for `.vue` Imports in TS
+<div style="text-align: center; text-wrap: balance;">
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+### Straightforward LRC Maker and Editor.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+Create your own synced lyrics for the music you love – right from your browser. A sound file is required.
 
-1. Disable the built-in TypeScript Extension
-   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+_That's a queue icon though..._
 
-## Customize configuration
+![GitHub Repo stars](https://img.shields.io/github/stars/obillekyle/synced-lyrics-editor-webapp-v2)
+![GitHub License](https://img.shields.io/github/license/obillekyle/synced-lyrics-editor-webapp-v2)
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+<a href="https://sle.okyle.xyz">
+   <img src="public/assets/visit.png" alt="Visit Live" title="Visit Live" style="max-width: 100%;">
+</a>
 
-## Project Setup
+</div>
 
-```sh
-pnpm install
-```
+## Screenshots
 
-### Compile and Hot-Reload for Development
+![Website in Light Mode](public/assets/preview-light.png)
+![Website in Dark Mode](public/assets/preview-dark.png)
 
-```sh
-pnpm dev
-```
+## Features
 
-### Type-Check, Compile and Minify for Production
+- Paste or edit lyrics
+- Sync lyrics realtime while the sound is playing
+- Tags support
+- Realtime preview and translated preview
+- Local session editing and saving
+- Installable as a PWA
+- Light and dark mode
 
-```sh
-pnpm build
-```
+## Get Started
+
+- Clone the repository
+- Install dependencies
+  - `npm install` or `yarn` or `pnpm install` or `bun install`
+- Open development server:
+  - `npm run dev` or `yarn dev` or `pnpm dev` or `bun run dev`
+- Build:
+  - `npm run build` or `yarn build` or `pnpm build` or `bun run build`
+
+## Changelog
+
+You can check the [changelog](public/changelog.md) for more details.
+
+## Contributing
+
+If you have any questions or suggestions, please feel free to [open an issue](https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues) or [open a pull request](https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/pulls).

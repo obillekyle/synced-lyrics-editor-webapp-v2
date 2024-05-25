@@ -41,7 +41,7 @@
   }
 
   function setValue() {
-    if (parentProps.active !== props.value ?? index.value) {
+    if (parentProps.active !== (props.value ?? index.value)) {
       evaluate(parentProps.change, props.value ?? index.value);
     }
   }
