@@ -1,6 +1,6 @@
 ### **May 25, 2024**
 
-**v2.0.7b**: PWA Hotfix
+**v2.0.7a_2**: PWA Hotfix
 
 <ins>v2.0.7a ... v2.0.7a_2</ins>
 
