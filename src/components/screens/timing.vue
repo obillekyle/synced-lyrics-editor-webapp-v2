@@ -77,7 +77,6 @@
 
   const handleLineUpdate = (index: number, data: LRCLine) => {
     lines.value[index] = { id: data.id, props: data };
-    setFocus(index);
   };
 
   const toggleEdit = () => (edit.value = !edit.value);
