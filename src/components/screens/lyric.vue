@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
-  import { $, throttler } from '@/api/util';
+  import { $, rippleEffect, throttler } from '@/api/util';
   import {
     type Ref,
     inject,
@@ -90,9 +90,10 @@
 <template>
   <div class="preview-screen" ref="previewPane">
     <div
-      :key="index"
       class="lrc-line"
-      :onclick="
+      :key="index"
+      @pointerdown="rippleEffect"
+      @click="
         () => {
           if (isFinite(Player.duration)) {
             bypass = true;
@@ -125,7 +126,6 @@
   .preview-screen {
     padding-block: calc((85dvh - 112px) / 2);
     color: var(--color-900-20);
-    padding-inline: var(--md);
 
     &:empty::after {
       content: 'No lyric available';
@@ -135,7 +135,10 @@
     }
 
     .lrc-line {
+      position: relative;
+      overflow: hidden;
       padding-block: var(--xl);
+      padding-inline: var(--md);
       user-select: none;
       cursor: pointer;
 
@@ -161,9 +164,7 @@
         color: var(--color-900);
         scale: 1;
       }
-      &:hover {
-        background-color: #7772;
-      }
+
       &:not(.active) .playing-indicator div {
         transform: scaleY(0.05);
         animation: none !important;

@@ -4,7 +4,7 @@
   import I18nString from './elements/i18n-string.vue';
   import IconButton from './elements/button/icon-button.vue';
   import presets from './modals/_presets';
-  import Switch from './elements/switch.vue';
+  import Switch from './elements/switches/switch.vue';
   import Divider from './elements/divider.vue';
   import type { Screens } from '@/app/main';
 

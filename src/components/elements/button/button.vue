@@ -46,10 +46,12 @@
     align-items: center;
     height: var(--size-lg);
     width: fit-content;
+    min-width: 6ch;
     border-radius: var(--radius);
     overflow: hidden;
     border: none;
     font: inherit;
+    justify-content: center;
     font-weight: 600;
     color: var(--color-100);
     background: var(--color-700);
@@ -67,6 +69,11 @@
 
     &:hover {
       filter: brightness(1.2);
+    }
+
+    .label {
+      align-self: center;
+      text-align: center;
     }
 
     .button-icon {
@@ -94,7 +101,7 @@
     }
 
     &.subtle {
-      background: var(--color-400-10);
+      background: var(--color-500-20);
     }
 
     &.transparent,

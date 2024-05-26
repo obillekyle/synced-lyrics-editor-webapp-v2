@@ -1,17 +1,28 @@
 <script setup lang="ts">
-  import type { Component } from 'vue';
+  import type { ButtonHTMLAttributes, Component } from 'vue';
   import ChipIcon from './chip-icon.vue';
+  import { getCSSValue, type AppSizes, rippleEffect } from '@/api/util';
 
-  defineProps<{
+  interface ChipProps extends /* @vue-ignore */ ButtonHTMLAttributes {
     leftIcon?: Component | string;
     rightIcon?: Component | string;
     label?: string;
     variant?: 'filled' | 'outline' | 'subtle' | 'transparent';
-  }>();
+    radius?: AppSizes | number | 'rounded' | String;
+  }
+
+  withDefaults(defineProps<ChipProps>(), {
+    radius: 'rounded',
+  });
 </script>
 
 <template>
-  <div class="chip" :class="variant">
+  <div
+    class="chip"
+    :class="variant"
+    :style="`--radius: ${getCSSValue(radius.toString())};`"
+    @pointerdown="rippleEffect"
+  >
     <ChipIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
     <slot>{{ label }}</slot>
     <ChipIcon v-if="rightIcon" class="right-icon" :icon="rightIcon" />
@@ -20,8 +31,10 @@
 
 <style lang="scss">
   .chip {
+    user-select: none;
     display: inline-flex;
     align-items: center;
+    position: relative;
     width: fit-content;
     border-radius: var(--radius);
     gap: var(--sm);
@@ -30,8 +43,7 @@
     font-weight: 600;
     color: var(--color-100);
     background: var(--color-700);
-    padding: var(--xs) var(--sm);
-    border-radius: var(--xs);
+    padding: var(--xs) var(--md);
     transition: opacity 0.2s;
     box-shadow: 0 2px 6px #0005;
     transition:
@@ -71,7 +83,7 @@
     }
 
     &.subtle {
-      background: var(--color-400-30);
+      background: var(--color-500-20);
     }
 
     &.transparent,

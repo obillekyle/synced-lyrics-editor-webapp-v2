@@ -19,6 +19,18 @@ export function getParent(
   return getParent(element.parentElement, selector, true, deep - 1);
 }
 
+export function onSelfEvent<T extends Event>(
+  event: T,
+  handler: (event: T) => any
+) {
+  const target = event.target as HTMLElement;
+  const currentTarget = event.currentTarget as HTMLElement;
+
+  if (target === currentTarget) {
+    handler(event);
+  }
+}
+
 export type BoxDimensions = {
   height: number;
   width: number;

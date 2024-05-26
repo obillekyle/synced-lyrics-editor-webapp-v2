@@ -19,6 +19,7 @@
   import Seeker from './seeker.vue';
   import MdProgress from './elements/progress/circular-progress.vue';
   import IconButton from './elements/button/icon-button.vue';
+  import Scroller from './elements/scroller.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -36,8 +37,6 @@
 
   const playPause = () => (playing.value = !Player.paused);
   function onMusicUpdate(this: MusicService): void {
-    console.log('callupdate');
-
     playing.value = false;
     metadata.value = Player.getDetails();
     picture.value = Player.picture;
@@ -200,16 +199,28 @@
 
         <div class="details">
           <div class="title">
-            <I18nString entry="PLAYER_NO_AUDIO" v-if="!metadata?.title" />
-            <span v-else>{{ metadata.title }}</span>
+            <I18nString
+              :element="Scroller"
+              entry="PLAYER_NO_AUDIO"
+              v-if="!metadata?.title"
+            />
+            <Scroller v-else>
+              {{ metadata.title }}
+            </Scroller>
           </div>
           <span class="artist">
-            <I18nString entry="PLAYER_NO_ARTIST" v-if="!metadata?.artist" />
-            <span v-else>{{ metadata.artist }}</span>
-            <span>
-              {{ metadata?.album && ' • ' }}
-              {{ metadata?.album }}
-            </span>
+            <I18nString
+              :element="Scroller"
+              entry="PLAYER_NO_ARTIST"
+              v-if="!metadata?.artist"
+            />
+            <Scroller v-else>
+              <span>{{ metadata.artist }}</span>
+              <span class="album">
+                {{ metadata?.album && ' • ' }}
+                {{ metadata?.album }}
+              </span>
+            </Scroller>
           </span>
         </div>
       </div>
@@ -242,8 +253,9 @@
         />
         <icon-button
           id="tag-sync"
-          title="Sync Lyric Tags"
+          title="Sync Lyric Tags (Not Working ATM)"
           icon="material-symbols:sync"
+          disabled
         />
         <icon-button
           id="sub-panel-toggle"
@@ -356,6 +368,11 @@
         display: flex;
       }
 
+      #repeat:not([active='true']),
+      #repeat2:not([active='true']) {
+        opacity: 0.5;
+      }
+
       .actions {
         display: flex;
         flex-wrap: nowrap;
@@ -373,7 +390,6 @@
         grid-area: music-info;
         display: flex;
         align-items: center;
-        gap: var(--lg);
         margin-inline: auto;
 
         white-space: nowrap;
@@ -389,14 +405,15 @@
         }
 
         .details {
-          line-height: 1.5;
-
           .title {
             font-weight: 500;
-            font-size: 16px;
+            font-size: var(--font-md);
+            line-height: 1.5;
           }
 
           .artist {
+            font-size: var(--font-md);
+
             color: darkgray;
           }
         }
@@ -461,7 +478,8 @@
 
         .music-info {
           margin: 0;
-          .artist span {
+
+          .album {
             display: none;
           }
 

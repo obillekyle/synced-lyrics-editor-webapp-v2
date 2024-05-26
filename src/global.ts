@@ -11,6 +11,8 @@ import presets from '@/components/modals/_presets';
 import process from 'process';
 import { defaultColor, type Screens } from './app/main';
 import FileManager from './api/files';
+import { loadIcons } from '@iconify/vue/dist/iconify.js';
+import { AppIcons } from './app/icons';
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
 const appVerString = import.meta.env.VITE_VERSION ?? 'unknown';
@@ -37,6 +39,8 @@ declare global {
     process: typeof process;
   }
 }
+
+loadIcons(AppIcons);
 
 window.app = {
   version: appVer,

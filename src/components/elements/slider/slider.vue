@@ -302,7 +302,7 @@
     &.md3 {
       --thumb-width: var(--xs);
       --thumb-height: var(--xl);
-      --track-height: var(--md);
+      --track-height: var(--lg);
 
       height: calc(var(--thumb-height) * 2.5);
 

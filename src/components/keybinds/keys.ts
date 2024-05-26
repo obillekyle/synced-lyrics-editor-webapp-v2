@@ -313,7 +313,7 @@ export const defaultKeys: KeyBinds<KeyBind> = {
     deleteLine: {
       label: 'Delete Line',
       special: [false, false, false, false],
-      key: 'Backspace',
+      key: 'Delete',
     },
 
     addNewLine: {

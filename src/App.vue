@@ -204,6 +204,7 @@
     display: block;
     height: calc(100dvh - var(--app-header-height) - var(--app-player-height));
     width: calc(100dvw - var(--app-navbar-size));
+    transform: translate(0, 0);
     overflow: overlay;
 
     &:has(.preview-screen) {

@@ -2,12 +2,12 @@
   import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
 
   import type { ModalActionsArgs } from '@/api/modals';
-  import { $, evaluate, type MaybeFunction } from '@/api/util';
+  import { $, evaluate, rippleEffect, type MaybeFunction } from '@/api/util';
   import { Icon } from '@iconify/vue';
 
   import I18nString from '../../elements/i18n-string.vue';
   import IconButton from '../../elements/button/icon-button.vue';
-  import Switch from '../../elements/switch.vue';
+  import Switch from '../../elements/switches/switch.vue';
   import _presets from '../_presets';
 
   const Options = window.app.options;
@@ -237,6 +237,7 @@
       <div
         class="entry"
         :key="name"
+        @pointerdown="rippleEffect"
         :class="{ active: name == active }"
         v-for="(item, name) in entries"
         @click="
@@ -266,6 +267,7 @@
           <div
             tabindex="0"
             class="entry switch"
+            @pointerdown="rippleEffect"
             v-if="item.type == 'switch'"
             :key="'switch-' + index"
             @click="({ currentTarget }) => $('input', currentTarget)?.click()"
@@ -284,6 +286,7 @@
           <div
             tabindex="0"
             class="entry info"
+            @pointerdown="rippleEffect"
             v-else-if="item.type == 'info'"
             :key="'info-' + index"
           >
@@ -296,6 +299,7 @@
             tabindex="0"
             class="entry button"
             :key="'button-' + index"
+            @pointerdown="rippleEffect"
             v-else-if="item.type == 'button'"
             @click="() => item.disabled || evaluate(item.onClick)()"
           >
@@ -361,10 +365,9 @@
 
     .entry {
       display: grid;
+      overflow: hidden;
+      position: relative;
       padding: var(--xl) var(--lg);
-      &:hover {
-        background-color: var(--color-600-10);
-      }
       &.button {
         cursor: pointer;
       }
@@ -443,9 +446,6 @@
           left 0.15s;
       }
 
-      .entry.active:not(:hover) {
-        background: none;
-      }
       &[shown='true'] {
         header {
           .back {

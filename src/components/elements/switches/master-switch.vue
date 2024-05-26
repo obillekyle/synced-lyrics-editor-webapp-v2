@@ -33,7 +33,11 @@
       <slot>{{ name }}</slot>
     </div>
     <div class="toggle">
-      <Switch :modelValue="value" :defaultChecked="defaultChecked" />
+      <Switch
+        :modelValue="value"
+        :defaultChecked="defaultChecked"
+        class="inverted"
+      />
     </div>
   </div>
 </template>
@@ -45,13 +49,13 @@
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    background: var(--color-800);
+    background: var(--color-700);
     padding: var(--size-sm) var(--size-xs);
     border-radius: var(--size-sm);
     color: var(--color-0);
     text-transform: capitalize;
     font-size: var(--font-lg);
-    z-index: 100;
+    z-index: 10;
     box-shadow: 0 0 0.5rem #0005;
 
     .toggle {

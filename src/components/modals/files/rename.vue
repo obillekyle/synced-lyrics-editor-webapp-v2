@@ -50,7 +50,7 @@
       span
       type="text"
       v-model="fileName"
-      :left-icon="`mdi:${type}-outline`"
+      :left-icon="`material-symbols:${type}-outline`"
     />
   </div>
 </template>

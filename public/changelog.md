@@ -1,3 +1,31 @@
+### **May 26, 2024**
+
+**v2.0.7a_3**: Hotfix and some additions
+
+<ins>v2.0.7a_2 ... v2.0.7a_3</ins>
+
+**Changes:**
+
+- App: Bump version code (10).
+- App: Add button ripple animations
+- File: Fixed file manager not closing properly when reloaded
+- Player: Audio details will now scroll if the text is too long
+- Player: Fixed cut-off details on mobile
+- Player: Display artist name on mobile
+- Player: Repeat now shows correct state on desktop
+- Player: Added a disclaimer for sync tags button
+- PWA: Fix some icons not displaying on an offline mode PWA
+- Timing: You can now add new lines on mobile
+- Timing: Changed line editing mode, double tap on the lyrics to edit.
+- Fixed buttons on modals appearing too small
+- Fixed lines being deleted when typing on an input, ex. Renaming the .lrc file name while focused on the timing tab.
+
+**Other:**
+
+- Element: Adjust element colors
+- Element: Added a new element named 'MasterSlider'
+- Element: Fixed Chip element 'rounded' property not working
+
 ### **May 25, 2024**
 
 **v2.0.7a_2**: PWA Hotfix
@@ -5,6 +33,7 @@
 <ins>v2.0.7a ... v2.0.7a_2</ins>
 
 **Changes:**
+
 - App: Bump version code (9).
 - App: Fixed for offline PWA staying at the splash screen.
 - App: Added a one-time startup homepage.

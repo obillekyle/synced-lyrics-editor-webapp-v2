@@ -90,10 +90,6 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
     this.init().then(() => {
       this.dispatchEvent('ready', []);
     });
-
-    window.addEventListener('beforeunload', () => {
-      this.store.close();
-    });
   }
 
   async init() {

@@ -1,16 +1,6 @@
 <script setup lang="ts">
   import { $, clamp } from '@/api/util';
-  import {
-    onMounted,
-    onUnmounted,
-    ref,
-    markRaw,
-    shallowRef,
-    watch,
-    computed,
-    inject,
-    type Ref,
-  } from 'vue';
+  import { onMounted, onUnmounted, ref, watch, inject, type Ref } from 'vue';
   import iconButton from '../elements/button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
@@ -20,6 +10,7 @@
   import type { ListItemType } from '../elements/list/types';
   import TimingList from './timing-list.vue';
   import IconButton from '../elements/button/icon-button.vue';
+  import { onSelfEvent } from '@/api/util/dom';
 
   const Lyrics = window.app.lyric;
   const Player = window.app.player;
@@ -165,6 +156,12 @@
     });
   }
 
+  function addNewLineFromFocus(reverse: boolean = false) {
+    const index = focus.value;
+    const newItem = Lyrics.EMPTYLINE;
+    Lyrics.addLine(newItem, reverse ? index - 1 : index);
+  }
+
   function handleKeyUp(e: KeyboardEvent) {
     const index = focus.value;
 
@@ -190,26 +187,13 @@
       !Player.paused && setFocus(index + 1);
     });
 
-    processKey(Keybinds.timing.unfocusLine, e, () => {
-      setFocus(-1);
-    });
-
-    processKey(Keybinds.timing.addNewLine, e, () => {
-      const newItem = Lyrics.EMPTYLINE;
-      Lyrics.addLine(newItem, index);
-    });
-
-    processKey(Keybinds.timing.addNewLineReverse, e, () => {
-      const newItem = Lyrics.EMPTYLINE;
-      Lyrics.addLine(newItem, index - 1);
-    });
-    processKey(Keybinds.timing.deleteLine, e, () => {
-      Lyrics.removeLine(index);
-    });
-
-    processKey(Keybinds.timing.toggleEditMode, e, () => {
-      toggleEdit();
-    });
+    processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit());
+    processKey(Keybinds.timing.deleteLine, e, () => Lyrics.removeLine(index));
+    processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1));
+    processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus());
+    processKey(Keybinds.timing.addNewLineReverse, e, () =>
+      addNewLineFromFocus(true)
+    );
   }
 
   watch(edit, (value) => {
@@ -270,47 +254,45 @@
     <div
       :key="id"
       :data-index="index"
-      @click="setFocus(index)"
       class="lrc-line"
       :class="{
         active: focus == index,
         edit,
       }"
+      :onClick="(e) => onSelfEvent(e, () => setFocus(index))"
       v-for="({ id, props }, index) in lines"
     >
       <div class="time" @click="() => (Player.currentTime = props.time / 1000)">
         {{ Lyrics.timeToString(props.time) }}
       </div>
-      <div v-if="focus == index" class="edit-icon-container">
+      <div v-if="focus == index" class="add-line-buttons">
         <IconButton
-          v-show="edit"
-          title="Save"
-          icon="material-symbols:done"
-          @click="() => saveValue(index)"
+          icon="mdi:table-row-plus-before"
+          title="Add new line before"
+          @click="() => addNewLineFromFocus(true)"
         />
         <IconButton
-          v-show="!edit"
-          title="Edit"
-          @click="toggleEdit"
-          icon="material-symbols:edit-outline"
+          icon="mdi:table-row-plus-after"
+          title="Add new line after"
+          @click="() => addNewLineFromFocus()"
         />
       </div>
 
       <textarea
         class="data"
         v-if="focus == index && edit"
-        :defaultValue="props.data"
+        :defaultValue="
+          typeof props.data == 'string' ? props.data : props.data.join('')
+        "
       />
 
-      <div class="data" v-else>
-        <div
-          :key="index"
-          v-if="typeof props.data == 'object'"
-          v-for="({ line }, index) in props.data"
-        >
+      <div class="data" v-else @dblclick="() => toggleEdit()">
+        <template v-if="typeof props.data == 'string'">
+          {{ props.data }}
+        </template>
+        <div :key="index" v-else v-for="({ line }, index) in props.data">
           {{ line }}
         </div>
-        <template v-else>{{ props.data }}</template>
       </div>
 
       <div class="timing-buttons" v-if="focus == index">
@@ -404,6 +386,7 @@
       grid-template-rows: 24px auto;
       height: 112px;
       overflow: hidden;
+
       align-content: center;
 
       column-gap: var(--sm);
@@ -411,6 +394,23 @@
 
       background: var(--background-body);
       box-shadow: 0 2px 12px var(--background-body);
+      animation: fade-in 0.2s forwards;
+
+      @keyframes fade-in {
+        from {
+          transform: translateX(-100px);
+          opacity: 0;
+        }
+
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      > * {
+        pointer-events: none;
+      }
 
       &::before {
         position: absolute;
@@ -421,10 +421,11 @@
         transition: background-color 0.2s;
       }
 
-      .edit-icon-container {
+      .add-line-buttons {
         width: 56px;
         display: grid;
-        grid-area: edit;
+        grid-template-rows: 1fr 1fr;
+        grid-area: add-line;
         justify-content: center;
         cursor: pointer;
       }
@@ -500,11 +501,15 @@
       &.active {
         border-radius: var(--sm);
         grid-template-areas:
-          'edit time timing'
-          'edit data timing';
+          'add-line time timing'
+          'add-line data timing';
         position: sticky;
         z-index: 1;
         top: var(--sm);
+
+        > * {
+          pointer-events: initial;
+        }
 
         &::before {
           background-color: var(--color-900-10);

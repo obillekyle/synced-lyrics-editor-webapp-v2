@@ -58,33 +58,53 @@
     width: calc(var(--size) * 1.8);
     height: var(--size);
     border-radius: var(--size);
+    background-color: var(--mono-100);
+    transition: box-shadow 0.15s ease;
     box-shadow:
       0 0 0 2px var(--mono-500),
-      0 0 8px var(--mono-700);
+      0 0 8px #0005;
+
     input {
       display: none;
     }
-    transition: box-shadow 0.15s ease;
-  }
 
-  .switch-wrapper::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    scale: 0.6;
-    width: var(--size);
-    height: var(--size);
-    background-color: var(--mono-500);
-    border-radius: var(--size);
-    transition: all 0.15s ease;
+    &:has(input.inverted) {
+      background-color: var(--mono-900);
+      &::after {
+        background-color: var(--mono-500);
+      }
+
+      &:has(input:checked) {
+        background-color: var(--color-300);
+        box-shadow:
+          0 0 0 2px var(--color-300),
+          0 0 8px #0005;
+
+        &::after {
+          background-color: var(--color-800);
+        }
+      }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      scale: 0.6;
+      width: var(--size);
+      height: var(--size);
+      background-color: var(--mono-500);
+      border-radius: var(--size);
+      transition: all 0.15s ease;
+    }
   }
 
   .switch-wrapper:has(input:checked) {
     background-color: var(--color-800);
     box-shadow:
       0 0 0 2px var(--color-800),
-      0 0 0 4px var(--mono-100-20);
+      0 0 8px #0005;
 
     &::after {
       scale: 0.85;

@@ -16,6 +16,9 @@ export type CSSMetricUnits =
   | 'pt'
   | 'pc'
   | 'dvh'
+  | 's'
+  | 'ms'
+  | 'deg'
   | 'dvw';
 
 export function addUnit(
