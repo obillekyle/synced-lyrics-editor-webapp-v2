@@ -417,10 +417,12 @@ class FileManager extends CustomEventHandler<FileManagerEvents> {
   async rename(pathOrKey: string | number, name: string) {
     let newPath = await this.getPathFromKey(pathOrKey);
     if (!newPath || typeof newPath !== 'string') return false;
+    const entry = FileManager.getPathEntry(newPath);
 
     return !!this.store.index
       .where('path')
-      .equals(pathOrKey)
+      .equals(entry.path)
+      .and((item) => item.name === entry.name)
       .modify({ name, modified: Date.now() });
   }
 

@@ -6,9 +6,8 @@
   import { i18n } from '@/app/i18n';
   import { Icon } from '@iconify/vue';
 
-  import Divider from './elements/divider.vue';
-  import I18nString from './elements/i18n-string.vue';
-  import iconButton from './elements/button/icon-button.vue';
+  import Divider from './elements/Divider/divider.vue';
+  import I18nString from './elements/Text/i18n-string.vue';
   import {
     getKeybinds,
     keyHandlers as handlers,
@@ -17,9 +16,9 @@
   import floatingKeybind from './keybinds/main.vue';
   import _presets from './modals/_presets';
   import Seeker from './seeker.vue';
-  import MdProgress from './elements/progress/circular-progress.vue';
-  import IconButton from './elements/button/icon-button.vue';
-  import Scroller from './elements/scroller.vue';
+  import MdProgress from './elements/Progress/circular-progress.vue';
+  import IconButton from './elements/Button/icon-button.vue';
+  import Scroller from './elements/Text/scroller.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -163,28 +162,16 @@
           :diameter="48"
           class="play-button"
         />
-        <button
+        <IconButton
           v-else
           :data-playing="playing ? 'true' : 'false'"
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.playPause()"
-          class="icon-button play-button"
+          class="play-button"
+          :size="36"
+          :icon="`material-symbols:${playing ? 'pause' : 'play-arrow'}`"
           :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
-          type="button"
-        >
-          <div class="wrapper">
-            <icon
-              :width="36"
-              class="paused"
-              icon="material-symbols:play-arrow"
-            />
-            <icon
-              :width="36"
-              class="playing"
-              icon="material-symbols-light:pause"
-            />
-          </div>
-        </button>
+        />
         <IconButton
           :disabled="!isFinite(Player.duration)"
           :onclick="() => Player.fastSeek(5)"
@@ -231,33 +218,33 @@
       </div>
 
       <div class="actions">
-        <icon-button
+        <IconButton
           @click="() => Player.reset()"
           :disabled="!isFinite(Player.duration)"
           id="reset-audio"
           title="Change Audio"
           icon="material-symbols:close"
         />
-        <icon-button
+        <IconButton
           @click="handlers.uploadAudio"
           id="upload-music"
           title="Change Audio"
           icon="material-symbols:upload"
         />
-        <icon-button
+        <IconButton
           id="repeat"
           title="Repeat / Loop"
           icon="material-symbols:repeat"
           @click="() => setLoop()"
           :active="audioLoop"
         />
-        <icon-button
+        <IconButton
           id="tag-sync"
           title="Sync Lyric Tags (Not Working ATM)"
           icon="material-symbols:sync"
           disabled
         />
-        <icon-button
+        <IconButton
           id="sub-panel-toggle"
           title="Open Sub-Panel"
           icon="material-symbols:expand-less"
@@ -276,7 +263,7 @@
         </div>
 
         <div class="controls">
-          <icon-button
+          <IconButton
             :onclick="() => Player.reset()"
             :disabled="!isFinite(Player.duration)"
             id="reset-audio-2"
@@ -286,35 +273,24 @@
 
           <divider direction="y" :size="24" margin="sm" />
 
-          <icon-button
+          <IconButton
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.fastSeek(-5)"
             class="seek-backward"
             title="Seek Backward"
             icon="material-symbols:fast-rewind"
           />
-          <button
+          <IconButton
             :data-playing="playing ? 'true' : 'false'"
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.playPause()"
-            class="icon-button play-button"
+            class="play-button"
+            :size="36"
+            :icon="`material-symbols:${playing ? 'pause' : 'play-arrow'}`"
             title="Play/Pause"
-            type="button"
-          >
-            <div class="wrapper">
-              <icon
-                :width="36"
-                class="paused"
-                icon="material-symbols:play-arrow"
-              />
-              <icon
-                :width="36"
-                class="playing"
-                icon="material-symbols-light:pause"
-              />
-            </div>
-          </button>
-          <icon-button
+          />
+
+          <IconButton
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.fastSeek(5)"
             id="seek-forward"
@@ -324,7 +300,7 @@
 
           <divider direction="y" :size="24" margin="sm" />
 
-          <icon-button
+          <IconButton
             id="repeat2"
             title="Repeat / Loop"
             icon="material-symbols:repeat"
@@ -426,16 +402,6 @@
         white-space: nowrap;
         color: darkgray;
         font-size: var(--font-sm);
-      }
-    }
-
-    .play-button {
-      &[data-playing='true'] .playing,
-      &[data-playing='false'] .paused {
-        display: block;
-      }
-      > div > * {
-        display: none;
       }
     }
 

@@ -1,15 +1,15 @@
 <script setup lang="ts">
   import { $, clamp } from '@/api/util';
   import { onMounted, onUnmounted, ref, watch, inject, type Ref } from 'vue';
-  import iconButton from '../elements/button/icon-button.vue';
+  import iconButton from '../elements/Button/icon-button.vue';
 
   import animatedScroll from 'animated-scroll-to';
   import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
   import type { LRCLine, LRCTags } from '@/api/parser';
-  import List from '../elements/list/list.vue';
-  import type { ListItemType } from '../elements/list/types';
+  import List from '../elements/List/list.vue';
+  import type { ListItemType } from '../elements/List/types';
   import TimingList from './timing-list.vue';
-  import IconButton from '../elements/button/icon-button.vue';
+  import IconButton from '../elements/Button/icon-button.vue';
   import { onSelfEvent } from '@/api/util/dom';
 
   const Lyrics = window.app.lyric;
@@ -249,7 +249,18 @@
     />
   </div>
 
-  <div class="timing-screen" ref="timingPane" v-else>
+  <div
+    class="timing-screen"
+    ref="timingPane"
+    v-else
+    @click="
+      () => {
+        if (lines.length == 0) {
+          Lyrics.addLine(Lyrics.EMPTYLINE);
+        }
+      }
+    "
+  >
     <div
       :key="id"
       :data-index="index"
@@ -367,8 +378,9 @@
     position: relative;
 
     &:empty::after {
-      content: "Press 'Insert' to add a new line";
+      content: "Click or Press 'Insert' to add a new line";
       text-align: center;
+      cursor: pointer;
       display: block;
       font-size: var(--font-xl);
       color: var(--color-500);

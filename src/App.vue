@@ -2,9 +2,9 @@
   import { onMounted, onUnmounted, provide, ref, watch } from 'vue';
 
   import type MusicService from './api/service';
-  import AppTag from './components/elements/app-tag.vue';
-  import I18nString from './components/elements/i18n-string.vue';
-  import Progress from './components/elements/progress/linear-progress.vue';
+  import AppTag from './components/elements/Text/app-tag.vue';
+  import I18nString from './components/elements/Text/i18n-string.vue';
+  import Progress from './components/elements/Progress/linear-progress.vue';
   import AppHeader from './components/header.vue';
   import Modals from './components/modals/main.vue';
   import NavigationBar from './components/navigation/navigation-bar.vue';
@@ -25,7 +25,9 @@
   const screen = ref('timing');
   const theme = ref('dark');
   const debug = ref(false);
+  const devTag = ref(false);
   const ready = ref(false);
+  const showHome = ref(false);
   const showTranslate = ref(false);
   const timingSort = ref(false);
   const intervalKey = ref<number>();
@@ -49,10 +51,10 @@
   }
 
   function langUpdate() {
+    Option.set('lang', Lang.lang);
     setTimeout(() => {
       ready.value = Lang.ready;
     }, 200);
-    Option.set('lang', Lang.lang);
   }
 
   function setScreen() {
@@ -62,6 +64,8 @@
   function optionsUpdate() {
     theme.value = Option.get('theme', 'dark');
     debug.value = Option.get('debug', false);
+    showHome.value = Option.get('showHome', false);
+    devTag.value = Option.get('dev-tag', false);
   }
 
   async function loadSession() {
@@ -104,6 +108,7 @@
   provide('app-debug', debug);
   provide('showTranslate', showTranslate);
   provide('app-timing-sort', timingSort);
+  provide('app-show-home', showHome);
 
   onMounted(() => {
     langUpdate();
@@ -141,7 +146,7 @@
 
   <Styles />
   <template v-if="ready">
-    <I18nString entry="ALPHA" :element="AppTag" />
+    <I18nString entry="ALPHA" :element="AppTag" v-if="!devTag" />
     <div class="content-wrapper">
       <AppHeader />
       <main tabindex="0">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref } from 'vue';
-  import ContentEditable from '../elements/code-editor/main.vue';
+  import ContentEditable from '../elements/CodeEditor/main.vue';
   import { lrcTextFormatter } from '@/app/formatter';
   import { isMobile } from '@/api/util';
   const Lyrics = window.app.lyric;
@@ -29,6 +29,7 @@
     <template v-if="codeEditor">
       <textarea
         aria-label="Edit Lyrics"
+        placeholder="Paste your lyrics here..."
         class="mobile-editor"
         v-if="mobile"
         v-model="value"
@@ -38,6 +39,7 @@
     <template v-else>
       <textarea
         aria-label="Edit Lyrics"
+        placeholder="Paste your lyrics here..."
         class="mobile-editor"
         v-model="value"
       />
@@ -59,6 +61,7 @@
       position: absolute;
       resize: none;
       padding: var(--md);
+      background-color: var(--color-50);
       font: inherit;
       font-family:
         JetBrains Mono,

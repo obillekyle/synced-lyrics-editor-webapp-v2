@@ -1,3 +1,29 @@
+### **May 28, 2024**
+
+**v2.0.7a_4**: Home screen, new languages, and API changes
+
+<ins>v2.0.7a_3 ... v2.0.8a</ins>
+
+**Changes:**
+
+- App: Bump version code (11).
+- App: Updated Home/Landing Page.
+- App: Renamed download button to 'Export' button.
+- Download: toggling title also turns off .lrc from the name builder.
+- Settings: Added a toggle to hide the development tag.
+- Settings: Added a toggle to show the home button on the navigation.
+- Settings: Added 'Indonesian', 'Pakistan', and 'Hindi' languages.
+
+**Other:**
+
+- Dependencies: Replaced 'fast-average-color' with 'color-thief-ts' for more accurate color detection
+- Elements: Added new elements 'SquareImage', 'ChipGroup', 'WavyDivider', and 'ButtonGroup'
+- Elements: Renamed most of the elements, go to this app's github repo to see them all.
+- Elements: Adjusted modal styles
+- Queries: Fixed `s` query parameter not working
+  - `s`: number = screen id (0 = home, 1 = edit, 2 = timing, 3 = lyric, 4 = debug, 5 = files)
+- Modals: Changelog modal will not be shown on first launch.
+
 ### **May 26, 2024**
 
 **v2.0.7a_3**: Hotfix and some additions

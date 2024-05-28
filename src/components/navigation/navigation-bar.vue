@@ -1,20 +1,21 @@
 <script setup lang="ts">
   import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
 
-  import I18nString from '../elements/i18n-string.vue';
-  import IconButton from '../elements/button/icon-button.vue';
-  import NavigationContent from '../elements/navigation-bar/content.vue';
-  import NavigationEntry from '../elements/navigation-bar/entry.vue';
-  import NavigationItem from '../elements/navigation-bar/item.vue';
-  import NavigationBar from '../elements/navigation-bar/main.vue';
+  import I18nString from '../elements/Text/i18n-string.vue';
+  import IconButton from '../elements/Button/icon-button.vue';
+  import NavigationContent from '../elements/Navigation/content.vue';
+  import NavigationEntry from '../elements/Navigation/entry.vue';
+  import NavigationItem from '../elements/Navigation/item.vue';
+  import NavigationBar from '../elements/Navigation/main.vue';
   import _presets from '../modals/_presets';
   import AppLogo from './app-logo.vue';
-  import { AppScreens, type Screens } from '@/app/main';
+  import { AppScreens } from '@/app/main';
 
   const Screen = window.app.screen;
   const screenIndex = ref(0);
 
   const debug = inject<Ref<boolean>>('app-debug')!;
+  const showHome = inject<Ref<boolean>>('app-show-home')!;
 
   function onScreenUpdate() {
     const index = AppScreens.indexOf(Screen.current);
@@ -43,6 +44,15 @@
     <NavigationContent>
       <AppLogo />
     </NavigationContent>
+
+    <NavigationItem
+      v-if="showHome"
+      icon="material-symbols:home-outline"
+      :value="AppScreens.indexOf('home')"
+    >
+      <I18nString entry="APP_HOME" />
+    </NavigationItem>
+
     <NavigationItem
       icon="material-symbols:edit-outline"
       :value="AppScreens.indexOf('edit')"

@@ -1,15 +1,16 @@
 <script setup lang="ts">
   import { inject, onMounted, onUnmounted, ref, type Ref } from 'vue';
 
-  import I18nString from './elements/i18n-string.vue';
-  import IconButton from './elements/button/icon-button.vue';
+  import I18nString from './elements/Text/i18n-string.vue';
+  import IconButton from './elements/Button/icon-button.vue';
   import presets from './modals/_presets';
-  import Switch from './elements/switches/switch.vue';
-  import Divider from './elements/divider.vue';
+  import Switch from './elements/Switches/switch.vue';
+  import Divider from './elements/Divider/divider.vue';
   import type { Screens } from '@/app/main';
+  import Button from './elements/Button/button.vue';
 
   const screenNames: Record<Screens, string> = {
-    home: 'HOME',
+    home: 'APP_HOME',
     edit: 'APP_EDIT',
     timing: 'APP_TIMING',
     lyric: 'APP_LYRIC',
@@ -61,12 +62,16 @@
         title="Open LRC file"
         icon="material-symbols:upload-file-outline-sharp"
       />
-      <IconButton
-        :onclick="presets.download"
-        class="icon-button"
+      <Button
+        variant="subtle"
         title="Download"
         icon="material-symbols:download"
-      />
+        right-icon="mdi:export"
+        radius="sm"
+        @click="presets.download"
+      >
+        <I18nString entry="DOWNLOAD" />
+      </Button>
     </div>
   </header>
 </template>
@@ -103,6 +108,8 @@
       align-items: center;
       display: flex;
       background-color: inherit;
+      padding-right: var(--sm);
+      gap: var(--xs);
 
       .switch-wrapper {
         margin-inline: 12px;

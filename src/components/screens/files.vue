@@ -2,11 +2,11 @@
   import type { IndexType } from '@/api/files';
   import { Icon } from '@iconify/vue';
   import { computed, onMounted, ref, watch } from 'vue';
-  import IconButton from '../elements/button/icon-button.vue';
-  import TextInput from '../elements/input/text-input.vue';
+  import IconButton from '../elements/Button/icon-button.vue';
+  import TextInput from '../elements/Input/text-input.vue';
   import _presets from '../modals/_presets';
   import dayjs from 'dayjs';
-  import { toFileSize } from '@/api/util';
+  import { rippleEffect, toFileSize } from '@/api/util';
 
   const FM = window.app.files;
 
@@ -14,6 +14,9 @@
   const files = ref<IndexType[]>([]);
   const sortBy = ref('name');
   const reverse = ref(false);
+  const rename = ref<number>();
+  const renameValue = ref('');
+  const timeout = ref<ReturnType<typeof setTimeout> | null>(null);
 
   const sortedFiles = computed(() => {
     return files.value.slice().sort((a, b) => {
@@ -49,6 +52,9 @@
   });
 
   async function getFiles() {
+    if (timeout.value) {
+      clearTimeout(timeout.value);
+    }
     files.value = await FM.cd(currentPath.value);
   }
 
@@ -83,10 +89,36 @@
     }
   }
 
+  function setRenameMode(id?: number) {
+    timeout.value = setTimeout(() => {
+      rename.value = id;
+
+      if (id) {
+        renameValue.value = files.value.find((f) => f.key! === id)!.name;
+        console.log(renameValue.value);
+      }
+    }, 250);
+  }
+
   onMounted(async () => {
     await getFiles();
 
     FM.on('create', updateFiles);
+
+    document.addEventListener('keydown', async (e) => {
+      if (e.key === 'Escape') {
+        rename.value = undefined;
+      }
+
+      if (e.key === 'Enter') {
+        if (rename.value) {
+          e.preventDefault();
+          await FM.rename(rename.value, renameValue.value);
+          await getFiles();
+          rename.value = undefined;
+        }
+      }
+    });
   });
 </script>
 
@@ -98,7 +130,7 @@
         @click="back"
         :disabled="currentPath === '/'"
       />
-      <TextInput type="text" v-model="currentPath" />
+      <TextInput type="text" v-model="currentPath" height="md" />
 
       <div class="actions">
         <IconButton icon="material-symbols:refresh" @click="getFiles" />
@@ -111,19 +143,19 @@
     <div class="files-wrapper">
       <div class="entry header">
         <span />
-        <div @click="toggleSort('name')">
+        <div @click="toggleSort('name')" @pointerdown="rippleEffect">
           <span>Name</span>
           <span v-show="sortBy === 'name'">
             {{ reverse ? '↓' : '↑' }}
           </span>
         </div>
-        <div @click="toggleSort('size')">
+        <div @click="toggleSort('size')" @pointerdown="rippleEffect">
           <span>Size</span>
           <span v-show="sortBy === 'size'">
             {{ reverse ? '↓' : '↑' }}
           </span>
         </div>
-        <div @click="toggleSort('modified')">
+        <div @click="toggleSort('modified')" @pointerdown="rippleEffect">
           <span>Modified</span>
           <span v-show="sortBy === 'modified'">
             {{ reverse ? '↓' : '↑' }}
@@ -133,9 +165,29 @@
       <div v-if="files.length === 0" class="no-files">No files</div>
 
       <template v-for="file in sortedFiles" :key="file.key">
-        <div v-if="file.type === 'file'" class="entry file">
+        <div
+          v-if="file.type === 'file'"
+          class="entry file"
+          @pointerdown="rippleEffect"
+        >
           <Icon icon="material-symbols:file-open-outline-sharp" :width="24" />
-          <div class="name">{{ file.name }}</div>
+
+          <div
+            class="name"
+            v-if="rename !== file.key"
+            @click="setRenameMode(file.key)"
+          >
+            {{ file.name }}
+          </div>
+
+          <input
+            v-else
+            class="name"
+            v-model="renameValue"
+            @blur="setRenameMode(undefined)"
+            @keydown.enter="setRenameMode(undefined)"
+          />
+
           <div class="size">{{ toFileSize(file.size, 'byte') }}</div>
           <div class="modified">
             {{ dayjs(file.modified).format('YYYY/MM/DD h:mm A') }}
@@ -144,10 +196,25 @@
         <div
           v-if="file.type === 'folder'"
           class="entry folder"
-          @click="toFolder(file.name)"
+          @dblclick="toFolder(file.name)"
+          @pointerdown="rippleEffect"
         >
           <Icon icon="material-symbols:folder-outline-sharp" :width="24" />
-          <div class="name">{{ file.name }}</div>
+          <div
+            class="name"
+            v-if="rename !== file.key"
+            @click="setRenameMode(file.key)"
+          >
+            {{ file.name }}
+          </div>
+          <input
+            v-else
+            class="name"
+            v-model="renameValue"
+            @blur="setRenameMode(undefined)"
+            @keydown.enter="setRenameMode(undefined)"
+          />
+
           <div class="modified">
             {{ dayjs(file.modified).format('YYYY/MM/DD h:mm A') }}
           </div>
@@ -195,12 +262,22 @@
       grid-column: 1 / 5;
       grid-template-columns: subgrid;
       align-items: center;
+      position: relative;
+      overflow: hidden;
       grid-template-areas: 'icon name size modified';
       width: 100%;
       padding-inline: var(--xl);
       height: 36px;
-      > div {
+      > div,
+      input {
         padding-inline: var(--sm);
+        margin: none;
+      }
+      > input {
+        box-shadow: 0 0 0 1px inset var(--mono-500);
+        height: 100%;
+        border: none;
+        font: inherit;
       }
       &.folder {
         cursor: pointer;
@@ -220,6 +297,8 @@
           height: 100%;
           display: flex;
           gap: var(--xs);
+          position: relative;
+          overflow: hidden;
           justify-content: space-between;
           cursor: pointer;
           align-items: center;

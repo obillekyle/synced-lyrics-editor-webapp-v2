@@ -3,7 +3,7 @@
   import { addPX } from '@/api/util';
   import { Icon } from '@iconify/vue/dist/iconify.js';
   import { computed, onMounted, provide, ref, shallowRef } from 'vue';
-  import Button from '../elements/button/button.vue';
+  import Button from '../elements/Button/button.vue';
 
   const ModalService = window.app.modals;
 
@@ -136,7 +136,7 @@
 
     scale: 0.9;
     opacity: 0.3;
-    border-radius: var(--lg);
+    border-radius: var(--size-sm);
     background-color: var(--app-modal-color);
     display: grid;
 
@@ -151,7 +151,7 @@
       'content'
       'actions';
     grid-template-rows: auto auto 1fr auto;
-    animation: modal-open 0.3s forwards;
+    animation: modal-open 0.3s cubic-bezier(0.25, 0, 0, 1) forwards;
 
     > .icon {
       grid-area: icon;

@@ -1,8 +1,9 @@
-import { FastAverageColor } from 'fast-average-color';
 import type { IAudioMetadata } from 'music-metadata-browser';
 import { clamp } from './util';
+import ColorThief from 'color-thief-ts';
+import Color from 'color';
 
-const fac = new FastAverageColor();
+const colorThief = new ColorThief();
 
 export type AudioOptions = {
   currentPos: number;
@@ -134,7 +135,9 @@ class MusicService extends Audio {
       const Image = (await import('image-js')).default;
       const audioImage = await Image.load(image);
 
-      const color = fac.getColorAsync(audioImage.getCanvas());
+      const color = await colorThief.getColorAsync(
+        audioImage.toDataURL('image/jpeg')
+      );
       const data = audioImage.toBlob('image/jpeg');
       const blur = audioImage
         .resize({ width: 200, height: 200 })
@@ -143,7 +146,7 @@ class MusicService extends Audio {
 
       const awaited = await Promise.all([color, data, blur]);
 
-      imageData.color = awaited[0].hexa;
+      imageData.color = Color(color).hexa();
       imageData.data = URL.createObjectURL(awaited[1]);
       imageData.blur = URL.createObjectURL(awaited[2]);
     }

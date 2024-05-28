@@ -64,7 +64,7 @@
       font-size: var(--font-md);
       margin-right: auto;
       padding-right: 32px;
-      color: #eee;
+      color: var(--mono-900);
     }
   }
 </style>

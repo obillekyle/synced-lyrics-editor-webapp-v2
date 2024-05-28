@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import type { ModalActionsArgs } from '@/api/modals';
   import FileManager from '@/api/files';
-  import TextInput from '@/components/elements/input/text-input.vue';
+  import TextInput from '@/components/elements/Input/text-input.vue';
   import { inject, onMounted, ref, watch } from 'vue';
 
   const fns = inject<ModalActionsArgs>('fns')!;

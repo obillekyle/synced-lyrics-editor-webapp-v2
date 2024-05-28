@@ -1,6 +1,16 @@
 <script setup lang="ts">
-  import { addPX, addUnit } from '@/api/util';
-  import { onMounted, ref } from 'vue';
+  import { addPX, addUnit, type AppSizes } from '@/api/util';
+  import { onMounted, ref, type HTMLAttributes } from 'vue';
+
+  interface ScrollerProps extends /* @vue-ignore */ HTMLAttributes {
+    speed?: number;
+    spacing?: number;
+  }
+
+  const props = withDefaults(defineProps<ScrollerProps>(), {
+    speed: 24,
+  });
+
   const wrapper = ref<HTMLDivElement | null>(null);
   const content = ref<HTMLDivElement | null>(null);
 
@@ -13,16 +23,21 @@
         const wRect = wrapper.value.getBoundingClientRect();
         const cRect = content.value.getBoundingClientRect();
 
+        const spacing = props.spacing ?? wRect.width / 2;
         cloned.value = wRect.width < content.value.offsetWidth;
+        const speed = (cRect.width + spacing) / props.speed;
+        wrapper.value.style.setProperty('--spacing', addPX(spacing));
         wrapper.value.style.setProperty(
           '--speed',
-          addUnit(cRect.width / 40, 's')
+          addUnit(speed.toFixed(2), 's')
         );
       }
     });
   }
 
   onMounted(() => {
+    setScroll();
+
     const observer = new ResizeObserver(setScroll);
     observer.observe(wrapper.value!);
     observer.observe(content.value!);
@@ -54,7 +69,7 @@
         }
       }
       .scroller-content {
-        padding-right: 50%;
+        padding-right: var(--spacing);
         animation: scroll var(--speed) linear infinite;
       }
 
@@ -73,7 +88,7 @@
       0% {
         transform: translateX(0);
       }
-      90% {
+      75% {
         transform: translateX(-100%);
       }
       100% {

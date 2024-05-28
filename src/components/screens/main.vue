@@ -45,7 +45,7 @@
     height: 100%;
     > * {
       transform: translateY(48px);
-      animation: slide-up 0.15s forwards;
+      animation: slide-up 0.3s var(--timing-standard) forwards;
     }
 
     @keyframes slide-up {

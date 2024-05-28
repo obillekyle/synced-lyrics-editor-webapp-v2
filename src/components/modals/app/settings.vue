@@ -5,9 +5,9 @@
   import { $, evaluate, rippleEffect, type MaybeFunction } from '@/api/util';
   import { Icon } from '@iconify/vue';
 
-  import I18nString from '../../elements/i18n-string.vue';
-  import IconButton from '../../elements/button/icon-button.vue';
-  import Switch from '../../elements/switches/switch.vue';
+  import I18nString from '../../elements/Text/i18n-string.vue';
+  import IconButton from '../../elements/Button/icon-button.vue';
+  import Switch from '../../elements/Switches/switch.vue';
   import _presets from '../_presets';
 
   const Options = window.app.options;
@@ -28,6 +28,9 @@
     ja: '日本語',
     ko: '한국어',
     ph: 'Filipino',
+    hi: 'हिंदी',
+    id: 'Indonesian',
+    ur: 'اردو',
   };
 
   type SettingEntry =
@@ -92,6 +95,18 @@
           },
           {
             type: 'divider',
+            name: 'Navigation',
+          },
+          {
+            type: 'switch',
+            name: 'Show Home Button',
+            icon: 'material-symbols:home-outline',
+            desc: 'Show the home button at the navigation',
+            value: () => Options.get('showHome', false),
+            onChange: (v) => Options.set('showHome', v),
+          },
+          {
+            type: 'divider',
             name: 'Keyboard',
           },
           {
@@ -114,6 +129,13 @@
       lang: {
         name: 'SETTINGS_LANG',
         items: [
+          {
+            type: 'info',
+            name: 'We only provide translations of these languages',
+            icon: 'material-symbols:info-outline',
+            desc: `If you think we are missing or have an incorrect 
+            translation, please create an issue on GitHub`,
+          },
           {
             type: 'divider',
             name: 'Current language',
@@ -152,6 +174,22 @@
             },
             value: () => Options.get('showChangeLog'),
             onChange: (v) => Options.set('showChangeLog', v),
+          },
+          {
+            type: 'divider',
+            name: 'Development',
+          },
+          {
+            type: 'switch',
+            name: 'Hide development tag',
+            icon: 'material-symbols:text-rotation-angleup',
+            desc: () => {
+              return Options.get('dev-tag', false)
+                ? 'Tags like alpha or beta are hidden'
+                : 'Tags like alpha or beta are shown';
+            },
+            value: () => Options.get('dev-tag', false),
+            onChange: (v) => Options.set('dev-tag', v),
           },
           {
             type: 'switch',
@@ -267,9 +305,9 @@
           <div
             tabindex="0"
             class="entry switch"
+            :key="'switch-' + index"
             @pointerdown="rippleEffect"
             v-if="item.type == 'switch'"
-            :key="'switch-' + index"
             @click="({ currentTarget }) => $('input', currentTarget)?.click()"
           >
             <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
@@ -367,7 +405,7 @@
       display: grid;
       overflow: hidden;
       position: relative;
-      padding: var(--xl) var(--lg);
+      padding: var(--xl);
       &.button {
         cursor: pointer;
       }
@@ -386,7 +424,7 @@
 
       .iconify {
         grid-area: icon;
-        margin-right: var(--md);
+        margin-right: var(--xl);
       }
 
       .name {
@@ -433,6 +471,9 @@
     .settings-wrapper {
       position: 'relative';
       grid-template-columns: 1fr auto;
+      .entry {
+        background: none !important;
+      }
       .settings-screen {
         position: absolute;
         top: var(--app-header-height);

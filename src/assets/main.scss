@@ -3,6 +3,8 @@
 html {
   touch-action: none;
   font-size: 14px;
+
+  --timing-standard: cubic-bezier(0.25, 0, 0, 1);
 }
 
 body {
@@ -100,12 +102,6 @@ body.dark {
   }
 }
 
-@media screen and (min-width: 600px) {
-  html {
-    font-size: 16px;
-  }
-}
-
 *,
 *::before,
 *::after {
@@ -190,7 +186,22 @@ main {
   scale: 0.2;
   transform-origin: left top;
   background-color: var(--mono-700-20);
-  animation: rippled 0.5s forwards ease-out;
+  animation: rippled 0.75s forwards ease-out;
+
+  &.fade {
+    animation: fade 0.25s forwards ease-out;
+  }
+}
+
+@keyframes fade {
+  from {
+    scale: 2;
+    opacity: 1;
+  }
+  to {
+    scale: 2.5;
+    opacity: 0;
+  }
 }
 
 @keyframes rippled {
@@ -199,7 +210,19 @@ main {
     scale: 2;
   }
   100% {
-    opacity: 0;
+    opacity: 1;
     scale: 2.5;
+  }
+}
+
+@media screen and (min-width: 600px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .icon-button .icon-wrapper {
+    background-color: transparent !important;
   }
 }

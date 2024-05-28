@@ -25,6 +25,9 @@
         "TRANSLATE": {
           "type": "string"
         },
+        "APP_HOME": {
+          "type": "string"
+        },
         "APP_EDIT": {
           "type": "string"
         },
@@ -74,6 +77,9 @@
           "type": "string"
         },
         "DOWNLOAD": {
+          "type": "string"
+        },
+        "EXPORT": {
           "type": "string"
         },
         "PRESETS": {

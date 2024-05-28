@@ -109,7 +109,7 @@
     color: var(--color-900);
     z-index: 2;
 
-    & .item {
+    .item {
       position: relative;
       z-index: -1;
       display: flex;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { ref } from 'vue';
 
-  import I18nString from '../../elements/i18n-string.vue';
+  import I18nString from '../../elements/Text/i18n-string.vue';
 
   const Player = window.app.player;
   const presets = ref([true, true, true]);
@@ -16,7 +16,7 @@
     text += artist ? details.artist || '' : '';
     text += artist && title ? ' - ' : '';
     text += title ? details.title || '' : '';
-    text += title && ext ? '.lrc' : '';
+    text += ext ? '.lrc' : '';
 
     return text;
   }

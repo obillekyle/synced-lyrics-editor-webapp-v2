@@ -129,7 +129,13 @@ export function rippleEffect(e: MouseEvent, to?: string) {
   );
   ripple.style.height = ripple.style.width;
 
-  ripple.addEventListener('animationend', () => ripple.remove());
+  function removeRipple() {
+    ripple.classList.add('fade');
+    ripple.addEventListener('animationend', () => ripple.remove());
+  }
+
+  document.addEventListener('pointerup', removeRipple);
+  document.addEventListener('pointercancel', removeRipple);
 
   element.appendChild(ripple);
 }

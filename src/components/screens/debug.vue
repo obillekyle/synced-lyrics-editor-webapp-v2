@@ -1,21 +1,26 @@
 <script setup lang="ts">
   import { markRaw, ref } from 'vue';
 
-  import Button from '../elements/button/button.vue';
-  import InputText from '../elements/input/text-input.vue';
-  import List from '../elements/list/list.vue';
-  import type { ListItemType, SwipeOptions } from '../elements/list/types';
+  import Button from '../elements/Button/button.vue';
+  import InputText from '../elements/Input/text-input.vue';
+  import List from '../elements/List/list.vue';
+  import type { ListItemType, SwipeOptions } from '../elements/List/types';
   import _presets from '../modals/_presets';
   import DebugListComp from './debug-list-comp.vue';
-  import MasterSwitch from '../elements/switches/master-switch.vue';
-  import MdProgress from '../elements/progress/circular-progress.vue';
-  import Switch from '../elements/switches/switch.vue';
-  import Progress from '../elements/progress/linear-progress.vue';
-  import Slider from '../elements/slider/slider.vue';
-  import Chip from '../elements/chip/chip.vue';
-  import Scroller from '../elements/scroller.vue';
-  import MasterSlider from '../elements/slider/master-slider.vue';
-  import { Icon } from '@iconify/vue/dist/iconify.js';
+  import MasterSwitch from '../elements/Switches/master-switch.vue';
+  import MdProgress from '../elements/Progress/circular-progress.vue';
+  import Switch from '../elements/Switches/switch.vue';
+  import Progress from '../elements/Progress/linear-progress.vue';
+  import Slider from '../elements/Slider/slider.vue';
+  import Chip from '../elements/Chip/chip.vue';
+  import Scroller from '../elements/Text/scroller.vue';
+  import MasterSlider from '../elements/Slider/master-slider.vue';
+  import { Icon } from '@iconify/vue';
+  import WavyDivider from '../elements/Divider/wavy-divider.vue';
+  import SquareImage from '../elements/square-image.vue';
+  import ChipGroup from '../elements/Chip/chip-group.vue';
+  import ButtonGroup from '../elements/Button/button-group.vue';
+  import Select, { type SelectItem } from '../elements/Select/select.vue';
 
   const Lang = window.app.i18n;
   const Option = window.app.options;
@@ -38,6 +43,26 @@
         icon: 'material-symbols:download-2-outline',
         title: 'hello',
       },
+    },
+  ]);
+
+  const selectedVal = ref<number[]>([]);
+  const selectItems = markRaw<SelectItem[]>([
+    {
+      id: 8,
+      name: 'hello',
+    },
+    {
+      id: 9,
+      name: 'test',
+    },
+    {
+      id: 10,
+      name: 'wow',
+    },
+    {
+      id: 11,
+      name: 'wow2',
     },
   ]);
 
@@ -72,6 +97,89 @@
       Use debug options
     </MasterSwitch>
 
+    <Select
+      :value="selectedVal"
+      :items="selectItems"
+      placeholder="Select something"
+      :change="(selected) => (selectedVal = selected)"
+    />
+
+    <ButtonGroup>
+      <Button
+        left-icon="material-symbols:settings-outline"
+        right-icon="material-symbols:open-in-new"
+        variant="outline"
+        @click="_presets.openSettings"
+        label="Settings"
+      />
+      <Button
+        left-icon="material-symbols:queue-music"
+        right-icon="material-symbols:open-in-new"
+        variant="outline"
+        @click="_presets.download"
+        label="Lyric"
+      />
+      <Button
+        left-icon="material-symbols:upload-file-outline"
+        right-icon="material-symbols:open-in-new"
+        variant="outline"
+        @click="_presets.uploadNewLrc"
+        label="Upload Lrc"
+      />
+      <Button
+        left-icon="material-symbols:book-2-outline"
+        right-icon="material-symbols:open-in-new"
+        variant="outline"
+        @click="_presets.changelog"
+        label="Changelog"
+      />
+
+      <Button
+        left-icon="material-symbols:fullscreen"
+        label="Fullscreen"
+        variant="outline"
+        @click="() => setFullscreen()"
+      />
+    </ButtonGroup>
+
+    <ChipGroup>
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+      <Chip
+        variant="outline"
+        label="Chip"
+        left-icon="material-symbols:chips-outline"
+      />
+    </ChipGroup>
+
+    <div class="flex-container">
+      <SquareImage src="/assets/gemini-generated-image.jpg" />
+      <SquareImage src="/assets/gemini-generated-image.jpg" frame="circle" />
+      <SquareImage
+        src="/assets/gemini-generated-image.jpg"
+        frame="scalloped-square"
+      />
+      <SquareImage frame="scalloped-square" :src="Player.picture?.data" />
+      <!-- random image from pexels -->
+      <SquareImage
+        src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+        frame="scalloped-square"
+      />
+    </div>
+
     <div class="grid-container">
       <MdProgress />
       <MdProgress :value="progressVal" />
@@ -102,10 +210,15 @@
     />
     <Slider show-value :step="5" />
 
-    <MasterSlider :change="(v) => Player.setVolume(v)">
+    <MasterSlider
+      :change="(v) => Player.setVolume(v)"
+      :defaultValue="Player.volume * 100"
+    >
       <Icon icon="material-symbols:volume-up-outline" :width="24" />
       <span>Volume</span>
     </MasterSlider>
+
+    <WavyDivider />
 
     <Scroller>
       Hello there random user, thank you for using this web application, I hope
@@ -119,6 +232,8 @@
       can't un-zoom, that's cheating!. Anyways, thank you very much for using
       this app 감사합니다!.
     </Scroller>
+
+    <WavyDivider />
 
     <div>
       <Chip
@@ -143,39 +258,41 @@
       />
     </div>
 
-    <Button
-      left-icon="material-symbols:settings-outline"
-      right-icon="material-symbols:open-in-new"
-      @click="_presets.openSettings"
-      label="Settings"
-    />
-    <Button
-      left-icon="material-symbols:queue-music"
-      right-icon="material-symbols:open-in-new"
-      variant="outline"
-      @click="_presets.download"
-      label="Lyric"
-    />
-    <Button
-      left-icon="material-symbols:upload-file-outline"
-      right-icon="material-symbols:open-in-new"
-      variant="subtle"
-      @click="_presets.uploadNewLrc"
-      label="Upload Lrc"
-    />
-    <Button
-      left-icon="material-symbols:book-2-outline"
-      right-icon="material-symbols:open-in-new"
-      variant="transparent"
-      @click="_presets.changelog"
-      label="Changelog"
-    />
+    <div>
+      <Button
+        left-icon="material-symbols:settings-outline"
+        right-icon="material-symbols:open-in-new"
+        @click="_presets.openSettings"
+        label="Settings"
+      />
+      <Button
+        left-icon="material-symbols:queue-music"
+        right-icon="material-symbols:open-in-new"
+        variant="outline"
+        @click="_presets.download"
+        label="Lyric"
+      />
+      <Button
+        left-icon="material-symbols:upload-file-outline"
+        right-icon="material-symbols:open-in-new"
+        variant="subtle"
+        @click="_presets.uploadNewLrc"
+        label="Upload Lrc"
+      />
+      <Button
+        left-icon="material-symbols:book-2-outline"
+        right-icon="material-symbols:open-in-new"
+        variant="transparent"
+        @click="_presets.changelog"
+        label="Changelog"
+      />
 
-    <Button
-      left-icon="material-symbols:fullscreen"
-      label="Fullscreen"
-      @click="() => setFullscreen()"
-    />
+      <Button
+        left-icon="material-symbols:fullscreen"
+        label="Fullscreen"
+        @click="() => setFullscreen()"
+      />
+    </div>
     <div class="lang-controller">
       <InputText
         placeholder="Language"
@@ -218,6 +335,11 @@
   .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(48px, auto));
+    gap: var(--sm);
+  }
+  .flex-container {
+    display: flex;
+    flex-wrap: wrap;
     gap: var(--sm);
   }
 

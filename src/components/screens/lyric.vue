@@ -12,7 +12,7 @@
   import animatedScroll from 'animated-scroll-to';
   import playingIndicator from '../playing-indicator.vue';
   import { getTranslatedText } from '@/api/util/main';
-  import AwaitedText from '../elements/awaited-text.vue';
+  import AwaitedText from '../elements/Text/awaited-text.vue';
 
   const Player = window.app.player;
   const Lyrics = window.app.lyric;

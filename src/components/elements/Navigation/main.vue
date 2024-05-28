@@ -108,7 +108,7 @@
     }
 
     .nav-item:hover .icon {
-      background-color: var(--color-600-20);
+      background-color: var(--color-400-20);
     }
 
     .nav-item.active {
@@ -118,7 +118,7 @@
       .icon {
         color: var(--color-900);
         &::before {
-          background-color: var(--color-200);
+          background-color: var(--color-300);
           width: var(--size-lg);
         }
       }

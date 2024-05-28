@@ -41,6 +41,8 @@ export const AppIcons = [
   'material-symbols:dark-mode-outline',
   'material-symbols:light-mode-outline',
   'material-symbols:repeat',
+  'material-symbols:home-outline',
+  'mdi:export',
   'mdi:sort-ascending',
   'mdi:clock-edit-outline',
   'mdi:chevron-up',

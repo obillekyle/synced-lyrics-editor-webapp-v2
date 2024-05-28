@@ -13,6 +13,7 @@ type AppOptions = {
   debug: boolean;
   lang: string;
   theme: 'light' | 'dark';
+  showHome: boolean;
   keybinds: typeof defaultKeys;
 };
 
@@ -41,6 +42,10 @@ function update() {
   }
 
   if (version < 6) {
+  }
+
+  if (version < 11) {
+    options.set('keybinds', defaultKeys);
   }
 }
 
