@@ -1,6 +1,6 @@
 ### **May 28, 2024**
 
-**v2.0.7a_4**: Home screen, new languages, and API changes
+**v2.0.8a**: Home screen, new languages, and API changes
 
 <ins>v2.0.7a_3 ... v2.0.8a</ins>
 
