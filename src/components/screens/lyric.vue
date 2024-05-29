@@ -60,7 +60,7 @@
       },
       {
         key: 'getLRCIndex',
-        blockTime: 200,
+        blockTime: 100,
         bypass: bypass.value,
         endCall: true,
       }
@@ -72,6 +72,20 @@
     currentIndex.value;
     handleCurrentIndex.call(Player);
   };
+
+  function isError(index: number) {
+    return (
+      index > 0 &&
+      lyrics.value.lines[index - 1].time > lyrics.value.lines[index].time
+    );
+  }
+
+  function setTime(time: number) {
+    if (isFinite(Player.duration)) {
+      bypass.value = true;
+      Player.currentTime = time / 1000;
+    }
+  }
 
   onMounted(() => {
     lrcChange();
@@ -90,17 +104,11 @@
 <template>
   <div class="preview-screen" ref="previewPane">
     <div
-      class="lrc-line"
       :key="index"
+      class="lrc-line"
+      @click="setTime(time)"
       @pointerdown="rippleEffect"
-      @click="
-        () => {
-          if (isFinite(Player.duration)) {
-            bypass = true;
-            Player.currentTime = time / 1000;
-          }
-        }
-      "
+      :class="{ error: isError(index) }"
       v-for="({ data, time }, index) in lyrics.lines"
     >
       <div class="data multi" v-if="typeof data == 'object'">
@@ -142,6 +150,10 @@
       user-select: none;
       cursor: pointer;
 
+      &.error {
+        background-color: #f001;
+      }
+
       .data {
         scale: 0.8;
         text-wrap: balance;
@@ -149,7 +161,7 @@
         text-align: center;
         font-weight: 500;
         font-size: 36px;
-        transition: all 0.3s;
+        transition: all 0.25s var(--timing-standard);
         &:has(.playing-indicator) {
           scale: 1;
         }

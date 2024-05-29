@@ -97,6 +97,8 @@ export default defineConfig({
           const name = chunkInfo.name;
           const version = (dependencies as any)[name];
           if (name === 'vendor' && !version) return 'bin/vendor.js';
+          if (version && version.startsWith('github'))
+            return 'modules/[name].js';
 
           return `modules/${name}_${version}.js`;
         },

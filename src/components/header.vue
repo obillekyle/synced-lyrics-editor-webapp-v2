@@ -8,6 +8,7 @@
   import Divider from './elements/Divider/divider.vue';
   import type { Screens } from '@/app/main';
   import Button from './elements/Button/button.vue';
+  import Floater from './elements/Text/floater.vue';
 
   const screenNames: Record<Screens, string> = {
     home: 'APP_HOME',
@@ -56,21 +57,23 @@
         <Divider direction="y" size="24" margin="none" />
       </template>
 
-      <IconButton
-        :onclick="presets.uploadNewLrc"
-        class="icon-button"
-        title="Open LRC file"
-        icon="material-symbols:upload-file-outline-sharp"
-      />
+      <Floater text="LRC" pos="bottom">
+        <IconButton
+          :onclick="presets.uploadNewLrc"
+          class="icon-button"
+          title="Open LRC file"
+          icon="material-symbols:upload-file-outline-sharp"
+        />
+      </Floater>
       <Button
         variant="subtle"
-        title="Download"
+        title="Export"
         icon="material-symbols:download"
         right-icon="mdi:export"
         radius="sm"
         @click="presets.download"
       >
-        <I18nString entry="DOWNLOAD" />
+        <I18nString entry="EXPORT" />
       </Button>
     </div>
   </header>

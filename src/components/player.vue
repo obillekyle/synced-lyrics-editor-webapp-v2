@@ -2,7 +2,7 @@
   import { onMounted, onUnmounted, ref } from 'vue';
 
   import type MusicService from '@/api/service';
-  import { throttler } from '@/api/util';
+  import { throttler, isInputFocused, getUnique } from '@/api/util';
   import { i18n } from '@/app/i18n';
   import { Icon } from '@iconify/vue';
 
@@ -19,6 +19,7 @@
   import MdProgress from './elements/Progress/circular-progress.vue';
   import IconButton from './elements/Button/icon-button.vue';
   import Scroller from './elements/Text/scroller.vue';
+  import Floater from './elements/Text/floater.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -29,6 +30,7 @@
   const shown = ref(false);
   const loading = ref(true);
   const audioLoop = ref(false);
+  const id = getUnique('player');
   const playing = ref(!Player.paused);
   const picture = ref(Player.picture);
   const metadata = ref(Player.getDetails());
@@ -45,11 +47,12 @@
   function handleTimeUpdate(this: MusicService) {
     throttler(
       () => {
+        if (!isFinite(this.duration)) return;
         time.value = this.currentTime;
       },
       {
-        key: 'player',
-        blockTime: 500,
+        key: id,
+        blockTime: 1000,
         endCall: true,
       }
     );
@@ -69,6 +72,7 @@
   function handleKeyUp(e: KeyboardEvent) {
     if (Screen.current == 'edit' || Screen.current == 'timing') return;
 
+    if (isInputFocused()) return;
     processKey(Keybinds.player.playPause, e, () => Player.playPause());
   }
 
@@ -85,7 +89,7 @@
       processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
     }
 
-    if (Screen.current != 'edit' && Screen.current != 'timing') {
+    if (Screen.current != 'timing' && !isInputFocused()) {
       processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
       processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
     }
@@ -104,7 +108,7 @@
   }
 
   function playerError() {
-    loading.value = false;
+    // loading.value = false;
   }
 
   function playerLoading() {
@@ -225,12 +229,14 @@
           title="Change Audio"
           icon="material-symbols:close"
         />
-        <IconButton
-          @click="handlers.uploadAudio"
-          id="upload-music"
-          title="Change Audio"
-          icon="material-symbols:upload"
-        />
+        <Floater text="AUDIO" pos="bottom">
+          <IconButton
+            @click="handlers.uploadAudio"
+            id="upload-music"
+            title="Change Audio"
+            icon="material-symbols:upload"
+          />
+        </Floater>
         <IconButton
           id="repeat"
           title="Repeat / Loop"
@@ -437,11 +443,6 @@
           }
         }
 
-        .music-seeker {
-          inset: calc(var(--app-player-height) + var(--md)) var(--xl) auto
-            var(--xl);
-        }
-
         .music-info {
           margin: 0;
 
@@ -463,6 +464,27 @@
             display: none;
           }
           margin-left: auto;
+        }
+      }
+
+      &:has(.sub-panel[shown='true']) {
+        .music-seeker {
+          inset: calc(var(--app-player-height) + var(--md)) var(--xl) auto
+            var(--xl);
+        }
+      }
+
+      &:not(:has(.sub-panel[shown='true'])) {
+        .music-seeker {
+          height: 1px;
+          pointer-events: none;
+          inset: auto 0 0 0;
+          .progress {
+            background-color: transparent;
+          }
+          .progress-bar::after {
+            display: none;
+          }
         }
       }
 

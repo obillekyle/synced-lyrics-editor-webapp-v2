@@ -6,7 +6,7 @@
   transition: box-shadow 0.2s;
 
   min-height: var(--height, var(--size-xl));
-  border-radius: var(--xs);
+  border-radius: var(--radius, var(--xs));
   filter: grayscale(1);
   width: max-content;
 

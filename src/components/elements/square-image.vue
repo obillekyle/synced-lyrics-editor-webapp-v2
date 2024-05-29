@@ -3,7 +3,6 @@
   import { ref, type HTMLAttributes, onBeforeMount, watch } from 'vue';
   import CircularProgress from './Progress/circular-progress.vue';
   import axios from 'axios';
-  import { totalmem } from 'os';
   import { Icon } from '@iconify/vue/dist/iconify.js';
 
   interface SquareImageProps extends /* @vue-ignore */ HTMLAttributes {
@@ -21,7 +20,6 @@
   async function resolve() {
     error.value = false;
 
-    console.log(props.src);
     if (!props.src) {
       error.value = true;
       return;

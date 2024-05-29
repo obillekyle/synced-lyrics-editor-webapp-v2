@@ -1,20 +1,25 @@
 <script setup lang="ts">
   import type MusicService from '@/api/service';
-  import { throttler } from '@/api/util';
-  import { onMounted, onUnmounted, ref } from 'vue';
+  import { throttler, getClientPos, getUnique, clamp } from '@/api/util';
+  import { computed, onMounted, onUnmounted, ref } from 'vue';
 
   const Player = window.app.player;
+  const Lyrics = window.app.lyric;
 
   const time = ref(0);
   const duration = ref(NaN);
+  const bypass = ref<number>();
+  const wrapper = ref<HTMLElement | null>(null);
+  const id = getUnique('seeker');
 
   function timeUpdate(this: MusicService) {
     throttler(
       () => {
+        if (!isFinite(Player.duration)) return;
         time.value = this.currentTime;
       },
       {
-        key: 'seeker',
+        key: id,
         blockTime: 500,
         endCall: true,
       }
@@ -25,41 +30,78 @@
     duration.value = this.duration;
   }
 
-  function seek(event: MouseEvent) {
+  function seekStart(event: MouseEvent | TouchEvent) {
     if (!isFinite(Player.duration)) return;
-    const elem = event.currentTarget as HTMLElement;
-    const x = event.clientX - elem.getBoundingClientRect().left;
+    bypass.value = Player.currentTime;
+    document.body.style.cursor = 'grabbing';
+    document.body.style.userSelect = 'none';
+    seeking(event);
+  }
 
-    const currentTime = (x / elem.clientWidth) * Player.duration;
-    Player.currentTime = currentTime;
-    time.value = currentTime;
+  function seeking(event: MouseEvent | TouchEvent) {
+    if (bypass.value === undefined) return;
+    if (!isFinite(Player.duration)) return;
+    const pos = getClientPos(event);
+    const rect = wrapper.value!.getBoundingClientRect();
+    const offset = clamp(pos.x - rect.left, 0, rect.width);
+
+    const currentTime = (offset / rect.width) * Player.duration;
+    bypass.value = currentTime;
   }
 
   function seeked(this: MusicService) {
-    time.value = this.currentTime;
+    if (bypass.value === undefined) return;
+
+    document.body.style.cursor = 'auto';
+    document.body.style.userSelect = 'auto';
+
+    Player.currentTime = bypass.value;
+    time.value = bypass.value;
+    bypass.value = undefined;
   }
+
+  const seekerWidth = computed(() => {
+    const newTime = bypass.value ?? time.value;
+
+    return (newTime / Player.duration || 0) * 100;
+  });
 
   onMounted(() => {
     Player.addEventListener('timeupdate', timeUpdate);
     Player.addEventListener('musicupdated', onMusicUpdate);
     Player.addEventListener('seeked', seeked);
+
+    document.addEventListener('mousemove', seeking);
+    document.addEventListener('touchmove', seeking);
+
+    document.addEventListener('mouseup', seeked);
+    document.addEventListener('touchend', seeked);
+    document.addEventListener('touchcancel', seeked);
   });
 
   onUnmounted(() => {
     Player.removeEventListener('timeupdate', timeUpdate);
     Player.removeEventListener('musicupdated', onMusicUpdate);
     Player.removeEventListener('seeked', seeked);
+
+    document.removeEventListener('mousemove', seeking);
+    document.removeEventListener('touchmove', seeking);
+
+    document.removeEventListener('mouseup', seeked);
+    document.removeEventListener('touchend', seeked);
+    document.removeEventListener('touchcancel', seeked);
   });
 </script>
 
 <template>
-  <div @click="seek" class="music-seeker">
-    <div class="progress">
+  <div class="music-seeker" @mousedown="seekStart" @touchstart="seekStart">
+    <div class="progress" ref="wrapper">
       <div
-        v-if="isFinite(duration)"
-        :style="`width: ${(time / Player.duration) * 100}%`"
         class="progress-bar"
-      ></div>
+        :class="{ dragging: bypass !== undefined }"
+        :style="`--offset: ${seekerWidth}%`"
+        :data-val="Lyrics.timeToString((bypass ?? time) * 1000)"
+      />
     </div>
   </div>
 </template>
@@ -68,17 +110,20 @@
   .music-seeker {
     display: flex;
     height: 16px;
+    user-select: none;
     position: absolute;
     inset: -8px 0 auto 0;
     z-index: 3;
-    cursor: pointer;
+    cursor: grab;
 
-    &:hover .progress {
-      height: 4px;
+    &:hover,
+    &:has(.dragging) {
+      .progress {
+        height: 4px;
 
-      & .progress-bar::after {
-        width: 12px;
-        height: 12px;
+        & .progress-bar::after {
+          opacity: 1;
+        }
       }
     }
 
@@ -95,6 +140,35 @@
         position: relative;
         height: 100%;
         background: red;
+        width: var(--offset);
+
+        &.dragging {
+          cursor: grabbing;
+
+          &::before {
+            transform: translate(50%, -100%);
+            opacity: 1;
+          }
+
+          &::after {
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        &::before {
+          right: 0;
+          content: attr(data-val);
+          position: absolute;
+          transform: translate(50%, -50%);
+          background: var(--mono-100);
+          padding: var(--xs);
+          font-size: var(--font-sm);
+          border-radius: var(--xs);
+          transition: all 0.2s;
+          box-shadow: 0 2px 5px #0005;
+          opacity: 0;
+        }
       }
 
       .progress-bar::after {
@@ -102,10 +176,15 @@
         right: 0;
         position: absolute;
         display: block;
-        width: 2px;
-        height: 2px;
+        width: 12px;
+        height: 12px;
         background: inherit;
         transform: translateX(50%);
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          width 0.2s,
+          height 0.2s;
         border-radius: 99px;
       }
     }
@@ -122,8 +201,7 @@
         }
 
         .progress-bar::after {
-          height: 12px;
-          width: 12px;
+          opacity: 1;
         }
       }
     }

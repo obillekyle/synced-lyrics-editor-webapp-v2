@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="scss">
   .nav-content {
     align-self: center;
   }

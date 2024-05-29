@@ -107,6 +107,10 @@
 
     const time = lrcLine.props.time + value;
 
+    if (!Player.paused) {
+      Player.currentTime = clamp(time / 1000, 0, Player.duration);
+    }
+
     Lyrics.updateLine(index, {
       time: time < 0 ? 0 : time,
     });
@@ -131,20 +135,10 @@
     if (edit.value) return;
 
     processKey(Keybinds.timing.adjustTimeBackward, e, () => {
-      e.shiftKey || Player.fastSeek(-1);
-      e.shiftKey && Player.fastSeek(-0.1);
-      if (index !== -1) {
-        Player.paused && adjustTime(-100);
-        e.shiftKey && adjustTime(-100);
-      }
+      adjustTime(-100);
     });
     processKey(Keybinds.timing.adjustTimeForward, e, () => {
-      e.shiftKey || Player.fastSeek(1);
-      e.shiftKey && Player.fastSeek(0.1);
-      if (index !== -1) {
-        Player.paused && adjustTime(100);
-        e.shiftKey && adjustTime(100);
-      }
+      adjustTime(100);
     });
 
     processKey(Keybinds.timing.arrowDownFocus, e, () => {
@@ -327,13 +321,11 @@
         />
         <icon-button
           @click="adjustTime(-100)"
-          :disabled="!isFinite(Player.duration)"
           title="-100ms"
           icon="material-symbols:fast-rewind"
         />
         <icon-button
           @click="adjustTime(100)"
-          :disabled="!isFinite(Player.duration)"
           title="+100ms"
           icon="material-symbols:fast-forward"
         />

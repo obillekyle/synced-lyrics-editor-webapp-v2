@@ -1,12 +1,12 @@
-<div align="center" style="text-wrap: balance;">
+<div align="center">
 
-<a href="https://sle.okyle.xyz"><img src="public/assets/logo.png" alt="SLEv2 Logo" title="View Live" width="80" style="max-width: 100%;"></a>
+<a href="https://sle.okyle.xyz"><img src="public/assets/logo-2.png" alt="SLEv2 Logo" title="View Live" width="80" style="max-width: 100%;"></a>
 
 # Synced Lyrics Editor and Maker
 
 </div>
 
-<div align="center" style="text-wrap: balance;">
+<div align="center">
 
 ### Straightforward LRC Maker and Editor.
 

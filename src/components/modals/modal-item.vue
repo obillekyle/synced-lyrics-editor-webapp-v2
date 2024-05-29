@@ -177,6 +177,7 @@
       padding: var(--xl);
       > .content-wrapper {
         display: flex;
+        height: 100%;
         flex-direction: column;
         gap: var(--sm);
         & > * {

@@ -34,6 +34,19 @@
     bottom: 0;
     width: var(--app-navbar-size, 88px);
     background: var(--app-navbar-color);
+
+    .nav-container {
+      display: flex;
+      position: absolute;
+      justify-content: center;
+      flex-direction: column;
+      inset: 0;
+    }
+
+    .nav-container + .nav-content {
+      margin-top: auto;
+    }
+
     .nav-item {
       display: grid;
       font: inherit;
@@ -95,6 +108,8 @@
     &.hidden .nav-item,
     &.active .nav-item {
       margin-bottom: 0;
+      padding-top: var(--md);
+      padding-bottom: 0;
     }
 
     &.hidden .nav-item .name,
@@ -133,14 +148,30 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
 
+      &:has(.nav-container) {
+        grid-template-columns: minmax(0px, 1fr);
+      }
+
+      .nav-container {
+        margin-block: 0;
+        grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+        display: grid;
+      }
+
       &.hidden .nav-item .name,
       &.active .nav-item:not(.active) .name {
         opacity: 0;
-        max-height: 0px;
+        transform: translateY(100%);
+      }
+
+      &.hidden .nav-item .icon,
+      &.active .nav-item:not(.active) .icon {
+        transform: translateY(30%);
       }
 
       .nav-item {
         margin-bottom: 0;
+        padding-top: var(--sm);
         .name {
           max-height: var(--size-sm);
           font-size: var(--font-md);
@@ -149,6 +180,7 @@
           font-size: var(--icon-lg);
           height: var(--size-sm);
           width: var(--size-xl);
+          transition: transform 0.25s var(--timing-standard);
         }
 
         &.active {

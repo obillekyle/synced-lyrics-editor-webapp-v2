@@ -18,12 +18,19 @@
     leftIcon?: string | Component;
     rightIcon?: string | Component;
     defaultValue?: string;
+    radius?: 'rounded' | AppSizes | String | number;
     height?: AppSizes | String | number;
+    counter?: boolean;
     span?: boolean;
   }
 
   const input = ref<HTMLInputElement | null>(null);
-  const props = defineProps<InputText>();
+  const props = withDefaults(defineProps<InputText>(), {
+    height: 'xl',
+    radius: 'xs',
+    span: false,
+    counter: false,
+  });
   const model = defineModel<string>({
     default: '',
   });
@@ -43,12 +50,15 @@
     class="input-wrapper"
     :class="{ 'span-input': props.span }"
     @click="() => input?.focus()"
-    :style="`--height: ${getCSSValue(props.height || 'xl', 'px', 'size')}`"
+    :style="{
+      '--radius': `${getCSSValue(props.radius)}`,
+      '--height': `${getCSSValue(props.height, 'px', 'size')}`,
+    }"
   >
     <InputIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
     <div class="input">
       <input type="text" v-bind="$attrs" v-model="model" ref="input" />
-      <Counter :length="model.length" :max="$attrs.maxlength" />
+      <Counter v-if="counter" :length="model.length" :max="$attrs.maxlength" />
     </div>
     <InputIcon v-if="rightIcon" class="right-icon" :icon="rightIcon" />
   </div>

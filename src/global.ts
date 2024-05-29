@@ -32,6 +32,7 @@ declare global {
       screen: Screen<Screens>;
       modals: ModalService;
       files: FileManager;
+      pwa: Event | null;
       options: typeof options;
       presets: typeof presets;
     };
@@ -53,11 +54,17 @@ window.app = {
   clipboard: new Clipboard(),
   i18n: new I18N(lang),
   files: new FileManager(),
+  pwa: null,
 
   presets,
   screen,
   options,
 };
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  window.app.pwa = event;
+});
 
 window.addEventListener('beforeunload', (e) => {
   const Lyrics = window.app.lyric;

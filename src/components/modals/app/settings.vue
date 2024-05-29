@@ -9,6 +9,7 @@
   import IconButton from '../../elements/Button/icon-button.vue';
   import Switch from '../../elements/Switches/switch.vue';
   import _presets from '../_presets';
+  import TextInput from '@/components/elements/Input/text-input.vue';
 
   const Options = window.app.options;
   const Lang = window.app.i18n;
@@ -18,6 +19,7 @@
   const shown = ref(false);
   const active = ref('general');
   const updateKey = ref(false);
+  const search = ref('');
   const update = () => (updateKey.value = !updateKey.value);
   type Stringish = MaybeFunction<string>;
   type Booleanish = MaybeFunction<boolean>;
@@ -52,6 +54,7 @@
     | {
         type: 'divider';
         name?: Stringish;
+        sticky?: Booleanish;
       }
     | {
         type: 'button';
@@ -66,6 +69,7 @@
     [key: string]: {
       name: Stringish;
       desc?: Stringish;
+      icon?: Stringish;
       disabled?: Booleanish;
       items: SettingEntry[];
     };
@@ -102,8 +106,16 @@
             name: 'Show Home Button',
             icon: 'material-symbols:home-outline',
             desc: 'Show the home button at the navigation',
-            value: () => Options.get('showHome', false),
+            value: () => Options.get('showHome', true),
             onChange: (v) => Options.set('showHome', v),
+          },
+          {
+            type: 'switch',
+            name: 'Center Navigation Buttons',
+            icon: 'material-symbols:vertical-align-center',
+            desc: 'Center the navigation buttons',
+            value: () => Options.get('centered-nav-buttons', true),
+            onChange: (v) => Options.set('centered-nav-buttons', v),
           },
           {
             type: 'divider',
@@ -166,7 +178,7 @@
           {
             type: 'switch',
             name: 'Show Changelog',
-            icon: 'material-symbols:info-outline',
+            icon: 'material-symbols:book-2-outline',
             desc: () => {
               return Options.get('showChangeLog')
                 ? 'Changelog is shown every time the app loads'
@@ -249,6 +261,21 @@
     };
   });
 
+  const result = computed(() => {
+    return search.value
+      ? Object.values(entries.value)
+          .map((entry) => entry.items)
+          .flat()
+          .filter((item) => {
+            if (item.type === 'divider') return;
+            const name = evaluate(item.name);
+            return (
+              name && name.toLowerCase().includes(search.value.toLowerCase())
+            );
+          })
+      : entries.value[active.value].items;
+  });
+
   onMounted(() => Lang.listen('update', update));
   onUnmounted(() => Lang.detach('update', update));
 </script>
@@ -272,88 +299,104 @@
     </header>
 
     <div class="settings-panel">
-      <div
-        class="entry"
-        :key="name"
-        @pointerdown="rippleEffect"
-        :class="{ active: name == active }"
-        v-for="(item, name) in entries"
-        @click="
-          () => {
-            shown = true;
-            active = name + '';
-          }
-        "
-      >
-        <I18nString
-          v-if="item.name"
-          element="div"
-          class="name"
-          :entry="evaluate(item.name)"
-        />
-        <I18nString
-          v-if="item.desc"
-          element="div"
-          class="desc"
-          :entry="evaluate(item.desc)"
-        />
+      <div class="scroll-wrapper">
+        <div class="entry search">
+          <TextInput
+            type="text"
+            placeholder="Search..."
+            v-model="search"
+            height="md"
+            span
+          />
+        </div>
+        <div
+          class="entry"
+          :key="name"
+          @pointerdown="rippleEffect"
+          :class="{ active: name == active }"
+          v-for="(item, name) in entries"
+          @click="
+            () => {
+              shown = true;
+              search = '';
+              active = name + '';
+            }
+          "
+        >
+          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+          <I18nString
+            v-if="item.name"
+            element="div"
+            class="name"
+            :entry="evaluate(item.name)"
+          />
+          <I18nString
+            v-if="item.desc"
+            element="div"
+            class="desc"
+            :entry="evaluate(item.desc)"
+          />
+        </div>
       </div>
     </div>
     <div class="constraint">
-      <div class="settings-screen">
-        <template v-for="(item, index) in entries[active].items">
-          <div
-            tabindex="0"
-            class="entry switch"
-            :key="'switch-' + index"
-            @pointerdown="rippleEffect"
-            v-if="item.type == 'switch'"
-            @click="({ currentTarget }) => $('input', currentTarget)?.click()"
-          >
-            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-            <div class="name">{{ evaluate(item.name) }}</div>
-            <div class="desc">{{ evaluate(item.desc) }}</div>
+      <div class="settings-screen" :style="{ '--hl': search }">
+        <div class="scroll-wrapper">
+          <template v-for="(item, index) in result">
+            <div
+              tabindex="0"
+              class="entry switch"
+              :key="'switch-' + index"
+              @pointerdown="rippleEffect"
+              v-if="item.type == 'switch'"
+              @click="({ currentTarget }) => $('input', currentTarget)?.click()"
+            >
+              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+              <div class="name">{{ evaluate(item.name) }}</div>
+              <div class="desc">{{ evaluate(item.desc) }}</div>
 
-            <Switch
-              :defaultChecked="evaluate(item.value)"
-              :disabled="evaluate(item.disabled)"
-              :change="item.onChange"
-            />
-          </div>
+              <Switch
+                :defaultChecked="evaluate(item.value)"
+                :disabled="evaluate(item.disabled)"
+                :change="item.onChange"
+              />
+            </div>
 
-          <div
-            tabindex="0"
-            class="entry info"
-            @pointerdown="rippleEffect"
-            v-else-if="item.type == 'info'"
-            :key="'info-' + index"
-          >
-            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-            <div class="name">{{ evaluate(item.name) }}</div>
-            <div class="desc">{{ evaluate(item.desc) }}</div>
-          </div>
+            <div
+              tabindex="0"
+              class="entry info"
+              @pointerdown="rippleEffect"
+              v-else-if="item.type == 'info'"
+              :key="'info-' + index"
+            >
+              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+              <div class="name">{{ evaluate(item.name) }}</div>
+              <div class="desc">{{ evaluate(item.desc) }}</div>
+            </div>
 
-          <div
-            tabindex="0"
-            class="entry button"
-            :key="'button-' + index"
-            @pointerdown="rippleEffect"
-            v-else-if="item.type == 'button'"
-            @click="() => item.disabled || evaluate(item.onClick)()"
-          >
-            <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-            <div class="name">{{ evaluate(item.name) }}</div>
-            <div class="desc">{{ evaluate(item.desc) }}</div>
-          </div>
+            <div
+              tabindex="0"
+              class="entry button"
+              :key="'button-' + index"
+              @pointerdown="rippleEffect"
+              v-else-if="item.type == 'button'"
+              @click="() => item.disabled || evaluate(item.onClick)()"
+            >
+              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+              <div class="name">{{ evaluate(item.name) }}</div>
+              <div class="desc">{{ evaluate(item.desc) }}</div>
+            </div>
 
-          <div
-            class="entry-divider"
-            v-else-if="item.type == 'divider'"
-            :key="'divider-' + index"
-          >
-            <div class="name">{{ evaluate(item.name) }}</div>
-          </div>
-        </template>
+            <div
+              class="entry-divider"
+              v-else-if="item.type == 'divider'"
+              :key="'divider-' + index"
+              :class="{ sticky: evaluate(item.sticky) ?? true }"
+            >
+              <div class="name">{{ evaluate(item.name) }}</div>
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -361,19 +404,29 @@
 
 <style lang="scss">
   .settings-wrapper {
+    position: relative;
+    inset: 0 0 0 0;
+    height: 100%;
+    overflow: hidden;
     display: grid;
-    width: minmax(0px, 768px);
-    height: minmax(0px, 100vh);
     grid-template-columns: 250px 1fr;
-    grid-template-rows: var(--app-header-height) 1fr;
+    grid-template-rows: var(--app-header-height) calc(
+        100% - var(--app-header-height)
+      );
+    height: 100%;
     grid-template-areas:
       'header header'
       'panel screen';
+
     header {
-      padding-inline: var(--lg);
+      padding-left: var(--xl);
+      padding-right: var(--md);
       grid-area: header;
-      position: sticky;
+      position: absolute;
       top: 0;
+      left: 0;
+      right: 0;
+      height: var(--app-header-height);
       background: var(--background-secondary);
       display: flex;
       align-items: center;
@@ -392,9 +445,19 @@
 
     .settings-panel {
       grid-area: panel;
+      height: 100%;
+      overflow: auto;
+      top: var(--app-header-height);
+
       .active {
         background-color: var(--color-600-10);
       }
+    }
+
+    .scroll-wrapper {
+      overflow: auto;
+      height: 100%;
+      position: relative;
     }
 
     .constraint {
@@ -412,8 +475,8 @@
     }
 
     .settings-screen {
-      max-width: 100%;
-      overflow-y: auto;
+      height: 100%;
+      overflow: auto;
       .entry {
         align-items: center;
         grid-template-areas:
@@ -457,6 +520,12 @@
       font-size: var(--font-sm);
       font-weight: 600;
       padding: var(--sm);
+      &.sticky {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: var(--background-secondary);
+      }
       &::after {
         content: '';
         display: block;
@@ -474,6 +543,9 @@
       .entry {
         background: none !important;
       }
+      .search {
+        display: none;
+      }
       .settings-screen {
         position: absolute;
         top: var(--app-header-height);
@@ -483,8 +555,8 @@
         bottom: 0;
         opacity: 0;
         transition:
-          opacity 0.15s,
-          left 0.15s;
+          opacity 0.35s var(--timing-standard),
+          left 0.35s var(--timing-standard);
       }
 
       &[shown='true'] {

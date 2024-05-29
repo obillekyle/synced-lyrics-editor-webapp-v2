@@ -12,6 +12,7 @@ p
 
   const Screen = window.app.screen;
   const version = window.app.version_string;
+  const pwa = window.app.pwa;
 
   const links: { label: string; link?: string }[] = [
     {
@@ -163,6 +164,20 @@ p
           <div class="info">
             <h2>Share</h2>
             <p>Share this webapp with your friends</p>
+          </div>
+        </div>
+        <div
+          class="card"
+          @click="async () => await (pwa as any)?.prompt?.()"
+          @pointerdown="rippleEffect"
+          v-if="pwa"
+        >
+          <div class="icon">
+            <Icon icon="material-symbols:install-desktop" :width="48" />
+          </div>
+          <div class="info">
+            <h2>Install</h2>
+            <p>Install this webapp for offline access</p>
           </div>
         </div>
       </div>

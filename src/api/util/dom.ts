@@ -140,8 +140,24 @@ export function rippleEffect(e: MouseEvent, to?: string) {
   element.appendChild(ripple);
 }
 
+export function getClientPos(event: TouchEvent | MouseEvent) {
+  return event instanceof MouseEvent
+    ? { x: event.clientX, y: event.clientY }
+    : {
+        x: event.touches[0].clientX,
+        y: event.touches[0].clientY,
+      };
+}
+
 export function isMobile() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
+  );
+}
+
+export function isInputFocused(): boolean {
+  return (
+    document.activeElement instanceof HTMLInputElement ||
+    document.activeElement instanceof HTMLTextAreaElement
   );
 }

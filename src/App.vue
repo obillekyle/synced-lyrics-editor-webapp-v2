@@ -22,6 +22,7 @@
   const Files = window.app.files;
   const Lyrics = window.app.lyric;
 
+  const lang = ref('en');
   const screen = ref('timing');
   const theme = ref('dark');
   const debug = ref(false);
@@ -31,6 +32,8 @@
   const showTranslate = ref(false);
   const timingSort = ref(false);
   const intervalKey = ref<number>();
+  const loaderRef = ref<HTMLElement | null>(null);
+  const centerNav = ref(false);
 
   async function onPlayerUpdate(this: MusicService) {
     Colors.set(Player.picture?.color || defaultColor);
@@ -52,6 +55,7 @@
 
   function langUpdate() {
     Option.set('lang', Lang.lang);
+    lang.value = Lang.lang;
     setTimeout(() => {
       ready.value = Lang.ready;
     }, 200);
@@ -64,8 +68,9 @@
   function optionsUpdate() {
     theme.value = Option.get('theme', 'dark');
     debug.value = Option.get('debug', false);
-    showHome.value = Option.get('showHome', false);
+    showHome.value = Option.get('showHome', true);
     devTag.value = Option.get('dev-tag', false);
+    centerNav.value = Option.get('centered-nav-buttons', true);
   }
 
   async function loadSession() {
@@ -103,12 +108,21 @@
     }
   }
 
+  provide('app-lang', lang);
   provide('app-screen', screen);
   provide('app-theme', theme);
   provide('app-debug', debug);
   provide('showTranslate', showTranslate);
   provide('app-timing-sort', timingSort);
   provide('app-show-home', showHome);
+  provide('app-dev-tag', devTag);
+  provide('app-center-nav', centerNav);
+
+  function hideLoader() {
+    if (loaderRef.value) {
+      loaderRef.value.style.display = 'none';
+    }
+  }
 
   onMounted(() => {
     langUpdate();
@@ -124,6 +138,7 @@
     Option.addEventListener('event', optionsUpdate);
     Lang.addEventListener('update', langUpdate);
     window.addEventListener('beforeunload', saveLyrics);
+    loaderRef.value?.addEventListener('animationend', hideLoader);
   });
 
   onUnmounted(() => {
@@ -135,11 +150,12 @@
     Screen.removeEventListener('update', setScreen);
     Option.removeEventListener('event', optionsUpdate);
     Lang.removeEventListener('ready', langUpdate);
+    loaderRef.value?.removeEventListener('animationend', hideLoader);
   });
 </script>
 
 <template>
-  <div class="loader" :class="{ ready }">
+  <div class="loader" :class="{ ready }" ref="loaderRef">
     <img alt="App Logo" src="/logo.svg" width="96" height="96" />
     <Progress :value="Infinity" />
   </div>
@@ -190,20 +206,6 @@
     }
   }
 
-  #app:has([data-screen='lyric']) {
-    background: linear-gradient(
-        to bottom,
-        var(--mono-100-40) -20%,
-        var(--mono-100-70) 20%,
-        var(--mono-100-90) 60%,
-        var(--mono-100) 100%
-      ),
-      var(--album-blur);
-    background-size: cover;
-    height: 100dvh;
-    background-position: center, center;
-  }
-
   main {
     position: relative;
     display: block;
@@ -247,5 +249,21 @@
     .content-wrapper {
       inset: 0 0 var(--app-navbar-size) 0;
     }
+  }
+</style>
+
+<style lang="scss">
+  #app:has([data-screen='lyric']) {
+    background: linear-gradient(
+        to bottom,
+        var(--mono-0-40) -20%,
+        var(--mono-0-70) 20%,
+        var(--mono-0-90) 60%,
+        var(--mono-0) 100%
+      ),
+      var(--album-blur);
+    background-size: cover;
+    height: 100dvh;
+    background-position: center, center;
   }
 </style>
