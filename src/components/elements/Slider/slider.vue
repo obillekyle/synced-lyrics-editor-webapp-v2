@@ -17,7 +17,7 @@
   const props = withDefaults(
     defineProps<{
       defaultValue?: number;
-      values?: number[];
+      values?: number[] | { label: string; value: number }[];
       min?: number;
       max?: number;
       step?: number;
@@ -38,18 +38,51 @@
   const dragging = ref(false);
   const useMD3 = true;
 
-  const minVal = computed(() =>
-    props.values ? Math.min(...props.values) : props.min
-  );
+  const minVal = computed(() => {
+    if (props.values) {
+      const array = props.values.map((value) =>
+        typeof value === 'object' ? value.value : value
+      );
+      return Math.min(...array);
+    }
+    return props.min;
+  });
 
-  const maxVal = computed(() =>
-    props.values ? Math.max(...props.values) : props.max
-  );
+  const values = computed(() => {
+    if (props.values) {
+      return props.values.map((value) =>
+        typeof value === 'object' ? value.value : value
+      );
+    }
+
+    return [];
+  });
+
+  const maxVal = computed(() => {
+    if (props.values) {
+      const array = props.values.map((value) =>
+        typeof value === 'object' ? value.value : value
+      );
+      return Math.max(...array);
+    }
+    return props.max;
+  });
 
   function dragDown(e: MouseEvent | TouchEvent) {
     e.preventDefault();
     dragging.value = true;
     dragMove(e);
+  }
+
+  function getLabel(value: number) {
+    if (props.values) {
+      const index = props.values.find(
+        (v) => typeof v === 'object' && v.value === value
+      );
+      return typeof index === 'number' ? index : index?.label || value;
+    }
+
+    return value;
   }
 
   function dragMove(e: MouseEvent | TouchEvent) {
@@ -64,22 +97,27 @@
     const clientX = e instanceof MouseEvent ? e.clientX : e.touches[0].clientX;
     const offset = clamp(clientX - rect.left, 0, rect.width);
 
+    const maxOffset = maxVal.value - minVal.value;
+
     if (props.values) {
-      const min = Math.min(...props.values);
-      const max = Math.max(...props.values);
+      const min = minVal.value;
+      const max = maxVal.value;
       const value = Math.round((offset / rect.width) * (max - min) + min);
-      model.value = findNearestNumber(value, props.values)!;
+      model.value = findNearestNumber(value, values.value)!;
       return;
     }
 
     if (props.step) {
-      const value = (offset / rect.width) * (maxVal.value - minVal.value);
-      model.value = Math.round(value / props.step) * props.step;
+      const value = (offset / rect.width) * maxOffset;
+      const rounded = Math.round(value / props.step) * props.step;
+      model.value = Math.max(rounded, minVal.value);
       return;
     }
 
-    const value = (offset / rect.width) * (maxVal.value - minVal.value);
-    model.value = Math.round(value * 10 ** props.decimal) / 10 ** props.decimal;
+    const value = (offset / rect.width) * maxOffset;
+    const rounded =
+      Math.round(value * 10 ** props.decimal) / 10 ** props.decimal;
+    model.value = Math.max(rounded + minVal.value, minVal.value);
   }
 
   function dragUp(e: MouseEvent | TouchEvent) {
@@ -95,8 +133,9 @@
 
   function getPosition(value: number) {
     const num = ((value - minVal.value) / (maxVal.value - minVal.value)) * 100;
+
     return useMD3
-      ? mapNumberToRange(num, 0, 100, 1.4, 98.4)
+      ? mapNumberToRange(num, 0, 100, 2.4, 97.6)
       : mapNumberToRange(num, 0, 100, 0.3, 99.4);
   }
 
@@ -139,23 +178,23 @@
         '--thumb-offset': thumbPos,
       }"
     >
-      <div class="slider-thumb" :data-value="model" :dragging />
+      <div class="slider-thumb" :data-value="getLabel(model!)" :dragging />
       <input type="range" :min="minVal" :max="maxVal" v-model="model" />
       <div class="slider-track" />
       <div class="slider-labels" v-if="props.values">
         <div
           class="label"
           v-if="props.showLabel"
-          v-for="value in props.values"
+          v-for="value in values"
           :style="{ '--offset': getPosition(value) }"
         >
-          {{ value }}
+          {{ getLabel(value) }}
         </div>
       </div>
       <div class="slider-indicator" v-if="props.values">
         <div
           class="dot"
-          v-for="value in props.values"
+          v-for="value in values"
           :class="{ covered: value <= (model || 0) }"
           :style="{ '--offset': getPosition(value) }"
         />
@@ -170,7 +209,6 @@
     --thumb-height: var(--lg);
     --track-height: var(--sm);
 
-    padding-inline: var(--lg);
     height: calc(var(--thumb-height) * 2);
     width: 100%;
     user-select: none;
@@ -290,9 +328,9 @@
 
       .label {
         position: absolute;
-        left: calc(var(--offset) * 1%);
-        transform: translateX(calc(var(--offset) * -0.5%));
-        font-size: var(--sm);
+        left: calc(var(--offset) * 1% + var(--xxs));
+        transform: translateX(-50%);
+        font-size: var(--font-xxs);
         color: var(--mono-500);
         padding-top: var(--md);
         width: max-content;
@@ -313,7 +351,6 @@
       .slider-indicator {
         > :last-child {
           scale: 1.5;
-          margin-left: 1.1px;
           transform-origin: left;
         }
 

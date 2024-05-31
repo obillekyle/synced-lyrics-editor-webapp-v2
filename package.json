@@ -22,6 +22,7 @@
     "color-thief-ts": "github:charltoons/color-thief-ts",
     "dayjs": "1.11.11",
     "dexie": "4.0.4",
+    "html2canvas": "^1.4.1",
     "image-js": "0.35.5",
     "marked": "12.0.0",
     "music-metadata-browser": "2.5.10",

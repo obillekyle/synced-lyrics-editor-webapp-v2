@@ -9,6 +9,7 @@ p
   import SvgBg from './svg-bg.vue';
   import SquareImage from '../elements/square-image.vue';
   import WavyDivider from '../elements/Divider/wavy-divider.vue';
+  import Button from '../elements/Button/button.vue';
 
   const Screen = window.app.screen;
   const version = window.app.version_string;
@@ -42,6 +43,17 @@ p
       title: 'Synced Lyrics Editor v2',
       url: 'https://sle.okyle.xyz',
     });
+  }
+
+  function toGithubRepo() {
+    window.open(
+      'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+      '_blank'
+    );
+  }
+
+  function toLCMaker() {
+    history.pushState(null, '', '/lyric-card');
   }
 </script>
 
@@ -127,6 +139,38 @@ p
       </div>
     </div>
 
+    <div class="special-banner">
+      <div class="banner-content">
+        <div class="title">New Lyrics Card Maker</div>
+        <div class="desc">
+          Create your own lyrics card in seconds with our new lyrics card maker
+        </div>
+        <Button
+          radius="sm"
+          right-icon="material-symbols:arrow-forward"
+          @click="toLCMaker"
+          label="Get Started"
+          class="inverted"
+        />
+      </div>
+
+      <div class="banner-image">
+        <div class="image-header">
+          <SquareImage
+            :size="64"
+            src="/assets/gemini-generated-image.jpg"
+            alt="Lyrics Card"
+          />
+          <div class="details">
+            <div class="title">Holding Hands</div>
+            <div class="artist">Random Artist</div>
+          </div>
+        </div>
+
+        <div class="image-footer">I hold your hand and you're mine</div>
+      </div>
+    </div>
+
     <div class="section-wrapper">
       <h1 class="section-header">Other Things</h1>
       <div class="section-card-container">
@@ -166,6 +210,15 @@ p
             <p>Share this webapp with your friends</p>
           </div>
         </div>
+        <div class="card" @click="toGithubRepo" @pointerdown="rippleEffect">
+          <div class="icon">
+            <Icon icon="material-symbols:star-outline" :width="48" />
+          </div>
+          <div class="info">
+            <h2>Star my Repo</h2>
+            <p>Star the webapp's repo page on Github, plz ㅠㅠ</p>
+          </div>
+        </div>
         <div
           class="card"
           @click="async () => await (pwa as any)?.prompt?.()"
@@ -192,7 +245,7 @@ p
 
       <div class="section-links-container">
         <div class="links">
-          <img alt="Logo" src="/logo.svg" width="48" height="48" />
+          <img alt="Logo" src="/favicon.svg" width="48" height="48" />
           <h3>Synced Lyrics Editor and Maker v2</h3>
           <a class="link" href="https://github.com/obillekyle" target="_blank">
             <span class="info">By: @obillekyle</span>
@@ -279,6 +332,74 @@ p
           height: auto;
           position: absolute;
           bottom: 0;
+        }
+      }
+    }
+
+    .special-banner {
+      margin-block: var(--md);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-auto-flow: row;
+      color: var(--color-100);
+      border-radius: var(--md);
+      background-color: var(--color-700);
+
+      .banner-content {
+        padding: var(--xl);
+        display: flex;
+        flex-direction: column;
+        gap: var(--xl);
+        .title {
+          font-size: var(--size-md);
+          font-weight: 700;
+          text-wrap: nowrap;
+          @media screen and (max-width: 600px) {
+            text-wrap: balance;
+          }
+        }
+        .desc {
+          font-size: var(--font-xl);
+          text-wrap: balance;
+        }
+      }
+      .banner-image {
+        padding: var(--xl);
+        padding-bottom: var(--sm);
+
+        height: fit-content;
+        margin-top: auto;
+        margin-block-start: var(--sm);
+        border-top-left-radius: var(--md);
+        border-top-right-radius: var(--md);
+        margin-inline: var(--sm);
+        align-self: flex-end;
+
+        background: var(--color-100);
+        color: var(--mono-1000);
+
+        .image-header {
+          display: flex;
+          gap: var(--md);
+          align-items: center;
+
+          .title {
+            font-size: var(--font-xxl);
+
+            font-weight: 400;
+          }
+          .artist {
+            font-size: var(--font-lg);
+            color: var(--mono-700);
+          }
+        }
+
+        .image-footer {
+          font-size: var(--font-xxl);
+          font-weight: 600;
+          text-align: center;
+          text-wrap: balance;
+          margin-top: var(--md);
         }
       }
     }

@@ -34,7 +34,11 @@ function init() {
     screenValue && window.app.screen.set(screenValue);
   }
 
-  window.history.replaceState({}, document.title, '/');
+  if (location.pathname.startsWith('/lyric-card')) {
+    console.log('lyric-card');
+  } else {
+    window.history.replaceState({}, document.title, '/');
+  }
 
   Lang.removeEventListener('ready', init);
 }

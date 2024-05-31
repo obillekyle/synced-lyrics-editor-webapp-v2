@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   align-self: center;
-  box-shadow: 0 0 0 1px inset var(--mono-500);
+  box-shadow: 0 0 0 1px inset var(--color-600-20);
   transition: box-shadow 0.2s;
 
   min-height: var(--height, var(--size-xl));
@@ -12,6 +12,11 @@
 
   &.span-input {
     width: 100%;
+  }
+
+  &:has(input:disabled) {
+    filter: grayscale(0);
+    pointer-events: none;
   }
 
   .input-icon {
@@ -78,8 +83,4 @@
       border-bottom: 1px solid #7777;
     }
   }
-}
-
-.input-wrapper + .input-wrapper {
-  margin-left: var(--sm);
 }

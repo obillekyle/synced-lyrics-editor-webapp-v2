@@ -130,6 +130,7 @@
   .image-container {
     position: relative;
     display: flex;
+    height: max-content;
     justify-content: center;
     align-items: center;
 

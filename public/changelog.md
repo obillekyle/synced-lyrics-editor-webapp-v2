@@ -1,3 +1,32 @@
+### **May 31, 2024**
+
+**v2.0.9a**: New Lyrics Card Maker
+
+<ins>v2.0.8a ... v2.0.9a</ins>
+
+**New:**
+
+- Lyrics Card Maker: Create sharable lyrics cards for your favorite songs. Customizable, from card styles, song title and artist, images, sizes and more. You can access this by clicking the Lyrics Card Maker Card at the home screen or by accessing it directly [here](/lyric-card).
+
+**Changes:**
+
+- App: Bump version code (12).
+- App: Added button labels for lrc and audio upload.
+- App: Fixed console spam for lyrics session saving.
+- Player: Correctly display if the uploaded audio is being processed.
+- Settings: Added search bar.
+- Settings: Fixed overflow issues.
+
+**Other:**
+
+- App: Adjusted element colors
+- Dependencies: New dependency 'html2canvas'
+- Element: Added 'label' property to 'Divider'.
+- Element: Added new element 'LyricsCardMaker', 'ScrollContainer'
+- Element: Fixed button padding and colors
+- Element: Fixed Slider 'min' property not working.
+- Element: Fixed SquareImage inconsistent height.
+
 ### **May 28, 2024**
 
 **v2.0.8a**: Home screen, new languages, and API changes

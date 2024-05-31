@@ -13,6 +13,7 @@
   import Styles from './components/styles.vue';
   import { interval, removeInterval } from './api/util';
   import { defaultColor } from '@/app/main';
+  import LyricCard from './components/screens/lyric-card.vue';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -34,6 +35,7 @@
   const intervalKey = ref<number>();
   const loaderRef = ref<HTMLElement | null>(null);
   const centerNav = ref(false);
+  const appPath = ref('/');
 
   async function onPlayerUpdate(this: MusicService) {
     Colors.set(Player.picture?.color || defaultColor);
@@ -59,6 +61,12 @@
     setTimeout(() => {
       ready.value = Lang.ready;
     }, 200);
+  }
+
+  function onPathChange() {
+    if (appPath.value !== window.location.pathname) {
+      appPath.value = window.location.pathname;
+    }
   }
 
   function setScreen() {
@@ -97,9 +105,11 @@
     }
   }
 
-  async function saveLyrics() {
+  async function saveLyrics(e?: Event) {
     const lrcJSON = Lyrics.getJSON();
     const lrcBlob = new Blob([JSON.stringify(lrcJSON)]);
+
+    e?.preventDefault();
 
     if (lrcJSON) {
       (await Files.exists('/editor', 'lyrics.json'))
@@ -129,8 +139,9 @@
     setScreen();
     optionsUpdate();
     loadSession();
+    onPathChange();
 
-    intervalKey.value = interval(saveLyrics, 1000);
+    intervalKey.value = interval(() => saveLyrics(), 1000);
 
     Player.addEventListener('musicupdated', onPlayerUpdate);
     Player.addEventListener('reset', onPlayerReset);
@@ -139,6 +150,11 @@
     Lang.addEventListener('update', langUpdate);
     window.addEventListener('beforeunload', saveLyrics);
     loaderRef.value?.addEventListener('animationend', hideLoader);
+
+    const observer = new MutationObserver(onPathChange);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('popstate', onPathChange);
   });
 
   onUnmounted(() => {
@@ -151,6 +167,8 @@
     Option.removeEventListener('event', optionsUpdate);
     Lang.removeEventListener('ready', langUpdate);
     loaderRef.value?.removeEventListener('animationend', hideLoader);
+
+    window.removeEventListener('beforeunload', saveLyrics);
   });
 </script>
 
@@ -162,16 +180,20 @@
 
   <Styles />
   <template v-if="ready">
-    <I18nString entry="ALPHA" :element="AppTag" v-if="!devTag" />
-    <div class="content-wrapper">
-      <AppHeader />
-      <main tabindex="0">
-        <LrcScreen />
-      </main>
-      <AppPlayer />
-    </div>
+    <template v-if="appPath !== '/lyric-card'">
+      <I18nString entry="ALPHA" :element="AppTag" v-if="!devTag" />
+      <div class="content-wrapper">
+        <AppHeader />
+        <main tabindex="0">
+          <LrcScreen />
+        </main>
+        <AppPlayer />
+      </div>
+      <NavigationBar />
+    </template>
 
-    <NavigationBar />
+    <LyricCard v-else />
+
     <Modals />
   </template>
 </template>

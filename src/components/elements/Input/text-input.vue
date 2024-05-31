@@ -27,7 +27,7 @@
   const input = ref<HTMLInputElement | null>(null);
   const props = withDefaults(defineProps<InputText>(), {
     height: 'xl',
-    radius: 'xs',
+    radius: 'sm',
     span: false,
     counter: false,
   });

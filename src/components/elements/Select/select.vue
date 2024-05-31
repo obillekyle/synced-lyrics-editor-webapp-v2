@@ -12,7 +12,7 @@
 
   interface SelectProps extends /* @vue-ignore */ HTMLAttributes {
     value?: number[];
-    items?: SelectItem[];
+    items?: SelectItem[] | string[];
     optionComp?: Component;
     searchByKey?: string[];
     multiple?: boolean;
@@ -20,6 +20,17 @@
     placeholder?: string;
     change?: (value: number[]) => void;
   }
+
+  const values = computed(() => {
+    return props.items.map((item) => {
+      return typeof item === 'object'
+        ? item
+        : {
+            id: item,
+            name: item,
+          };
+    });
+  });
 
   const show = ref(false);
   const search = ref('');
@@ -35,7 +46,7 @@
   const modelValue = defineModel<number[]>();
 
   const items = computed(() => {
-    return props.items.filter(
+    return values.value.filter(
       (item) =>
         item.id.toString().toLowerCase().includes(search.value.toLowerCase()) ||
         props.searchByKey.some((key) =>
@@ -93,10 +104,7 @@
         </div>
       </div>
 
-      <div
-        class="select-single"
-        v-if="value?.length === 0 && !multiple && !required"
-      >
+      <div class="select-single" v-if="value?.length === 0 && !multiple">
         <div class="placeholder">{{ placeholder }}</div>
       </div>
 
@@ -116,7 +124,7 @@
     <div class="select-dropdown" @click="toggle">
       <div
         class="item-wrapper empty"
-        v-if="!multiple || !required"
+        v-if="!required && !multiple"
         @click="() => handleClick()"
         @pointerdown="rippleEffect"
         :class="{ active: val.length === 0 }"
@@ -183,7 +191,7 @@
       overflow: auto;
       pointer-events: none;
       min-height: var(--size-xl);
-      max-height: calc(var(--size-xl) * 3);
+      max-height: calc(var(--size-xl) * 3.1);
       opacity: 0;
       transform: scaleY(0.9);
       z-index: 5;

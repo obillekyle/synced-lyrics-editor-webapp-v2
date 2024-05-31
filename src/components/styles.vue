@@ -2,12 +2,22 @@
   import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
   import ColorsObj from '@/api/colors';
 
-  const Colors = window.app.colors;
   const Player = window.app.player;
   const theme = inject<Ref<string>>('app-theme')!;
   const styleElem = ref('');
 
-  function getShades(colors: typeof Colors, prefix = 'color') {
+  const props = withDefaults(
+    defineProps<{
+      tag?: string;
+      Colors?: ColorsObj;
+    }>(),
+    {
+      tag: 'html',
+      Colors: () => window.app.colors,
+    }
+  );
+
+  function getShades(colors: ColorsObj, prefix = 'color') {
     const values: Record<string, string> = {};
 
     if (theme.value == 'dark') {
@@ -48,7 +58,7 @@
       'album-blur': `url('${Player.picture?.blur || ''}')`,
     });
 
-    Object.assign(values, getShades(Colors));
+    Object.assign(values, getShades(props.Colors));
     Object.assign(values, getShades(new ColorsObj('#000000'), 'mono'));
 
     for (const key in values) {
@@ -57,7 +67,7 @@
 
     document.body.classList.toggle('dark', theme.value != 'light');
 
-    styleElem.value = `html {
+    styleElem.value = `${props.tag} {
       ${value}
       color-scheme: ${theme.value};
     }`;
@@ -65,16 +75,17 @@
 
   onMounted(() => {
     setStyle();
-    Colors.addEventListener('update', setStyle);
+    props.Colors.addEventListener('update', setStyle);
   });
 
   watch(theme, setStyle);
+  watch(props, setStyle);
 
   onUnmounted(() => {
-    Colors.removeEventListener('update', setStyle);
+    props.Colors.removeEventListener('update', setStyle);
   });
 </script>
 
 <template>
-  <component is="style" v-html="styleElem" />
+  <component is="style" v-html="styleElem" :data-for="tag" />
 </template>

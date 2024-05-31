@@ -200,12 +200,14 @@
       .primary {
         margin-left: auto;
         display: flex;
+        gap: var(--sm);
         flex-wrap: nowrap;
         grid-area: primary;
       }
       .secondary {
         grid-area: secondary;
         display: flex;
+        gap: var(--sm);
         flex-wrap: nowrap;
       }
     }

@@ -20,6 +20,7 @@
   import IconButton from './elements/Button/icon-button.vue';
   import Scroller from './elements/Text/scroller.vue';
   import Floater from './elements/Text/floater.vue';
+  import CircularProgress from './elements/Progress/circular-progress.vue';
 
   const Player = window.app.player;
   const Screen = window.app.screen;
@@ -186,33 +187,44 @@
       </div>
 
       <div class="music-info">
-        <img :src="picture?.data || '/assets/dummy.svg'" alt="Album art" />
+        <img
+          :src="
+            loading ? '/assets/dummy.svg' : picture?.data || '/assets/dummy.svg'
+          "
+          alt="Album art"
+        />
 
         <div class="details">
-          <div class="title">
-            <I18nString
-              :element="Scroller"
-              entry="PLAYER_NO_AUDIO"
-              v-if="!metadata?.title"
-            />
-            <Scroller v-else>
-              {{ metadata.title }}
-            </Scroller>
-          </div>
-          <span class="artist">
-            <I18nString
-              :element="Scroller"
-              entry="PLAYER_NO_ARTIST"
-              v-if="!metadata?.artist"
-            />
-            <Scroller v-else>
-              <span>{{ metadata.artist }}</span>
-              <span class="album">
-                {{ metadata?.album && ' • ' }}
-                {{ metadata?.album }}
-              </span>
-            </Scroller>
-          </span>
+          <template v-if="loading">
+            <Scroller class="title">Processing Audio...</Scroller>
+            <Scroller class="artist">Loading audio metadata...</Scroller>
+          </template>
+          <template v-else>
+            <div class="title">
+              <I18nString
+                :element="Scroller"
+                entry="PLAYER_NO_AUDIO"
+                v-if="!metadata?.title"
+              />
+              <Scroller v-else>
+                {{ metadata.title }}
+              </Scroller>
+            </div>
+            <span class="artist">
+              <I18nString
+                :element="Scroller"
+                entry="PLAYER_NO_ARTIST"
+                v-if="!metadata?.artist"
+              />
+              <Scroller v-else>
+                <span>{{ metadata.artist }}</span>
+                <span class="album">
+                  {{ metadata?.album && ' • ' }}
+                  {{ metadata?.album }}
+                </span>
+              </Scroller>
+            </span>
+          </template>
         </div>
       </div>
 
@@ -229,8 +241,10 @@
           title="Change Audio"
           icon="material-symbols:close"
         />
+
         <Floater text="AUDIO" pos="bottom">
           <IconButton
+            :disabled="loading"
             @click="handlers.uploadAudio"
             id="upload-music"
             title="Change Audio"
@@ -286,14 +300,22 @@
             title="Seek Backward"
             icon="material-symbols:fast-rewind"
           />
+          <MdProgress
+            v-if="loading"
+            :stroke="4"
+            :value="Infinity"
+            :diameter="48"
+            class="play-button"
+          />
           <IconButton
+            v-else
             :data-playing="playing ? 'true' : 'false'"
             :disabled="!isFinite(Player.duration)"
             :onclick="() => Player.playPause()"
             class="play-button"
             :size="36"
             :icon="`material-symbols:${playing ? 'pause' : 'play-arrow'}`"
-            title="Play/Pause"
+            :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
           />
 
           <IconButton
@@ -363,7 +385,7 @@
 
         #sub-panel-toggle {
           display: none;
-          transition: rotate 0.3s;
+          transition: rotate 0.3s var(--timing-standard);
         }
       }
 
@@ -501,7 +523,7 @@
       .sub-panel {
         display: block;
         max-height: 0px;
-        transition: max-height 0.2s;
+        transition: max-height 0.25s var(--timing-standard);
         overflow-y: hidden;
 
         &[shown='true'] {
