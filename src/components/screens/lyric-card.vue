@@ -124,23 +124,18 @@
     const img = content.value;
     if (!img) return;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const scale = downloadSizes[downloadSize.value[0]].id;
+      const canvas = await h2c(img, {scale: Number(scale), backgroundColor: 'transparent'})
       switch (downloadType.value[0]) {
         case 0:
-          h2c(img, { scale: Number(scale) }).then((dataUrl) =>
-            download(dataUrl.toDataURL('image/png'))
-          );
+          download(canvas.toDataURL())
           break;
         case 1:
-          h2c(img, { scale: Number(scale) }).then((dataUrl) =>
-            download(dataUrl.toDataURL('image/jpeg'))
-          );
+          download(canvas.toDataURL('image/jpeg'))
           break;
         case 2:
-          h2c(img, { scale: Number(scale) }).then((dataUrl) =>
-            download(dataUrl.toDataURL('image/webp'))
-          );
+          download(canvas.toDataURL('image/webp'))
           break;
       }
     });
@@ -673,6 +668,10 @@
     .app-wrapper {
       overflow: auto;
       position: relative;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .lyric-card-editor {
@@ -694,6 +693,10 @@
 
     .section-wrapper {
       overflow: auto;
+      scrollbar-width: none;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .section {
@@ -705,6 +708,10 @@
       height: auto;
       overflow: initial !important;
       mask-image: none !important;
+      scrollbar-width: 0;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
   }
 </style>
