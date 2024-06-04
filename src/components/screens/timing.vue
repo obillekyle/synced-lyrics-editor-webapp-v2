@@ -49,7 +49,7 @@
       speed: 400,
       verticalOffset: offset * -1,
       elementToScroll: main,
-      cancelOnUserAction: false,
+      cancelOnUserAction: true,
     });
   };
 
@@ -133,6 +133,9 @@
 
     if (e.ctrlKey) return;
     if (edit.value) return;
+    if (document.activeElement instanceof HTMLInputElement) return;
+    document.activeElement instanceof HTMLElement &&
+      document.activeElement.blur();
 
     processKey(Keybinds.timing.adjustTimeBackward, e, () => {
       adjustTime(-100);
@@ -195,15 +198,13 @@
         const element = $<HTMLInputElement>(`.lrc-line.active .data`);
         if (element) {
           element.focus();
-          element.setSelectionRange(0, element.value.length);
+          element.setSelectionRange(element.value.length, element.value.length);
         }
-      }, 100);
+      });
     }
   });
 
   onMounted(() => {
-    const app = $('#app')!;
-
     handleLyricsParse();
 
     Lyrics.addEventListener('parsed', handleLyricsParse);
@@ -211,20 +212,18 @@
     Lyrics.addEventListener('line-removed', handleLineRemove);
     Lyrics.addEventListener('line-updated', handleLineUpdate);
 
-    app.addEventListener('keydown', handleKeyDown);
-    app.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
   });
 
   onUnmounted(() => {
-    const app = $('#app')!;
-
     Lyrics.removeEventListener('parsed', handleLyricsParse);
     Lyrics.removeEventListener('line-added', handleLineAdd);
     Lyrics.removeEventListener('line-removed', handleLineRemove);
     Lyrics.removeEventListener('line-updated', handleLineUpdate);
 
-    app.removeEventListener('keydown', handleKeyDown);
-    app.removeEventListener('keyup', handleKeyUp);
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
   });
 
   function dismissLine(id: number) {

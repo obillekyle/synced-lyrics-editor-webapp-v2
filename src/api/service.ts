@@ -2,12 +2,13 @@ import type { IAudioMetadata } from 'music-metadata-browser';
 import { clamp } from './util';
 import ColorThief from 'color-thief-ts';
 import Color from 'color';
+import type { IFrames } from '@okyle/id3-js/dist/frameDefinitions';
 
 const colorThief = new ColorThief();
 
 export type AudioOptions = {
-  currentPos: number;
-  onLoad: (this: MusicService) => void;
+  currentPos?: number;
+  onLoad: (this: MusicService) => any;
 };
 
 export type AudioImage = {
@@ -35,7 +36,7 @@ class MusicService extends Audio {
   constructor(file?: File, opts?: AudioOptions) {
     super();
 
-    file && this.updateFile(file, opts).then();
+    file && this.updateFile(file, opts);
   }
 
   getDetails(): AudioDetails {
@@ -47,33 +48,34 @@ class MusicService extends Audio {
     };
   }
 
-  async updateFile(file?: File | Blob, opts?: AudioOptions) {
+  updateFile(file?: File | Blob, opts?: AudioOptions) {
     if (!file) return false;
     this.dispatchEvent(loadingEvent);
-    this.reset(true);
 
-    try {
-      const music = await import('music-metadata-browser');
-      this.metadata = await music.parseBlob(file);
-      this.currentTime = opts?.currentPos ?? 0;
+    setTimeout(async () => {
+      try {
+        const music = await import('music-metadata-browser');
+        this.metadata = await music.parseBlob(file);
+        this.metadata.common.title ??= 'name' in file ? file.name : '';
+        this.currentTime = opts?.currentPos ?? 0;
 
-      const handler = () => {
-        opts?.onLoad?.call(this);
-        this.removeEventListener('loadedmetadata', handler);
-        this.dispatchEvent(updatedEvent);
-      };
-      this.addEventListener('loadedmetadata', handler);
+        const handler = () => {
+          opts?.onLoad?.call(this);
+          this.removeEventListener('loadeddata', handler);
+          this.dispatchEvent(updatedEvent);
+        };
+        this.addEventListener('loadeddata', handler);
 
-      this.picture = await this.getImage();
-      this.src = URL.createObjectURL(file);
-      this.loadMediaSession();
-
-      this.load();
-    } catch (e) {
-      return false;
-    }
-
-    return true;
+        this.picture = await this.getImage();
+        this.src = URL.createObjectURL(file);
+        this.loadMediaSession();
+        this.load();
+      } catch (err) {
+        if (err) {
+          this.dispatchEvent(errorEvent);
+        }
+      }
+    });
   }
 
   private loadMediaSession() {
@@ -177,6 +179,7 @@ class MusicService extends Audio {
 
 interface MusicService extends HTMLAudioElement {
   metadata: IAudioMetadata | undefined;
+  iframes: IFrames;
   picture: AudioImage | undefined;
 
   addEventListener<K extends keyof HTMLMediaElementEventMap>(
@@ -211,7 +214,7 @@ interface MusicService extends HTMLAudioElement {
     options?: boolean | EventListenerOptions | undefined
   ): void;
 
-  updateFile(file: File, opts?: AudioOptions): Promise<boolean>;
+  updateFile(file: File, opts?: AudioOptions): void;
 }
 
 window.customElements.define('music-service', MusicService, {

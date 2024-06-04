@@ -26,6 +26,7 @@
   const Screen = window.app.screen;
   const Keybinds = getKeybinds();
   const Option = window.app.options;
+  const Modals = window.app.modals;
 
   const time = ref(0);
   const shown = ref(false);
@@ -109,7 +110,19 @@
   }
 
   function playerError() {
-    // loading.value = false;
+    loading.value = false;
+    Modals.open({
+      icon: 'material-symbols:error-outline',
+      id: 'not-audio-file',
+      title: 'Not an audio file',
+      content: 'Please select an audio file',
+      actions: [
+        {
+          text: 'OK',
+          onClick: ({ close }) => close(),
+        },
+      ],
+    });
   }
 
   function playerLoading() {
@@ -119,6 +132,7 @@
   onMounted(() => {
     onMusicUpdate.call(Player);
     updateShown();
+    playing.value = !Player.paused;
 
     Player.addEventListener('play', playPause);
     Player.addEventListener('pause', playPause);
@@ -441,6 +455,7 @@
 
   @media screen and (max-width: 600px) {
     .app-player {
+      --app-player-height: 5rem;
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
 
@@ -522,12 +537,13 @@
 
       .sub-panel {
         display: block;
-        max-height: 0px;
+        max-height: 0;
+        position: relative;
         transition: max-height 0.25s var(--timing-standard);
         overflow-y: hidden;
 
         &[shown='true'] {
-          max-height: 200px;
+          max-height: 150px;
         }
 
         .time {

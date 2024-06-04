@@ -47,30 +47,36 @@
   }
 
   function setStyle() {
-    const values: Record<string, string> = {};
+    setTimeout(() => {
+      const values: Record<string, string> = {};
 
-    let value = '';
+      let value = '';
 
-    Object.assign(values, {
-      'color-primary': 'var(--color-500)',
-      'album-color': 'var(--color-primary)',
-      'album-image': `url('${Player.picture?.data || ''}')`,
-      'album-blur': `url('${Player.picture?.blur || ''}')`,
+      Object.assign(values, {
+        'color-primary': 'var(--color-500)',
+        'album-color': 'var(--color-primary)',
+        'album-image': `url('${Player.picture?.data || ''}')`,
+        'album-blur': `url('${Player.picture?.blur || ''}')`,
+      });
+
+      Object.assign(values, getShades(props.Colors));
+      Object.assign(values, getShades(new ColorsObj('#000000'), 'mono'));
+
+      for (const key in values) {
+        value += `  --${key}: ${values[key]};\n`;
+      }
+
+      if (props.tag == 'html') {
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        document.body.classList.toggle('dark', theme.value != 'light');
+        themeColor?.setAttribute('content', values['color-100']);
+      }
+
+      styleElem.value = `${props.tag} {
+        ${value}
+        color-scheme: ${theme.value};
+      }`;
     });
-
-    Object.assign(values, getShades(props.Colors));
-    Object.assign(values, getShades(new ColorsObj('#000000'), 'mono'));
-
-    for (const key in values) {
-      value += `  --${key}: ${values[key]};\n`;
-    }
-
-    document.body.classList.toggle('dark', theme.value != 'light');
-
-    styleElem.value = `${props.tag} {
-      ${value}
-      color-scheme: ${theme.value};
-    }`;
   }
 
   onMounted(() => {

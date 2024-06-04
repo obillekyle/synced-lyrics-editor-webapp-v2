@@ -166,7 +166,7 @@
 
       &.hidden .nav-item .icon,
       &.active .nav-item:not(.active) .icon {
-        transform: translateY(30%);
+        transform: translateY(20%);
       }
 
       .nav-item {
@@ -179,16 +179,20 @@
         .icon {
           font-size: var(--icon-lg);
           height: var(--size-sm);
-          width: var(--size-xl);
+          width: var(--size-xxl);
           transition: transform 0.25s var(--timing-standard);
         }
 
         &.active {
           .name {
             opacity: 1;
+            transform: translateY(-25%);
+          }
+          .icon {
+            transform: translateY(-15%);
           }
           .icon::before {
-            width: var(--size-xl);
+            width: var(--size-xxl);
           }
         }
       }

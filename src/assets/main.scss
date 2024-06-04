@@ -23,7 +23,7 @@ body {
     sans-serif;
   --background-body: var(--color-50, #fff);
   --background-secondary: var(--color-100, #eee);
-  --app-player-color: #eeeeee;
+  --app-player-color: var(--color-100, #eee);
 
   font-smooth: never;
   -webkit-font-smoothing: none;

@@ -14,6 +14,7 @@
   import { interval, removeInterval } from './api/util';
   import { defaultColor } from '@/app/main';
   import LyricCard from './components/screens/lyric-card.vue';
+  import _presets from './components/modals/_presets';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -133,6 +134,27 @@
       loaderRef.value.style.display = 'none';
     }
   }
+
+  watch(appPath, (path) => {
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (path.startsWith('/lyric-card')) {
+      document.title = 'Lyrics Card Maker | Synced Lyrics Editor and Maker v2 ';
+      if (metaDesc) {
+        metaDesc.setAttribute(
+          'content',
+          'Create your own lyrics card in seconds with our new lyrics card maker.'
+        );
+      }
+    } else {
+      document.title = 'Synced Lyrics Editor and Maker v2';
+      if (metaDesc) {
+        metaDesc.setAttribute(
+          'content',
+          'Create your own synced lyrics for the music you love – right from your browser. A sound file is required.'
+        );
+      }
+    }
+  });
 
   onMounted(() => {
     langUpdate();
@@ -278,12 +300,12 @@
   #app:has([data-screen='lyric']) {
     background: linear-gradient(
         to bottom,
-        var(--mono-0-40) -20%,
-        var(--mono-0-70) 20%,
-        var(--mono-0-90) 60%,
-        var(--mono-0) 100%
+        var(--color-100-40) -20%,
+        var(--color-100-70) 20%,
+        var(--color-100-90) 60%,
+        var(--color-100) 100%
       ),
-      var(--album-blur);
+      var(--album-blur, var(--color-100));
     background-size: cover;
     height: 100dvh;
     background-position: center, center;

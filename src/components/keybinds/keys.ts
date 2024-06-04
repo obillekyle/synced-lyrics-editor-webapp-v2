@@ -438,30 +438,14 @@ export const keyHandlers = {
 
   uploadAudio: () => {
     openFilePicker(
-      async (file) => {
+      (file) => {
         if (!file) return;
-
         const Player = window.app.player;
-        const Modals = window.app.modals;
-        const success = await Player.updateFile(file);
-
-        if (success) {
-          const lrc = Player.metadata?.common.lyrics;
-          if (lrc?.length) _presets.useAudioLRC();
-          return;
-        }
-
-        Modals.open({
-          icon: 'material-symbols:error-outline',
-          id: 'not-audio-file',
-          title: 'Not an audio file',
-          content: 'Please select an audio file',
-          actions: [
-            {
-              text: 'OK',
-              onClick: ({ close }) => close(),
-            },
-          ],
+        Player.updateFile(file, {
+          onLoad: () => {
+            const lrc = Player.metadata?.common.lyrics?.join('\n');
+            if (lrc?.trim().length) _presets.useAudioLRC();
+          },
         });
       },
       { accept: 'audio/*' }

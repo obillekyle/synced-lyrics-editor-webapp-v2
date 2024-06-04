@@ -16,7 +16,9 @@
 
   &:has(input:disabled) {
     filter: grayscale(0);
-    pointer-events: none;
+    input {
+      pointer-events: none;
+    }
   }
 
   .input-icon {

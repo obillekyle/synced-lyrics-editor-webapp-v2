@@ -126,16 +126,19 @@
 
     setTimeout(async () => {
       const scale = downloadSizes[downloadSize.value[0]].id;
-      const canvas = await h2c(img, {scale: Number(scale), backgroundColor: 'transparent'})
+      const canvas = await h2c(img, {
+        scale: Number(scale),
+        backgroundColor: 'transparent',
+      });
       switch (downloadType.value[0]) {
         case 0:
-          download(canvas.toDataURL())
+          download(canvas.toDataURL());
           break;
         case 1:
-          download(canvas.toDataURL('image/jpeg'))
+          download(canvas.toDataURL('image/jpeg'));
           break;
         case 2:
-          download(canvas.toDataURL('image/webp'))
+          download(canvas.toDataURL('image/webp'));
           break;
       }
     });
@@ -152,6 +155,26 @@
       };
     })
   );
+
+  function getLrcLineString(index: number) {
+    const line = Lyrics.lines[index];
+    if (!line) return '';
+    return typeof line.data == 'string'
+      ? line.data
+      : line.data.map(({ line }) => line).join('');
+  }
+
+  const getPreviousLine = () => {
+    const index = lyricLine.value[0] - 1;
+    if (index < 0) return;
+    return getLRCLineValue(index);
+  };
+
+  const getNextLine = () => {
+    const index = lyricLine.value[0] + 1;
+    if (index >= lrcLines.value.length) return;
+    return getLRCLineValue(index);
+  };
 
   const lyricText = computed(() => {
     const id = lyricLine.value[0];
@@ -264,8 +287,14 @@
               </div>
 
               <div class="lyric-card-body">
+                <p class="prev-lrc" v-if="lyricLine.length && lrcEffect">
+                  {{ getPreviousLine() }}
+                </p>
                 <p class="lyric-text">
                   {{ lyricText }}
+                </p>
+                <p class="next-lrc" v-if="lyricLine.length && lrcEffect">
+                  {{ getNextLine() }}
                 </p>
               </div>
             </div>
@@ -384,8 +413,7 @@
             >
               <div class="name">Lyrics Effect</div>
               <Scroller class="desc">
-                Use previous and next lines from the editor (temporarily
-                unavailable at the moment)
+                Use previous and next lines from the editor
               </Scroller>
               <div class="switch">
                 <Switch v-model="lrcEffect" />
@@ -610,6 +638,7 @@
         border: 1px solid var(--color-200);
 
         .lyric-text {
+          line-height: 1.25;
           padding-block: var(--xl) var(--sm);
           font-size: var(--lrcSize);
           font-weight: var(--lrcWeight);
@@ -617,6 +646,37 @@
           text-wrap: var(--lrcBalance);
           &:empty {
             display: none;
+          }
+        }
+
+        .lyric-card-body:has(.prev-lrc, .next-lrc) {
+          padding-block: var(--xxl) var(--md);
+        }
+
+        &:has(.next-lrc) .lyric-text {
+          padding-bottom: var(--xl) !important;
+        }
+
+        &:has(.prev-lrc, .next-lrc) .lyric-text:empty {
+          display: block;
+          &::before {
+            content: '...';
+            opacity: 0;
+          }
+        }
+
+        .prev-lrc,
+        .next-lrc {
+          line-height: 1.25;
+          font-size: calc(var(--lrcSize) * 0.75);
+          text-align: var(--lrcAlign);
+          text-wrap: var(--lrcBalance);
+          font-weight: calc(var(--lrcWeight) - 100);
+          opacity: 0.5;
+
+          &:empty::before {
+            content: '...';
+            opacity: 0;
           }
         }
 

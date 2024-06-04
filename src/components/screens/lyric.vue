@@ -27,13 +27,15 @@
   const lang = Lang.lang;
 
   const lrcChange = () => {
+    bypass.value = true;
     lyrics.value = Lyrics.getRaw();
+    handleCurrentIndex.call(Player);
   };
 
   function handleCurrentIndex(this: MusicService) {
     throttler(
       async () => {
-        const index = Lyrics.findIndex(this.currentTime * 1000 + 400);
+        const index = Lyrics.findIndex(this.currentTime * 1000 + 300);
         if (index == -1 || currentIndex.value == index) return;
 
         bypass.value = false;
@@ -48,7 +50,7 @@
           element?.classList.add('active');
 
           const rect = main.getBoundingClientRect();
-          const halfElement = element.clientHeight / 2;
+          const halfElement = element.clientHeight / 1.75;
           const offset = rect.height / 2 - halfElement;
 
           await animatedScroll(element, {
@@ -161,6 +163,8 @@
         text-align: center;
         font-weight: 500;
         font-size: 36px;
+        width: clamp(0px, 100%, 768px);
+        margin-inline: auto;
         transition: all 0.25s var(--timing-standard);
         &:has(.playing-indicator) {
           scale: 1;

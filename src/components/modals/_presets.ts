@@ -141,12 +141,12 @@ function openLRCPicker() {
   const lyric = window.app.lyric;
 
   openFilePicker(
-    (file) => {
+    async (file) => {
       if (!file) return;
-
-      file.text().then((txt) => {
-        lyric.parse(txt);
-      });
+      if (file.type === 'text/plain' || file.name.endsWith('.lrc')) {
+        const lrc = await file.text();
+        lyric.parse(lrc);
+      }
     },
     {
       accept: '.lrc',

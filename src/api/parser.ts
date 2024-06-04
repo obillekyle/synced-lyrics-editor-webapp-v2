@@ -253,6 +253,14 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
     return minutes + seconds + milsecs;
   }
 
+  findIndexHelper(index: number): number {
+    if (index < 0) return -1;
+    const line = this.lines[index];
+    const prev = this.lines[index - 1];
+    if (!prev || prev.time < line.time) return index;
+    return this.findIndexHelper(index - 1);
+  }
+
   findIndex(timestamp: number, useCache = true) {
     const array = useCache ? this._cachedTime : this.lines;
     for (let i = 0; i < array.length; i++) {
@@ -260,10 +268,10 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
       const item = array[i];
       const time = typeof item == 'number' ? item : line.time;
       if (time > timestamp) {
-        return i - 1;
+        return this.findIndexHelper(i - 1);
       }
     }
-    return this.lines.length - 1;
+    return this.findIndexHelper(this.lines.length - 1);
   }
 
   currentLine(timestamp: number): LRCLine | undefined {

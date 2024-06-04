@@ -10,6 +10,7 @@
     size?: number | string;
     frame?: 'default' | 'scalloped-square' | 'circle';
     radius?: String | AppSizes | number;
+    optimize?: boolean;
   }
 
   const progress = ref(0);
@@ -19,37 +20,48 @@
 
   async function resolve() {
     error.value = false;
+    let data: Blob | undefined;
+    if (image.value) {
+      URL.revokeObjectURL(image.value);
+    }
 
     if (!props.src) {
       error.value = true;
       return;
     }
 
-    if (props.src instanceof Blob) {
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        image.value = reader.result as string;
+    if (typeof props.src === 'string') {
+      const response = await axios.get<Blob | undefined>(props.src, {
+        responseType: 'blob',
+
+        onDownloadProgress: (e) => {
+          progress.value = !e.total
+            ? Infinity
+            : Math.floor((e.loaded / e.total) * 100);
+        },
       });
-      reader.readAsDataURL(props.src);
+
+      if (!response.data) {
+        error.value = true;
+        return;
+      }
+
+      data = response.data;
+    } else {
+      data = props.src;
+    }
+
+    if (props.optimize) {
+      const ImageJS = (await import('image-js')).default;
+      const img = (await ImageJS.load(await data.arrayBuffer())).resize({
+        height: Number(props.size),
+      });
+
+      image.value = URL.createObjectURL(await img.toBlob());
       return;
     }
 
-    const data = await axios.get<Blob | undefined>(props.src, {
-      responseType: 'blob',
-
-      onDownloadProgress: (e) => {
-        progress.value = !e.total
-          ? Infinity
-          : Math.floor((e.loaded / e.total) * 100);
-      },
-    });
-
-    if (!data.data) {
-      error.value = true;
-      return;
-    }
-
-    image.value = URL.createObjectURL(data.data);
+    image.value = URL.createObjectURL(data);
   }
 
   const props = withDefaults(defineProps<SquareImageProps>(), {

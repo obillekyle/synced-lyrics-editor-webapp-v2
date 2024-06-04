@@ -366,6 +366,8 @@ p
       .banner-image {
         padding: var(--xl);
         padding-bottom: var(--sm);
+        border: 1px solid var(--color-200);
+        border-bottom: none;
 
         height: fit-content;
         margin-top: auto;
