@@ -347,7 +347,7 @@
       display: block;
       padding-block: var(--md);
       font-size: var(--font-xl);
-      color: var(--mono-700);
+      color: var(--mono-70);
     }
 
     .guide {
@@ -374,7 +374,7 @@
       cursor: pointer;
       display: block;
       font-size: var(--font-xl);
-      color: var(--color-500);
+      color: var(--primary-50);
     }
 
     .lrc-line {
@@ -435,7 +435,7 @@
       .time {
         font-size: var(--font-sm);
         align-self: center;
-        color: var(--color-800);
+        color: var(--primary-80);
       }
 
       .timing-buttons {
@@ -466,11 +466,11 @@
 
       &:is(:first-child):is(:last-child) {
         border-radius: var(--sm);
-        border: 1px solid var(--color-800-10) !important;
+        border: 1px solid var(--primary-80-10) !important;
       }
 
       &:not(.active) + .lrc-line {
-        border-top: 1px solid var(--color-800-10);
+        border-top: 1px solid var(--primary-80-10);
       }
 
       textarea.data {
@@ -492,7 +492,7 @@
         grid-area: data;
         &:empty::after {
           content: '<Empty>';
-          color: var(--color-800-40);
+          color: var(--primary-80-40);
         }
       }
 
@@ -514,7 +514,7 @@
         }
 
         &::before {
-          background-color: var(--color-900-10);
+          background-color: var(--primary-90-10);
           transition: none;
         }
 
@@ -525,7 +525,7 @@
           align-self: self-start;
           border-radius: calc(var(--sm) / 2);
           &:focus-visible {
-            box-shadow: 0 0 0 2px var(--color-600-20);
+            box-shadow: 0 0 0 2px var(--primary-60-20);
           }
         }
       }

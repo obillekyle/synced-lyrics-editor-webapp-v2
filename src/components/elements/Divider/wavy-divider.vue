@@ -31,7 +31,7 @@
 <style lang="scss">
   .wavy-divider {
     width: 100%;
-    color: var(--color-300-50);
+    color: var(--primary-30-50);
     margin-block: var(--lg);
     padding: var(--md);
   }

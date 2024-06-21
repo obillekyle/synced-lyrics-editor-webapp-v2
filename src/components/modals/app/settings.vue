@@ -450,7 +450,7 @@
       top: var(--app-header-height);
 
       .active {
-        background-color: var(--color-600-10);
+        background-color: var(--primary-60-10);
       }
     }
 
@@ -497,7 +497,7 @@
 
       .desc {
         grid-area: desc;
-        color: var(--color-900);
+        color: var(--primary-90);
         font-size: var(--font-sm);
         opacity: 0.8;
         white-space: wrap;
@@ -531,7 +531,7 @@
         display: block;
         height: 1px;
         grid-area: line;
-        background-color: var(--color-600-20);
+        background-color: var(--primary-60-20);
       }
     }
   }

@@ -60,7 +60,7 @@
     display: flex;
     align-items: center;
     padding: calc(var(--sm) / 2);
-    background: var(--color-800-20);
+    background: var(--primary-80-20);
     border-radius: var(--sm);
     margin-block: auto;
 
@@ -74,7 +74,7 @@
       justify-items: center;
       transition: background-color 0.2s;
       grid-template-columns: 36px auto;
-      color: var(--color-900);
+      color: var(--primary-90);
 
       .icon {
         display: grid;
@@ -101,7 +101,7 @@
           opacity: 1;
           width: calc(var(--chars) * 1ch);
         }
-        background: var(--color-400);
+        background: var(--primary-40);
       }
     }
   }

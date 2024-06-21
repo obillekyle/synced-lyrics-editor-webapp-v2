@@ -39,7 +39,7 @@
     align-self: center;
     justify-self: center;
     display: block;
-    background-color: var(--mono-500-50);
+    background-color: var(--mono-50-50);
   }
 
   .divider.x {
@@ -74,7 +74,7 @@
       display: block;
       height: 1px;
       grid-area: line;
-      background-color: var(--color-600-20);
+      background-color: var(--primary-60-20);
     }
   }
 </style>

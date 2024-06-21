@@ -1,6 +1,5 @@
 import Color from 'color';
 import { CustomEventHandler } from './event';
-import { mapNumberToRange } from './util';
 
 export type ColorEvents = {
   update: [color: Color, oldColor: Color];
@@ -9,7 +8,7 @@ export type ColorEvents = {
 export class Colors extends CustomEventHandler<ColorEvents> {
   main: Color = Color('white');
 
-  constructor(color?: string) {
+  constructor(color?: string | Color) {
     super();
     this.set(color ?? this.main);
   }
@@ -21,21 +20,13 @@ export class Colors extends CustomEventHandler<ColorEvents> {
     return this;
   }
 
-  shade(shade: number, alpha = 1) {
-    const [h, s] = this.main.hsv().array();
-    const color = Color({ h, s, v: shade });
+  shade(shade: number, alpha = 1, theme: 'light' | 'dark' = 'dark') {
+    const [h, s, v] = this.main.hsv().array();
+    const color = Color({ h, s, l: shade, alpha });
 
-    if (shade > 50) {
-      return color
-        .saturate(Math.abs(50 - shade) / 50)
-        .lightness(shade)
-        .alpha(alpha);
-    } else {
-      return color
-        .desaturate(Math.abs(50 - shade) / 50)
-        .lightness(shade)
-        .alpha(alpha);
-    }
+    return theme == 'light'
+      ? color
+      : color.desaturate(Math.abs(50 - shade) / 50);
   }
 }
 

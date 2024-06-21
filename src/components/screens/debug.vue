@@ -21,10 +21,12 @@
   import ChipGroup from '../elements/Chip/chip-group.vue';
   import ButtonGroup from '../elements/Button/button-group.vue';
   import Select, { type SelectItem } from '../elements/Select/select.vue';
+  import ColorBlock from '../elements/color-block.vue';
 
   const Lang = window.app.i18n;
   const Option = window.app.options;
   const Player = window.app.player;
+  const Colors = window.app.colors;
 
   const langInput = ref<HTMLInputElement | null>(null);
   const progressVal = ref(20);
@@ -103,6 +105,25 @@
       placeholder="Select something"
       :change="(selected) => (selectedVal = selected)"
     />
+
+    <div class="colors">
+      <ColorBlock color="color-0" />
+      <ColorBlock color="color-50" />
+      <ColorBlock color="color-100" />
+      <ColorBlock color="color-200" />
+      <ColorBlock color="color-300" />
+      <ColorBlock color="color-400" />
+      <ColorBlock color="color-500" />
+      <ColorBlock color="color-600" />
+      <ColorBlock color="color-700" />
+      <ColorBlock color="color-800" />
+      <ColorBlock color="color-900" />
+      <ColorBlock color="color-1000" />
+      <input
+        type="color"
+        :onChange="(e) => Colors.set((e.target as HTMLInputElement).value)"
+      />
+    </div>
 
     <ButtonGroup>
       <Button

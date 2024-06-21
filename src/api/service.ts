@@ -28,7 +28,7 @@ const updatedEvent = new CustomEvent('musicupdated', { bubbles: false });
 const seekedEvent = new CustomEvent('seeked', { bubbles: false });
 const resetEvent = new CustomEvent('reset', { bubbles: false });
 const loadingEvent = new CustomEvent('loading', { bubbles: false });
-const errorEvent = new CustomEvent('error', { bubbles: false });
+const errorEvent = new CustomEvent('parse-error', { bubbles: false });
 
 class MusicService extends Audio {
   constructor();

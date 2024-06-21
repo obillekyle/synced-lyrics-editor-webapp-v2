@@ -1,8 +1,15 @@
 <script setup lang="ts">
-  import { ref, type Component, type HTMLAttributes, computed } from 'vue';
+  import {
+    ref,
+    type Component,
+    type HTMLAttributes,
+    computed,
+    watch,
+    onMounted,
+  } from 'vue';
   import OptionItem from './option-item.vue';
   import { Icon } from '@iconify/vue/dist/iconify.js';
-  import { rippleEffect } from '@/api/util';
+  import { $, keyboardClick, rippleEffect } from '@/api/util';
 
   export type SelectItem = {
     readonly id: string | number;
@@ -34,6 +41,7 @@
 
   const show = ref(false);
   const search = ref('');
+  const select = ref<HTMLElement | null>(null);
   const props = withDefaults(defineProps<SelectProps>(), {
     optionComp: OptionItem,
     searchByKey: () => [],
@@ -90,11 +98,35 @@
       props.change?.([index]);
     }
   }
+
+  watch(show, (show) => {
+    if (show && select.value) {
+      $('.select-dropdown .item-wrapper', select.value)?.focus();
+    }
+  });
+
+  function closeIfClickOutside(event: MouseEvent) {
+    if (show.value && !select.value?.contains(event.target as Node)) {
+      show.value = false;
+    }
+  }
+
+  onMounted(() => {
+    if (props.value) handleClick(props.value[0]);
+
+    document.addEventListener('click', closeIfClickOutside);
+  });
 </script>
 
 <template>
-  <div class="select" :class="{ open: show }">
-    <div class="select-wrapper" @click="toggle" @pointerdown="rippleEffect">
+  <div class="select" :class="{ open: show }" ref="select">
+    <div
+      tabindex="0"
+      class="select-wrapper"
+      @click="toggle"
+      @pointerdown="rippleEffect"
+      @keydown="keyboardClick"
+    >
       <div
         class="select-single"
         v-if="value?.length === 1 && !multiple && items[value[0]]"
@@ -123,6 +155,7 @@
 
     <div class="select-dropdown" @click="toggle">
       <div
+        tabindex="0"
         class="item-wrapper empty"
         v-if="!required && !multiple"
         @click="() => handleClick()"
@@ -130,6 +163,7 @@
         :class="{ active: val.length === 0 }"
       />
       <div
+        tabindex="0"
         class="item-wrapper"
         v-for="(item, index) in items"
         :key="index"
@@ -147,17 +181,18 @@
 <style lang="scss">
   .select {
     position: relative;
+    --size: var(--size-md);
 
     .select-wrapper {
       display: grid;
       grid-template-columns: 1fr 48px;
       align-items: center;
-      height: var(--size-xl);
+      height: var(--size);
       position: relative;
       overflow: hidden;
 
-      border-radius: var(--sm);
-      border: 1px solid var(--color-600-30);
+      border-radius: var(--xs);
+      border: 1px solid var(--primary-60-30);
 
       &:empty::after {
         content: 'No item selected';
@@ -175,23 +210,23 @@
       .placeholder {
         font-size: var(--font-lg);
         padding-inline: var(--lg);
-        color: var(--mono-600);
+        color: var(--mono-60);
       }
     }
 
     .select-dropdown {
       position: absolute;
-      top: var(--size-xl);
+      top: var(--size);
       left: 0;
       width: 100%;
-      background: var(--color-100);
-      border: 1px solid var(--color-600-30);
-      border-radius: 0 0 var(--sm) var(--sm);
+      background: var(--primary-10);
+      border: 1px solid var(--primary-60-30);
+      border-radius: 0 0 var(--xs) var(--xs);
       border-top: none;
       overflow: auto;
       pointer-events: none;
-      min-height: var(--size-xl);
-      max-height: calc(var(--size-xl) * 3.1);
+      min-height: var(--size);
+      max-height: calc(var(--size) * 3.1);
       opacity: 0;
       transform: scaleY(0.9);
       z-index: 5;
@@ -207,12 +242,12 @@
       position: relative;
       overflow: hidden;
 
-      height: var(--size-xl);
-      border-bottom: 1px solid var(--color-600-10);
+      height: var(--size);
+      border-bottom: 1px solid var(--primary-60-10);
       cursor: pointer;
 
       &.active {
-        background: var(--color-600-10);
+        background: var(--primary-60-10);
       }
 
       &:last-child {

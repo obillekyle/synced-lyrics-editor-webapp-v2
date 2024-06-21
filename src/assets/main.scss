@@ -21,9 +21,9 @@ body {
     'Open Sans',
     'Helvetica Neue',
     sans-serif;
-  --background-body: var(--color-50, #fff);
-  --background-secondary: var(--color-100, #eee);
-  --app-player-color: var(--color-100, #eee);
+  --background-body: var(--primary-5, #fff);
+  --background-secondary: var(--primary-10, #eee);
+  --app-player-color: var(--primary-10, #eee);
 
   font-smooth: never;
   -webkit-font-smoothing: none;
@@ -75,9 +75,9 @@ body {
 }
 
 body.dark {
-  --background-body: var(--color-50, #111);
-  --background-secondary: var(--color-100, #333);
-  --app-player-color: var(--color-100, #333);
+  --background-body: var(--primary-5, #111);
+  --background-secondary: var(--primary-10, #333);
+  --app-player-color: var(--primary-10, #333);
 }
 
 * {
@@ -119,8 +119,24 @@ body.dark {
   margin: 0;
 }
 
+* {
+  outline: 0px solid var(--primary);
+}
+
 *:focus-visible {
-  outline: 2px dashed var(--color-600);
+  animation: focus 0.25s forwards;
+}
+
+@keyframes focus {
+  0% {
+    outline-width: 0px;
+  }
+  70% {
+    outline-width: 6px;
+  }
+  100% {
+    outline-width: 2px;
+  }
 }
 
 body {
@@ -140,7 +156,7 @@ button {
   display: block;
   background: none;
   outline: none;
-  color: var(--color-900, inherit);
+  color: var(--primary-90, inherit);
   border: none;
   -webkit-tap-highlight-color: transparent;
 
@@ -160,19 +176,19 @@ button {
   }
 
   &:disabled .icon-wrapper {
-    color: var(--mono-500);
+    color: var(--mono-50);
     pointer-events: none;
   }
 
   &:hover:not(:disabled) .icon-wrapper {
-    background-color: var(--color-600-20);
+    background-color: var(--primary-60-20);
     cursor: pointer;
   }
 
   &:focus-visible {
     .icon-wrapper {
-      outline: 2px dashed var(--color-600);
-      background-color: var(--color-600-20);
+      outline: 2px dashed var(--primary-60);
+      background-color: var(--primary-60-20);
     }
   }
 }
@@ -191,9 +207,9 @@ main {
   transform: translate(-50%, -50%);
   pointer-events: none;
   opacity: 0;
-  scale: 0.2;
+  scale: 0.1;
   transform-origin: left top;
-  background-color: var(--mono-700-20);
+  background-color: var(--mono-70-20);
   animation: rippled 0.75s forwards ease-out;
 
   &.fade {

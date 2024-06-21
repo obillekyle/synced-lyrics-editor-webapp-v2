@@ -274,7 +274,7 @@
         margin: none;
       }
       > input {
-        box-shadow: 0 0 0 1px inset var(--mono-500);
+        box-shadow: 0 0 0 1px inset var(--mono-50);
         height: 100%;
         border: none;
         font: inherit;
@@ -283,7 +283,7 @@
         cursor: pointer;
       }
       &:hover {
-        background-color: var(--mono-500-20);
+        background-color: var(--mono-50-20);
       }
 
       &.header {
@@ -303,9 +303,9 @@
           cursor: pointer;
           align-items: center;
           padding-right: var(--sm);
-          border-right: 1px var(--mono-400) solid;
+          border-right: 1px var(--mono-40) solid;
           &:hover {
-            background: var(--mono-200);
+            background: var(--mono-20);
           }
         }
       }

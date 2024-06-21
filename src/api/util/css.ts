@@ -1,4 +1,12 @@
 export const sizes = ['xxs', 'xs', 'sm', 'md', 'lg', 'xl', 'xxl'] as const;
+export const prefixes = [
+  'font',
+  'size',
+  'icon',
+  'padding',
+  'component',
+] as const;
+export type AppSizesPrefixes = (typeof prefixes)[number];
 export type AppSizes = (typeof sizes)[number];
 export type CSSMetricUnits =
   | 'px'
@@ -21,8 +29,19 @@ export type CSSMetricUnits =
   | 'deg'
   | 'dvw';
 
+export type SizesString =
+  | 'auto'
+  | 'initial'
+  | 'inherit'
+  | 'unset'
+  | `${number}${CSSMetricUnits}`
+  | String
+  | number;
+
+export type AppSizesString = AppSizes | SizesString | 'rounded';
+
 export function addUnit(
-  value: number | string | String = 0,
+  value: AppSizesString = 0,
   unit: CSSMetricUnits = 'px'
 ): string {
   if (typeof value === 'number') return value + unit;
@@ -30,13 +49,14 @@ export function addUnit(
   return value.toString();
 }
 
-export const addPX = (value: number | string | String) => addUnit(value, 'px');
+export const addPX = (value: AppSizesString) => addUnit(value, 'px');
 
 export function getCSSValue(
-  value: number | string | String,
+  value: AppSizesString,
   unit: CSSMetricUnits = 'px',
-  varType?: 'font' | 'size' | String
+  varType?: AppSizesPrefixes | String
 ): string {
+  value = typeof value === 'string' ? value.trim() : value;
   if (typeof value === 'string' && value.includes(' ')) {
     return value
       .split(' ')
@@ -44,7 +64,7 @@ export function getCSSValue(
       .join(' ');
   }
 
-  if (sizes.find((size) => value.toString() === size)) {
+  if (sizes.find((size) => value === size)) {
     varType = varType ? varType + '-' : '';
     return `var(--${varType}${value})`;
   }
@@ -52,8 +72,9 @@ export function getCSSValue(
   return addUnit(value, unit);
 }
 
-type ColorVariants = 'color' | 'mono';
-type ColorShades =
+export const colorVariants = ['primary', 'secondary', 'mono', 'error'] as const;
+export type AppColorVariants = (typeof colorVariants)[number];
+export type ColorShades =
   | 0
   | 50
   | 100
@@ -67,18 +88,29 @@ type ColorShades =
   | 900
   | 1000;
 type ColorAlphas = 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90;
+export type AppColorString<props extends string = 'primary'> =
+  | props
+  | AppColorVariants
+  | `${AppColorVariants | props}-${ColorShades}`
+  | `${AppColorVariants | props}-${ColorShades}-${ColorAlphas}`
+  | ColorString;
+
 export type ColorString =
-  | `${ColorVariants}-${ColorShades}`
-  | `${ColorVariants}-${ColorShades}-${ColorAlphas}`
   | `#${string}`
+  | `rgb(${number}, ${number}, ${number})`
+  | `rgba(${number}, ${number}, ${number}, ${number})`
+  | `hsl(${number}, ${number}, ${number})`
+  | `hsla(${number}, ${number}, ${number}, ${number})`
   | String;
 
-export function getCSSColor(value: ColorString): string {
-  if (value.includes(' ')) {
-    return value.split(' ').map(getCSSColor).join(' ');
-  }
-  if (value.startsWith('color-') || value.startsWith('mono-')) {
-    return `var(--${value})`;
+export function getCSSColor(value: AppColorString): string {
+  value = value.trim();
+  if (
+    colorVariants.some((v) => value.startsWith(v) || value.startsWith('color'))
+  ) {
+    return colorVariants.some((v) => v === value) || value === 'color'
+      ? `var(--${value}-500)`
+      : `var(--${value})`;
   }
 
   return value.toString();

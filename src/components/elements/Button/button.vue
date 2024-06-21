@@ -44,24 +44,26 @@
   .button {
     display: inline-flex;
     align-items: center;
-    height: var(--size-lg);
+
+    height: var(--size-sm);
     width: max-content;
-    min-width: 6ch;
+    min-width: var(--size-sm);
     border-radius: var(--radius);
     overflow: hidden;
     border: none;
     font: inherit;
     justify-content: center;
-    font-weight: 600;
-    color: var(--color-100);
-    background: var(--color-700);
+    font-weight: 500;
+    color: var(--on-primary);
+    background: var(--primary);
     transition: opacity 0.2s;
-    padding-inline: var(--md);
-    gap: var(--md);
-    box-shadow: 0 2px 6px #0005;
+    padding-inline: var(--sm);
+    gap: var(--xs);
+    box-shadow: var(--shadow-2);
     transition:
       filter 0.2s,
-      background-color 0.2s;
+      background-color 0.2s,
+      opacity 0.2s;
 
     &:not(:disabled):hover {
       filter: brightness(1.2);
@@ -70,14 +72,15 @@
     .label {
       align-self: center;
       text-align: center;
+      flex-grow: 1;
     }
 
     &:not(:has(.left-icon)) {
-      padding-inline-start: var(--xl);
+      padding-inline-start: var(--md);
     }
 
     &:not(:has(.right-icon)) {
-      padding-inline-end: var(--xl);
+      padding-inline-end: var(--md);
     }
 
     .button-icon {
@@ -97,46 +100,50 @@
     &.outline,
     &.transparent,
     &.subtle {
-      color: var(--color-800);
+      color: var(--primary-80);
       box-shadow: none;
     }
 
     &.outline {
-      border: 1px solid var(--color-800-30);
+      border: 1px solid var(--primary-60-50);
     }
 
     &.subtle {
-      background: var(--color-500-20);
+      background: var(--primary-50-20);
     }
 
     &.transparent,
     &.outline {
       background: none;
       &:hover {
-        background: var(--color-400-10);
+        background: var(--primary-40-20);
       }
     }
 
     &:disabled {
-      background-color: var(--mono-300-50) !important;
-      color: var(--mono-500) !important;
+      background-color: var(--mono-30-50) !important;
+      color: var(--mono-50) !important;
+    }
+
+    &:active {
+      opacity: 0.8;
     }
 
     &.inverted {
-      color: var(--color-900);
-      background: var(--color-200);
+      color: var(--primary-90);
+      background: var(--primary-20);
 
       &:hover {
         filter: brightness(0.8);
       }
 
       &:disabled {
-        background-color: var(--mono-800-50) !important;
-        color: var(--mono-600) !important;
+        background-color: var(--mono-80-50) !important;
+        color: var(--mono-60) !important;
       }
 
       &.outline {
-        border: 1px solid var(--color-200-30);
+        border: 1px solid var(--primary-20-30);
       }
     }
   }

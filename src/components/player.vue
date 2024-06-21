@@ -138,7 +138,7 @@
     Player.addEventListener('pause', playPause);
     Player.addEventListener('timeupdate', handleTimeUpdate);
     Player.addEventListener('musicupdated', onMusicUpdate);
-    Player.addEventListener('error', playerError);
+    Player.addEventListener('parse-error', playerError);
     Player.addEventListener('loading', playerLoading);
 
     window.addEventListener('keyup', handleKeyUp);
@@ -417,9 +417,9 @@
         img {
           aspect-ratio: 1 / 1;
           object-fit: contain;
-          background: #333;
-          border-radius: 2px;
-          width: 40px;
+          background: var(--mono-20);
+          border-radius: var(--xxs);
+          width: var(--size-md);
         }
 
         .details {
@@ -431,8 +431,7 @@
 
           .artist {
             font-size: var(--font-md);
-
-            color: darkgray;
+            color: var(--mono-50);
           }
         }
       }
@@ -442,7 +441,7 @@
         margin-left: auto;
         align-self: center;
         white-space: nowrap;
-        color: darkgray;
+        color: var(--mono-50);
         font-size: var(--font-sm);
       }
     }
@@ -575,7 +574,7 @@
             padding: var(--sm);
             align-items: center;
             gap: var(--sm);
-            background-color: var(--color-600-20);
+            background-color: var(--primary-60-20);
             border-radius: var(--sm);
             display: flex;
           }

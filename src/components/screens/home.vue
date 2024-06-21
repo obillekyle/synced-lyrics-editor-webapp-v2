@@ -302,7 +302,7 @@ p
         flex-direction: column;
         gap: var(--sm);
         padding: var(--size-sm);
-        background-color: var(--color-100);
+        background-color: var(--primary-10);
         h1 {
           font-size: clamp(2rem, 5vw, 5rem);
           font-weight: 500;
@@ -310,12 +310,12 @@ p
 
         p {
           font-size: clamp(1rem, 4vw, 1.5rem);
-          color: var(--mono-900);
+          color: var(--mono-90);
         }
       }
 
       .logo-wrapper {
-        background: var(--color-400);
+        background: var(--primary-40);
         border-radius: 16px;
         min-height: 300px;
         display: grid;
@@ -341,9 +341,9 @@ p
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       grid-auto-flow: row;
-      color: var(--color-100);
+      color: var(--primary-10);
       border-radius: var(--md);
-      background-color: var(--color-700);
+      background-color: var(--primary-70);
 
       .banner-content {
         padding: var(--xl);
@@ -366,7 +366,7 @@ p
       .banner-image {
         padding: var(--xl);
         padding-bottom: var(--sm);
-        border: 1px solid var(--color-200);
+        border: 1px solid var(--primary-20);
         border-bottom: none;
 
         height: fit-content;
@@ -377,8 +377,8 @@ p
         margin-inline: var(--sm);
         align-self: flex-end;
 
-        background: var(--color-100);
-        color: var(--mono-1000);
+        background: var(--primary-10);
+        color: var(--mono-100);
 
         .image-header {
           display: flex;
@@ -392,7 +392,7 @@ p
           }
           .artist {
             font-size: var(--font-lg);
-            color: var(--mono-700);
+            color: var(--mono-70);
           }
         }
 
@@ -417,7 +417,7 @@ p
       .section-footer {
         font-size: 1.2rem;
         font-weight: 500;
-        color: var(--mono-600);
+        color: var(--mono-60);
         text-align: center;
       }
 
@@ -440,14 +440,14 @@ p
 
           h3 {
             font-weight: 500;
-            color: var(--mono-800);
+            color: var(--mono-80);
           }
 
           .link {
             display: flex;
             text-decoration: none;
             width: max-content;
-            color: var(--mono-600);
+            color: var(--mono-60);
             border-bottom: 2px solid transparent;
             gap: var(--sm);
             align-items: center;
@@ -457,8 +457,8 @@ p
 
             &:is([href]):hover {
               cursor: pointer;
-              color: var(--mono-900);
-              border-bottom: 2px solid var(--mono-200);
+              color: var(--mono-90);
+              border-bottom: 2px solid var(--mono-20);
             }
             .icon {
               place-items: center;
@@ -491,14 +491,14 @@ p
           grid-template-areas: 'icon info';
           grid-gap: var(--lg);
           align-items: center;
-          background: var(--color-100);
+          background: var(--primary-10);
           padding: var(--lg);
           border-radius: var(--lg);
           .icon {
             grid-area: icon;
             display: grid;
             place-items: center;
-            background: var(--color-300);
+            background: var(--primary-30);
             border-radius: var(--md);
             width: 64px;
             aspect-ratio: 1;
@@ -518,7 +518,7 @@ p
 
           p {
             font-size: 1rem;
-            color: var(--mono-800);
+            color: var(--mono-80);
           }
         }
       }

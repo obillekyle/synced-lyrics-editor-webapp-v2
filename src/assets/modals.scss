@@ -6,13 +6,13 @@
       margin-right: var(--sm);
       padding: calc(var(--sm) / 2) var(--sm);
       background: none;
-      border: 1px solid var(--color-800);
+      border: 1px solid var(--primary-80);
       border-radius: calc(var(--sm) / 2);
       font: inherit;
     }
 
     pre {
-      border: 1px solid var(--color-800);
+      border: 1px solid var(--primary-80);
       padding: var(--sm);
       overflow: auto;
       font-size: var(--font-sm);
@@ -22,7 +22,7 @@
         width: 4px;
       }
       &::-webkit-scrollbar-thumb {
-        background-color: var(--color-800);
+        background-color: var(--primary-80);
       }
     }
 
@@ -30,13 +30,13 @@
       &[data-mode='0'] {
         .chip-button:nth-child(1) {
           color: var(--background-secondary);
-          background-color: var(--color-800);
+          background-color: var(--primary-80);
         }
       }
       &[data-mode='1'] {
         .chip-button:nth-child(2) {
           color: var(--background-secondary);
-          background-color: var(--color-800);
+          background-color: var(--primary-80);
         }
       }
     }
@@ -44,13 +44,13 @@
     &:has([data-mode='0']) {
       .active {
         color: var(--background-secondary);
-        background-color: var(--color-800);
+        background-color: var(--primary-80);
       }
     }
 
     #fileName {
       padding: var(--lg) var(--xl);
-      border: 1px solid var(--color-800);
+      border: 1px solid var(--primary-80);
       border-radius: calc(var(--sm) / 2);
       font: inherit;
     }

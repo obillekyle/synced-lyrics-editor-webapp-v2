@@ -10,8 +10,8 @@
   >
     <defs>
       <linearGradient id="gradient" x1="0%" y1="50%" x2="100%" y2="50%">
-        <stop offset="5%" stop-color="var(--color-700)"></stop>
-        <stop offset="95%" stop-color="var(--color-600)"></stop>
+        <stop offset="5%" stop-color="var(--primary-70)"></stop>
+        <stop offset="95%" stop-color="var(--primary-60)"></stop>
       </linearGradient>
     </defs>
     <path

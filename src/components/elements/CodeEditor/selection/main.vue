@@ -80,7 +80,7 @@
       }
 
       span.selected {
-        background: var(--color-700-20);
+        background: var(--primary-70-20);
       }
     }
   }

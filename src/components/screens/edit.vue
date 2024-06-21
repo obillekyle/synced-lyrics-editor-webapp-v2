@@ -55,13 +55,13 @@
     overflow: hidden;
     height: inherit;
     grid-template-columns: auto 1fr;
-    background: var(--color-600-10);
+    background: var(--primary-60-10);
 
     .mobile-editor {
       position: absolute;
       resize: none;
       padding: var(--md);
-      background-color: var(--color-50);
+      background-color: var(--primary-5);
       font: inherit;
       font-family:
         JetBrains Mono,

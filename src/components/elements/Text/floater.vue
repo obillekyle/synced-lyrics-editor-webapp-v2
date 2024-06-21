@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import {
-    type ColorString,
+    type AppColorString,
     getCSSColor,
     type AppSizes,
     getCSSValue,
+    type AppSizesString,
+    type ColorString,
   } from '@/api/util';
   import type { Component } from 'vue';
 
@@ -18,21 +20,21 @@
     | 'bottom-left'
     | 'bottom-right';
 
-  withDefaults(
-    defineProps<{
-      text?: Component | string;
-      color?: ColorString;
-      offset?: AppSizes | number | String;
-      size?: AppSizes | number | String;
-      pos?: Positions;
-    }>(),
-    {
-      color: 'color-200',
-      offset: 0,
-      size: 'xxs',
-      pos: 'top-right',
-    }
-  );
+  interface FloaterProps {
+    text?: Component | string;
+    color?: AppColorString;
+    offset?: AppSizesString;
+    size?: AppSizesString;
+    pos?: Positions;
+  }
+
+  withDefaults(defineProps<FloaterProps>(), {
+    // @ts-ignore
+    color: () => 'color-200',
+    offset: 0,
+    size: 'xxs',
+    pos: 'top-right',
+  });
 </script>
 
 <template>
@@ -68,7 +70,7 @@
       padding: 1px 3px;
       border-radius: 999px;
       z-index: 1;
-      box-shadow: 0 0 2px var(--mono-600);
+      box-shadow: 0 0 2px var(--mono-60);
       font-size: var(--sm);
 
       &.top {

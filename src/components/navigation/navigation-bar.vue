@@ -3,11 +3,11 @@
 
   import I18nString from '../elements/Text/i18n-string.vue';
   import IconButton from '../elements/Button/icon-button.vue';
-  import NavigationContent from '../elements/Navigation/content.vue';
-  import NavigationEntry from '../elements/Navigation/entry.vue';
-  import NavigationItem from '../elements/Navigation/item.vue';
-  import NavigationBar from '../elements/Navigation/main.vue';
-  import NavigationContainer from '../elements/Navigation/container.vue';
+  import NavigationContent from '../elements/Navigation/navigation-content.vue';
+  import NavigationEntry from '../elements/Navigation/navigation-entry.vue';
+  import NavigationItem from '../elements/Navigation/navigation-item.vue';
+  import NavigationBar from '../elements/Navigation/navigation-bar.vue';
+  import NavigationContainer from '../elements/Navigation/navigation-container.vue';
   import _presets from '../modals/_presets';
   import AppLogo from './app-logo.vue';
   import { AppScreens } from '@/app/main';

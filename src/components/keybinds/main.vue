@@ -106,7 +106,7 @@
     right: 0;
     transform: translateY(calc(-100% - 1px));
     font-size: var(--font-sm);
-    color: var(--color-900);
+    color: var(--primary-90);
     z-index: 2;
 
     .item {
@@ -127,7 +127,7 @@
       &::before {
         inset: 0;
         content: '';
-        background-color: var(--color-600-10);
+        background-color: var(--primary-60-10);
         position: absolute;
         z-index: -1;
       }
@@ -136,8 +136,8 @@
         padding: 2px 4px;
         border-radius: 2px;
         font-family: 'JetBrains Mono', monospace;
-        border: 1px solid var(--color-600-30);
-        background-color: var(--color-600-10);
+        border: 1px solid var(--primary-60-30);
+        background-color: var(--primary-60-10);
       }
     }
   }

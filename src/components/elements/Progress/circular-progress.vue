@@ -96,7 +96,7 @@
 
     circleElem.style.setProperty(
       '--md-progress-spinner-start-value',
-      String(0.95 * circleCircumference.value)
+      String(1 * circleCircumference.value)
     );
     circleElem.style.setProperty(
       '--md-progress-spinner-end-value',
@@ -144,19 +144,19 @@
       </svg>
 
       <div
-        class="content"
+        class="spinner-content"
         :style="{
           width: addPX(diameter - stroke * 2),
           height: addPX(diameter - stroke * 2),
         }"
       >
-        <slot></slot>
+        <slot />
       </div>
     </div>
   </transition>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import '@/assets/vars.scss';
 
   @keyframes md-progress-spinner-rotate {
@@ -208,79 +208,101 @@
       transform: rotate(0);
     }
 
-    12.5% {
+    10% {
       stroke-dashoffset: var(--md-progress-spinner-end-value);
       transform: rotate(0);
     }
 
-    12.51% {
+    10.01% {
       stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotateX(180deg) rotate(72.5deg);
+      transform: rotateX(180deg) rotate(70deg);
     }
 
-    25% {
+    20% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotateX(180deg) rotate(72.5deg);
+      transform: rotateX(180deg) rotate(70deg);
     }
 
-    25.1% {
+    20.01% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotate(270deg);
+      transform: rotate(290deg);
     }
 
-    37.5% {
+    30% {
       stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotate(270deg);
+      transform: rotate(290deg);
     }
 
-    37.51% {
+    30.01% {
       stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotateX(180deg) rotate(161.5deg);
+      transform: rotateX(180deg) rotate(142deg);
+    }
+
+    40% {
+      stroke-dashoffset: var(--md-progress-spinner-start-value);
+
+      transform: rotateX(180deg) rotate(142deg);
+    }
+
+    40.01% {
+      stroke-dashoffset: var(--md-progress-spinner-start-value);
+      transform: rotate(216deg);
     }
 
     50% {
-      stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotateX(180deg) rotate(161.5deg);
+      stroke-dashoffset: var(--md-progress-spinner-end-value);
+      transform: rotate(214deg);
     }
 
     50.01% {
+      stroke-dashoffset: var(--md-progress-spinner-end-value);
+      transform: rotateX(180deg) rotate(216deg);
+    }
+
+    60% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotate(180deg);
+      transform: rotateX(180deg) rotate(216deg);
     }
 
-    62.5% {
-      stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotate(180deg);
-    }
-
-    62.51% {
-      stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotateX(180deg) rotate(251.5deg);
-    }
-
-    75% {
+    60.01% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotateX(180deg) rotate(251.5deg);
+      transform: rotate(144deg);
     }
 
-    75.01% {
+    70% {
+      stroke-dashoffset: var(--md-progress-spinner-end-value);
+      transform: rotate(144deg);
+    }
+
+    70.01% {
+      stroke-dashoffset: var(--md-progress-spinner-end-value);
+
+      transform: rotateX(180deg) rotate(286deg);
+    }
+
+    80% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotate(90deg);
+      transform: rotateX(180deg) rotate(284deg);
     }
 
-    87.5% {
-      stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotate(90deg);
+    80.01% {
+      stroke-dashoffset: var(--md-progress-spinner-start-value);
+      transform: rotate(73deg);
     }
 
-    87.51% {
+    90% {
       stroke-dashoffset: var(--md-progress-spinner-end-value);
-      transform: rotateX(180deg) rotate(341.5deg);
+      transform: rotate(73deg);
+    }
+
+    90.01% {
+      stroke-dashoffset: var(--md-progress-spinner-end-value);
+      transform: rotateX(180deg) rotate(0deg);
     }
 
     100% {
       stroke-dashoffset: var(--md-progress-spinner-start-value);
-      transform: rotateX(180deg) rotate(341.5deg);
+      transform: rotateX(180deg) rotate(0deg);
     }
   }
 
@@ -291,7 +313,7 @@
     height: max-content;
     align-self: center;
 
-    .content {
+    .spinner-content {
       position: absolute;
       display: grid;
       place-items: center;
@@ -304,7 +326,7 @@
     }
 
     &.md-infinite {
-      animation: md-progress-spinner-rotate 2s linear infinite;
+      animation: md-progress-spinner-rotate 2.5s linear infinite;
 
       &.md-progress-spinner-enter,
       &.md-progress-spinner-leave-to {
@@ -321,7 +343,7 @@
       }
 
       .md-progress-spinner-circle {
-        animation: 5s infinite $md-transition-stand-timing;
+        animation: 7s infinite $md-transition-stand-timing;
         animation-name: md-progress-spinner-stroke-rotate;
       }
     }
@@ -368,7 +390,7 @@
 
   .md-progress-spinner-circle {
     fill: none;
-    stroke: var(--color-700);
+    stroke: var(--primary);
     transform-origin: center;
     transition: stroke-dashoffset 0.25s $md-transition-stand-timing;
     will-change: stroke-dashoffset, stroke-dasharray, stroke-width,
@@ -377,7 +399,7 @@
 
   .md-progress-spinner-bg {
     fill: none;
-    stroke: var(--mono-200);
+    stroke: var(--mono-20);
     transform-origin: center;
     transition:
       stroke-dashoffset 0.25s $md-transition-stand-timing,

@@ -17,36 +17,39 @@
 </script>
 
 <template>
-  <div
+  <button
     class="chip"
     :class="variant"
     :style="`--radius: ${getCSSValue(radius.toString())};`"
     @pointerdown="rippleEffect"
   >
     <ChipIcon v-if="leftIcon" class="left-icon" :icon="leftIcon" />
-    <slot>{{ label }}</slot>
+    <div class="label">
+      <slot>{{ label }}</slot>
+    </div>
     <ChipIcon v-if="rightIcon" class="right-icon" :icon="rightIcon" />
-  </div>
+  </button>
 </template>
 
 <style lang="scss">
   .chip {
+    position: relative;
+    overflow: hidden;
     user-select: none;
     display: inline-flex;
     align-items: center;
-    position: relative;
-    overflow: hidden;
     width: fit-content;
     border-radius: var(--radius);
+    height: var(--size-xs);
     gap: var(--sm);
     border: none;
     font: inherit;
     font-weight: 600;
-    color: var(--color-100);
-    background: var(--color-700);
-    padding: var(--xs) var(--md);
+    color: var(--on-primary);
+    background: var(--primary);
+    padding-inline: var(--sm);
     transition: opacity 0.2s;
-    box-shadow: 0 2px 6px #0005;
+    box-shadow: var(--shadow-1);
     transition:
       filter 0.2s,
       background-color 0.2s;
@@ -57,6 +60,12 @@
 
     & + & {
       margin-inline-start: var(--xs);
+    }
+
+    .label {
+      align-self: center;
+      text-align: center;
+      flex-grow: 1;
     }
 
     .chip-icon {
@@ -75,23 +84,28 @@
     &.outline,
     &.transparent,
     &.subtle {
-      color: var(--color-800);
+      color: var(--primary-80);
       box-shadow: none;
     }
 
+    &:disabled {
+      background-color: var(--mono-30-50) !important;
+      color: var(--mono-50) !important;
+    }
+
     &.outline {
-      border: 1px solid var(--color-600-50);
+      border: 1px solid var(--primary-60-50);
     }
 
     &.subtle {
-      background: var(--color-500-20);
+      background: var(--primary-50-20);
     }
 
     &.transparent,
     &.outline {
       background: none;
       &:hover {
-        background: var(--color-400-20);
+        background: var(--primary-40-20);
       }
     }
   }

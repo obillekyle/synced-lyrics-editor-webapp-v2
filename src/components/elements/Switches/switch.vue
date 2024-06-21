@@ -1,12 +1,19 @@
 <script setup lang="ts">
   import { type InputHTMLAttributes, ref, onMounted, inject } from 'vue';
-  import { addPX, evaluate, getCSSValue, type AppSizes } from '@/api/util';
+  import {
+    addPX,
+    evaluate,
+    getCSSValue,
+    type AppSizes,
+    keyboardClick,
+  } from '@/api/util';
 
   interface SwitchProps
     extends /* @vue-ignore */ Omit<InputHTMLAttributes, 'size'> {
     size?: AppSizes | number | String;
     change?: (v: boolean) => any;
     defaultChecked?: boolean;
+    variant?: 'outline' | 'filled';
   }
 
   const inputRef = ref<HTMLInputElement | null>(null);
@@ -15,7 +22,8 @@
   });
 
   const props = withDefaults(defineProps<SwitchProps>(), {
-    size: 'sm',
+    size: 'md',
+    variant: 'outline',
   });
 
   function handleClick() {
@@ -37,9 +45,12 @@
 
 <template>
   <div
+    tabindex="0"
     class="switch-wrapper"
+    :class="variant"
+    @keydown="keyboardClick"
     @click="() => inputRef?.click()"
-    :style="`--size: ${getCSSValue(size, 'px', 'size')}`"
+    :style="`--size: ${getCSSValue(size, 'px', 'component')}`"
   >
     <input
       type="checkbox"
@@ -55,34 +66,21 @@
   .switch-wrapper {
     position: relative;
     display: inline-block;
-    width: calc(var(--size) * 1.8);
+    width: calc(var(--size) * 2);
     height: var(--size);
     border-radius: var(--size);
-    background-color: var(--mono-100);
+    background-color: var(--mono-10);
     transition: box-shadow 0.15s ease;
-    box-shadow:
-      0 0 0 2px var(--mono-500),
-      0 0 8px #0005;
-
+    box-shadow: 0 0 0 2px var(--mono-50);
     input {
       display: none;
     }
 
-    &:has(input.inverted) {
-      background-color: var(--mono-900);
+    &.filled {
+      box-shadow: 0 0 0 2px var(--mono-10);
+
       &::after {
-        background-color: var(--mono-500);
-      }
-
-      &:has(input:checked) {
-        background-color: var(--color-300);
-        box-shadow:
-          0 0 0 2px var(--color-300),
-          0 0 8px #0005;
-
-        &::after {
-          background-color: var(--color-800);
-        }
+        scale: 0.8;
       }
     }
 
@@ -94,7 +92,7 @@
       scale: 0.6;
       width: var(--size);
       height: var(--size);
-      background-color: var(--mono-500);
+      background-color: var(--mono-50);
       border-radius: var(--size);
       transition:
         inset 0.2s var(--timing-standard),
@@ -103,15 +101,13 @@
   }
 
   .switch-wrapper:has(input:checked) {
-    background-color: var(--color-800);
-    box-shadow:
-      0 0 0 2px var(--color-800),
-      0 0 8px #0005;
+    background-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary);
 
     &::after {
-      scale: 0.85;
-      left: calc(var(--size) * 0.8);
-      background-color: var(--color-300);
+      scale: 0.8;
+      left: calc(var(--size) * 1);
+      background-color: var(--on-primary);
     }
   }
 

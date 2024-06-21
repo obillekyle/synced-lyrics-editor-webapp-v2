@@ -36,14 +36,14 @@
 
   .progress {
     position: relative;
-    background: var(--mono-100);
+    background: var(--mono-10);
     border-radius: var(--md);
     overflow: hidden;
     width: 100%;
 
     .progress-bar {
       height: inherit;
-      background: var(--color-600);
+      background: var(--primary);
       overflow: hidden;
       width: calc(var(--value) * 1%);
       transition: width 0.25s $md-transition-stand-timing;
@@ -65,12 +65,12 @@
         top: 0;
         bottom: 0;
         height: inherit;
-        background: var(--color-600);
+        background: var(--primary);
         will-change: width, left, opacity;
       }
 
       &::before {
-        animation: infiniteLoad infinite 2s linear;
+        animation: infiniteLoad infinite 2.5s linear;
         @keyframes infiniteLoad {
           0% {
             left: -20%;
@@ -80,19 +80,20 @@
             left: 0%;
           }
 
-          75% {
-            width: 175%;
-            left: 120%;
+          50% {
+            width: 100%;
+            left: 40%;
+          }
+
+          80% {
+            width: 70%;
+            left: 100%;
             opacity: 1;
           }
-          76% {
+          80.01% {
             opacity: 0;
           }
-          77% {
-            width: 40%;
-            opacity: 0;
-          }
-          80% {
+          80.02% {
             left: -20%;
             width: 20%;
           }
@@ -100,7 +101,7 @@
       }
 
       &::after {
-        animation: infiniteLoad2 infinite 2s linear;
+        animation: infiniteLoad2 infinite 2.5s linear;
         @keyframes infiniteLoad2 {
           0% {
             left: -100%;
@@ -149,13 +150,13 @@
         }
 
         &::before {
-          background: var(--color-200);
-          left: calc(var(--value) * 1% + var(--xs));
+          background: var(--primary-20);
+          left: calc(var(--value) * 1% + var(--xxs));
         }
 
         &::after {
           aspect-ratio: 1;
-          background: var(--color-600);
+          background: var(--primary);
         }
       }
 

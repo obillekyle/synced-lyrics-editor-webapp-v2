@@ -15,6 +15,7 @@
   import { defaultColor } from '@/app/main';
   import LyricCard from './components/screens/lyric-card.vue';
   import _presets from './components/modals/_presets';
+  import Test from './components/test.vue';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -202,7 +203,9 @@
 
   <Styles />
   <template v-if="ready">
-    <template v-if="appPath !== '/lyric-card'">
+    <Test v-if="appPath === '/test'" />
+    <LyricCard v-else-if="appPath === '/lyric-card'" />
+    <template v-else>
       <I18nString entry="ALPHA" :element="AppTag" v-if="!devTag" />
       <div class="content-wrapper">
         <AppHeader />
@@ -213,8 +216,7 @@
       </div>
       <NavigationBar />
     </template>
-
-    <LyricCard v-else />
+    {{ appPath }}
 
     <Modals />
   </template>
@@ -300,12 +302,12 @@
   #app:has([data-screen='lyric']) {
     background: linear-gradient(
         to bottom,
-        var(--color-100-40) -20%,
-        var(--color-100-70) 20%,
-        var(--color-100-90) 60%,
-        var(--color-100) 100%
+        var(--primary-10-40) -20%,
+        var(--primary-10-70) 20%,
+        var(--primary-10-90) 60%,
+        var(--primary-10) 100%
       ),
-      var(--album-blur, var(--color-100));
+      var(--album-blur, var(--primary-10));
     background-size: cover;
     height: 100dvh;
     background-position: center, center;

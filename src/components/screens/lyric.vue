@@ -135,7 +135,7 @@
 <style lang="scss">
   .preview-screen {
     padding-block: calc((85dvh - 112px) / 2);
-    color: var(--color-900-20);
+    color: var(--primary-90-20);
 
     &:empty::after {
       content: 'No lyric available';
@@ -172,12 +172,12 @@
 
         &:has(.translated) span {
           font-size: 24px;
-          color: var(--mono-500);
+          color: var(--mono-50);
         }
       }
 
       &.active .data {
-        color: var(--color-900);
+        color: var(--primary-90);
         scale: 1;
       }
 

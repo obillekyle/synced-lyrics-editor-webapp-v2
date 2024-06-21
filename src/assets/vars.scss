@@ -47,7 +47,7 @@ $md-transition-leave: $md-transition-leave-duration $md-transition-leave-timing;
   * @group transition
   */
 
-$md-transition-stand-timing: cubic-bezier(0.25, 0.4, 0.25, 1);
+$md-transition-stand-timing: cubic-bezier(0.25, 0.1, 0.25, 1);
 $md-transition-stand-duration: 0.4s;
 $md-transition-stand: $md-transition-stand-duration $md-transition-stand-timing;
 

@@ -580,7 +580,7 @@
       }
 
       .divider-label {
-        background-color: var(--color-50);
+        background-color: var(--primary-5);
       }
 
       .special {
@@ -616,7 +616,7 @@
         .desc {
           grid-area: desc;
           align-self: start;
-          color: var(--mono-600);
+          color: var(--mono-60);
         }
       }
 
@@ -630,12 +630,12 @@
       .lyric-card {
         width: 100%;
         grid-gap: var(--md);
-        background: var(--color-100);
+        background: var(--primary-10);
         border-radius: var(--radius);
         overflow: hidden;
         padding: var(--padding);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
-        border: 1px solid var(--color-200);
+        border: 1px solid var(--primary-20);
 
         .lyric-text {
           line-height: 1.25;
@@ -713,7 +713,7 @@
         .lyric-artist {
           font-size: var(--font-lg);
           font-weight: 400;
-          color: var(--mono-700);
+          color: var(--mono-70);
           width: 0;
         }
       }
@@ -745,8 +745,8 @@
       padding-top: var(--md);
       background: linear-gradient(
         to bottom,
-        var(--color-50) 0%,
-        var(--color-50) 90%,
+        var(--primary-5) 0%,
+        var(--primary-5) 90%,
         transparent 100%
       );
     }

@@ -14,7 +14,7 @@
   .app-logo {
     display: flex;
     grid-area: logo;
-    border-left: 4px solid var(--color-500, red);
+    border-left: 4px solid var(--primary-50, red);
     transition: border-color 3s;
     padding-inline-start: 4px;
     width: 64px;

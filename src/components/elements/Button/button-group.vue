@@ -1,21 +1,30 @@
 <script setup lang="ts">
-  import { type HTMLAttributes } from 'vue';
+  defineProps<{
+    span?: boolean;
+  }>();
 </script>
 
 <template>
-  <div class="button-group">
-    <slot></slot>
+  <div class="button-group" :class="{ span }">
+    <slot />
   </div>
 </template>
 
 <style lang="scss">
   .button-group {
-    width: 100%;
     display: flex;
+    flex-wrap: nowrap;
+    &.span {
+      display: grid;
+      width: 100%;
+      grid-template-columns: repeat(auto-fit, minmax(0px, 1fr));
+      .button {
+        width: 100%;
+      }
+    }
     .button {
       margin: 0;
       border-radius: 0;
-      width: 100%;
       margin-inline: 0 !important;
       &:not(:last-child) {
         border-right: none;

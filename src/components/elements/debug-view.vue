@@ -53,7 +53,7 @@
     border-radius: 3px;
 
     padding: var(--sm) var(--md);
-    background-color: var(--color-100);
+    background-color: var(--primary-10);
     + .debug-item {
       margin-top: calc(var(--sm) * -1);
     }

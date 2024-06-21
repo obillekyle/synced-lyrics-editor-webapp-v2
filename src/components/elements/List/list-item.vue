@@ -112,7 +112,7 @@
     const element = wrapper.value!;
     arrangeEvent.value = null;
     element.classList.remove('dragged');
-    element.style.top = addPX(props.index * 56);
+    element.style.top = addPX(props.index * 60);
     document.body.style.removeProperty('cursor');
     lastTop.value = props.index * 56;
   }
@@ -191,7 +191,7 @@
     class="list-item"
     @mousedown="swipeDown"
     @touchstart="swipeDown"
-    :style="{ top: addPX(index * 56) }"
+    :style="{ top: addPX(index * 60) }"
   >
     <div class="list-content" ref="content" :data-index="props.index">
       <component :is="parentProps.listComp" v-bind="props.props" />

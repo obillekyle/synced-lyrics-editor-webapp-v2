@@ -1,9 +1,10 @@
 <script setup lang="ts">
   import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
-  import ColorsObj from '@/api/colors';
+  import ColorsObj, { Colors } from '@/api/colors';
+  import { AppShades } from './elements/Layout/util';
 
   const Player = window.app.player;
-  const theme = inject<Ref<string>>('app-theme')!;
+  const theme = inject<Ref<'light' | 'dark'>>('app-theme')!;
   const styleElem = ref('');
 
   const props = withDefaults(
@@ -17,29 +18,59 @@
     }
   );
 
-  function getShades(colors: ColorsObj, prefix = 'color') {
+  function getShades(color: string | String | Colors, prefix: string) {
+    const colors =
+      color instanceof Colors ? color : new ColorsObj(color.toString());
     const values: Record<string, string> = {};
 
     if (theme.value == 'dark') {
-      for (let i = 0; i < 12; i++) {
-        const index = i === 1 ? 5 : i === 0 ? 0 : (i - 1) * 10;
-        const shade = index * 10;
-        values[prefix + '-' + shade] = colors.shade(index).hexa();
+      for (let shade of AppShades) {
+        values[prefix + '-' + shade] = colors.shade(shade).hex();
 
         for (let j = 0; j < 9; j++) {
-          const color = colors.shade(index, (j + 1) * 0.1).hexa();
+          const color = colors.shade(shade, (j + 1) * 0.1).hexa();
           values[prefix + '-' + shade + '-' + (j + 1) * 10] = color;
+        }
+
+        if (shade == 50) {
+          const color = colors.shade(50);
+          values[prefix] = color.hex();
+          values['on-' + prefix] = colors.shade(color.isDark() ? 90 : 10).hex();
+        }
+
+        if (shade == 70) {
+          const color = colors.shade(70);
+          values[prefix + '-container'] = color.hex();
+          values['on-' + prefix + '-container'] = colors
+            .shade(color.isDark() ? 90 : 10)
+            .hex();
         }
       }
     } else {
-      for (let i = 0; i < 12; i++) {
-        const index = i === 10 ? 95 : i === 11 ? 100 : i * 10;
-        const shade = Math.abs((index - 100) * -10);
-        values[prefix + '-' + shade] = colors.shade(index).hexa();
+      for (let shade of AppShades) {
+        const shadeValue = Math.abs(100 - shade);
+
+        values[prefix + '-' + shade] = colors
+          .shade(shadeValue, 1, theme.value)
+          .hex();
 
         for (let j = 0; j < 9; j++) {
-          const color = colors.shade(index, (j + 1) * 0.1).hexa();
+          const color = colors.shade(shadeValue, (j + 1) * 0.1, 'light').hexa();
           values[prefix + '-' + shade + '-' + (j + 1) * 10] = color;
+        }
+
+        if (shade == 50) {
+          const color = colors.shade(50, 1, 'light');
+          values[prefix] = color.hex();
+          values['on-' + prefix] = colors.shade(color.isDark() ? 90 : 10).hex();
+        }
+
+        if (shade == 30) {
+          const color = colors.shade(70, 1, 'light');
+          values[prefix + '-container'] = color.hex();
+          values['on-' + prefix + '-container'] = colors
+            .shade(color.isDark() ? 90 : 10)
+            .hex();
         }
       }
     }
@@ -53,14 +84,13 @@
       let value = '';
 
       Object.assign(values, {
-        'color-primary': 'var(--color-500)',
-        'album-color': 'var(--color-primary)',
+        'album-color': 'var(--primary)',
         'album-image': `url('${Player.picture?.data || ''}')`,
         'album-blur': `url('${Player.picture?.blur || ''}')`,
       });
 
-      Object.assign(values, getShades(props.Colors));
-      Object.assign(values, getShades(new ColorsObj('#000000'), 'mono'));
+      Object.assign(values, getShades(props.Colors, 'primary'));
+      Object.assign(values, getShades(new Colors('#000000'), 'mono'));
 
       for (const key in values) {
         value += `  --${key}: ${values[key]};\n`;

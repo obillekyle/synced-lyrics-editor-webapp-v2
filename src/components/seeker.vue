@@ -161,7 +161,7 @@
           content: attr(data-val);
           position: absolute;
           transform: translate(50%, -50%);
-          background: var(--mono-100);
+          background: var(--mono-10);
           padding: var(--xs);
           font-size: var(--font-sm);
           border-radius: var(--xs);
@@ -193,11 +193,11 @@
   @media screen and (max-width: 600px) {
     .music-seeker {
       .progress {
-        background: var(--color-600-30);
+        background: var(--primary-60-30);
         height: 2px !important;
 
         .progress-bar {
-          background-color: var(--color-900);
+          background-color: var(--primary-90);
         }
 
         .progress-bar::after {

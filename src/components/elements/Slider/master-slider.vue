@@ -57,7 +57,7 @@
     const padding =
       ((rect.width / 2 - cursorPos) / (rect.width / 2)) * (rect.height / -2);
 
-    const offset = clamp(cursorPos + padding, 0, rect.width);
+    const offset = clamp(cursorPos + padding - rect.height / 2, 0, rect.width);
     const value = (offset / rect.width) * (props.max - props.min);
 
     model.value = props.step
@@ -120,8 +120,12 @@
     ref="wrapper"
     @mousedown="dragDown"
     @touchstart="dragDown"
+    :class="{ dragging }"
     :style="{ '--pos': position }"
   >
+    <div class="icon" :data-value="model">
+      <slot name="icon" />
+    </div>
     <div class="slider-content">
       <slot />
     </div>
@@ -130,35 +134,63 @@
 
 <style lang="scss" scoped>
   .master-slider {
+    --height: var(--size-md);
     user-select: none;
     position: relative;
     width: 100%;
     display: grid;
-    min-height: var(--size-xl);
-    background-color: var(--color-600-40);
-    border-radius: 999px;
+    overflow: hidden;
+    gap: var(--xs);
+    grid-template-columns: var(--height) 1fr;
+    min-height: var(--height);
+    background-color: var(--primary-50-50);
+    border-radius: calc(var(--height) / 2.25);
     &::before,
     &::after {
       content: '';
       position: absolute;
-      background-color: var(--color-600-90);
+      background-color: var(--primary-container);
     }
 
     &::before {
       inset: 0;
       width: calc((var(--pos) * 1%));
-      min-width: var(--size-xl);
+      min-width: var(--height);
       height: 100%;
       border-radius: inherit;
     }
 
     &::after {
-      right: calc(var(--size-xl) / 4);
+      right: calc(var(--height) / 4);
       top: 50%;
-      width: calc(var(--size-xl) * 0.1);
+      width: calc(var(--height) * 0.1);
       aspect-ratio: 1;
       transform: translateY(-50%);
       border-radius: inherit;
+    }
+
+    &.dragging {
+      &::before {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      .icon {
+        > * {
+          display: none;
+        }
+        &::before {
+          display: block !important;
+          content: attr(data-value);
+        }
+      }
+    }
+
+    .icon {
+      width: var(--height);
+      height: var(--height);
+      display: grid;
+      place-items: center;
+      z-index: 1;
     }
 
     .slider-content {
@@ -167,12 +199,8 @@
       position: relative;
       z-index: 1;
       display: flex;
-      gap: var(--md);
       align-items: center;
-      padding-inline: calc(var(--size-xl) / 2);
-      color: white;
-      text-shadow: 0 0 4px #0008;
-      font-weight: 600;
+      color: var(--primary-80);
     }
   }
 </style>

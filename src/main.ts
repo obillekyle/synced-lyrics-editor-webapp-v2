@@ -36,6 +36,8 @@ function init() {
 
   if (location.pathname.startsWith('/lyric-card')) {
     console.log('lyric-card');
+  } else if (location.pathname.startsWith('/test')) {
+    console.log('test');
   } else {
     window.history.replaceState({}, document.title, '/');
   }

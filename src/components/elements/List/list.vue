@@ -15,7 +15,7 @@
 </script>
 
 <template>
-  <div class="list" :style="{ height: addPX((items.length + 1) * 56) }">
+  <div class="list" :style="{ height: addPX((items.length + 1) * 60) }">
     <ListItem
       v-for="(item, index) in items"
       :key="item.id"
@@ -43,7 +43,7 @@
       &.dragged {
         z-index: 10;
         transition: none;
-        box-shadow: 0 0px 6px var(--mono-200-40);
+        box-shadow: 0 0px 6px var(--mono-20-40);
       }
     }
 
@@ -59,8 +59,8 @@
       .draggable {
         position: absolute;
         right: 0px;
-        height: 56px;
-        width: 56px;
+        height: 100%;
+        aspect-ratio: 1;
         display: grid;
         place-items: center;
         cursor: row-resize;

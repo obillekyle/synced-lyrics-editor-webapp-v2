@@ -23,7 +23,7 @@
 
     .time {
       min-width: 56px;
-      color: var(--color-700);
+      color: var(--primary-70);
     }
   }
 </style>

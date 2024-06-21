@@ -140,6 +140,14 @@ export function rippleEffect(e: MouseEvent, to?: string) {
   element.appendChild(ripple);
 }
 
+export function keyboardClick(event: KeyboardEvent) {
+  const target = event.currentTarget as HTMLElement;
+  if (target.matches(':focus-visible') && event.key === ' ') {
+    target.click();
+    event.preventDefault();
+  }
+}
+
 export function getClientPos(event: TouchEvent | MouseEvent) {
   return event instanceof MouseEvent
     ? { x: event.clientX, y: event.clientY }

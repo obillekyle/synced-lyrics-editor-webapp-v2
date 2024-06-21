@@ -27,7 +27,7 @@
     display: grid;
 
     .binds-group {
-      border-bottom: 1px solid var(--color-600-30);
+      border-bottom: 1px solid var(--primary-60-30);
       padding-block: var(--sm) var(--md);
 
       &:empty {
@@ -54,17 +54,17 @@
       user-select: none;
       font-family: 'JetBrains Mono', monospace;
       border-radius: calc(var(--sm) / 2);
-      background-color: var(--color-600-10);
+      background-color: var(--primary-60-10);
       font-size: var(--font-sm);
       padding: calc(var(--sm) / 2) var(--sm);
-      border: 1px solid var(--color-600-60);
+      border: 1px solid var(--primary-60-60);
     }
 
     .label {
       font-size: var(--font-md);
       margin-right: auto;
       padding-right: 32px;
-      color: var(--mono-900);
+      color: var(--mono-90);
     }
   }
 </style>

@@ -32,8 +32,8 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: var(--app-navbar-size, 88px);
-    background: var(--app-navbar-color);
+    width: var(--size-xl, 88px);
+    background: var(--primary-10);
 
     .nav-container {
       display: flex;
@@ -54,9 +54,9 @@
       justify-content: center;
       background: none;
       user-select: none;
-      color: var(--color-800);
-      padding-block: var(--sm);
-      margin-bottom: var(--sm);
+      color: var(--primary-80);
+      padding-block: var(--padding-xs);
+      margin-bottom: var(--padding-xs);
       .icon {
         align-self: end;
         margin-bottom: 4px;
@@ -66,10 +66,9 @@
         overflow: hidden;
         justify-self: center;
         place-items: center;
-        width: var(--size-lg);
+        width: var(--size-sm);
         height: var(--icon-lg);
         font-size: var(--icon-md);
-        contain: content;
         transition: background-color 0.2s;
         * {
           transition: scale 0.2s;
@@ -80,7 +79,7 @@
           display: block;
           position: absolute;
           inset: 0;
-          width: var(--size-sm);
+          width: var(--icon-lg);
           margin-inline: auto;
           transition:
             width 0.2s,
@@ -123,17 +122,17 @@
     }
 
     .nav-item:hover .icon {
-      background-color: var(--color-400-20);
+      background-color: var(--primary-40-20);
     }
 
     .nav-item.active {
       .name {
-        color: var(--color-900);
+        color: var(--primary-90);
       }
       .icon {
-        color: var(--color-900);
+        color: var(--on-primary-container);
         &::before {
-          background-color: var(--color-300);
+          background-color: var(--primary-container);
           width: var(--size-lg);
         }
       }
@@ -169,30 +168,32 @@
         transform: translateY(20%);
       }
 
+      &.hidden .nav-item.active,
+      &.active .nav-item.active {
+        .name {
+          opacity: 1;
+          transform: translateY(-25%);
+        }
+        .icon {
+          transform: translateY(-15%);
+        }
+      }
+
       .nav-item {
         margin-bottom: 0;
-        padding-top: var(--sm);
+        padding-top: var(--padding-sm);
         .name {
-          max-height: var(--size-sm);
           font-size: var(--font-md);
         }
         .icon {
-          font-size: var(--icon-lg);
-          height: var(--size-sm);
-          width: var(--size-xxl);
+          height: var(--icon-xl);
+          width: var(--size-md);
           transition: transform 0.25s var(--timing-standard);
         }
 
         &.active {
-          .name {
-            opacity: 1;
-            transform: translateY(-25%);
-          }
-          .icon {
-            transform: translateY(-15%);
-          }
           .icon::before {
-            width: var(--size-xxl);
+            width: var(--size-md);
           }
         }
       }
