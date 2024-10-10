@@ -1,35 +1,37 @@
-import { evaluate, interval } from "./util";
+import { evaluate, interval } from './util';
 
-import { CustomEventHandler } from "./event";
+import { CustomEventHandler } from './event';
 
 type OptionsEvent = {
-  added: [key: string, value: any]
-  removed: [key: string, value: any]
-  modified: [key: string, oldValue: any, newValue: any]
-  loaded: undefined
-  saved: undefined
-}
+  added: [key: string, value: any];
+  removed: [key: string, value: any];
+  modified: [key: string, oldValue: any, newValue: any];
+  loaded: undefined;
+  saved: undefined;
+};
 
 export type OptionsConfig<T> = {
-  localSaving: boolean
-  localKey: string
-  defaultOptions: Partial<T>,
-  autoSave: boolean
-  saveIntervalSeconds: number
-}
+  localSaving: boolean;
+  localKey: string;
+  defaultOptions: Partial<T>;
+  autoSave: boolean;
+  saveIntervalSeconds: number;
+};
 
-type GetType<T, K, O> = (K extends keyof O ? (O[K] extends () => any ? () => void : O[K]) : T);
+type GetType<T, K, O> = K extends keyof O
+  ? O[K] extends () => any
+    ? () => void
+    : O[K]
+  : T;
 
-type MapRecord = { [key: string]: any }
+type MapRecord = { [key: string]: any };
 
-
-
-class Options<O extends object = MapRecord>
-  extends CustomEventHandler<OptionsEvent> {
-
+class Options<
+  O extends object = MapRecord,
+> extends CustomEventHandler<OptionsEvent> {
   private lastMod = 0;
   private config: OptionsConfig<O> = {
-    localKey: "options",
+    localKey: 'options',
     localSaving: true,
     autoSave: true,
     saveIntervalSeconds: 5,
@@ -58,11 +60,12 @@ class Options<O extends object = MapRecord>
     }
   }
 
-
   load() {
     if (!this.config.localSaving) return;
     const saved = localStorage.getItem(this.config.localKey);
-    const lastSave = localStorage.getItem(this.config.localKey + '-last-save');
+    const lastSave = localStorage.getItem(
+      this.config.localKey + '-last-save'
+    );
 
     this.lastMod = lastSave ? Number(lastSave) : 0;
     this.options = saved ? parser(saved) : this.config.defaultOptions;
@@ -82,19 +85,24 @@ class Options<O extends object = MapRecord>
     this.dispatchEvent('event', ['saved', undefined]);
   }
 
-  set<K extends keyof O | String>(key: K, newValue: K extends keyof O ? O[K] | ((oldVal: O[K]) => O[K]) : any): void;
+  set<K extends keyof O | String>(
+    key: K,
+    newValue: K extends keyof O ? O[K] | ((oldVal: O[K]) => O[K]) : any
+  ): void;
   set(key: any, newValue: any) {
-
     const oldValue = this.options[key];
     this.options[key] = evaluate(newValue, oldValue);
-    this.lastMod++
+    this.lastMod++;
 
-    this.dispatchEvent('event', ['modified', { key, oldValue, newValue: this.options[key] }]);
+    this.dispatchEvent('event', [
+      'modified',
+      { key, oldValue, newValue: this.options[key] },
+    ]);
   }
 
   unset<K extends keyof O | String>(key: K): void;
   unset(key: string) {
-    const copy = { key, value: this.options[key] }
+    const copy = { key, value: this.options[key] };
 
     delete this.options[key];
     this.lastMod++;
@@ -102,14 +110,18 @@ class Options<O extends object = MapRecord>
     this.dispatchEvent('event', ['removed', copy]);
   }
 
-  get<T = any, K extends keyof O | String = keyof O>(key: K): GetType<T, K, O> | undefined;
-  get<T = any, K extends keyof O | String = keyof O>(key: K, defaultValue: K extends keyof O ? O[K] : T): GetType<T, K, O>;
+  get<T = any, K extends keyof O | String = keyof O>(
+    key: K
+  ): GetType<T, K, O> | undefined;
+  get<T = any, K extends keyof O | String = keyof O>(
+    key: K,
+    defaultValue: K extends keyof O ? O[K] : T
+  ): GetType<T, K, O>;
   get(key: string, defaultValue?: any): any {
     if (typeof key != 'string') return;
 
     return this.options[key] ?? defaultValue;
   }
-
 
   getRaw(): O {
     return this.options as any;
@@ -141,8 +153,10 @@ export function stringify(obj: any): string {
     case 'undefined':
       return '~$udf';
     case 'function':
-      console.warn('Functions will be replaced by a dummy function when parsed');
-      return '~$fun'
+      console.warn(
+        'Functions will be replaced by a dummy function when parsed'
+      );
+      return '~$fun';
     case 'symbol':
       console.warn('Symbols will not be the same when parsed');
       return '~$sym:' + obj.description;
@@ -191,13 +205,13 @@ export function parser(str: string): any {
     return new Date(Number(str.slice(7)));
   }
   if (str.startsWith('~$fun')) {
-    return () => { };
+    return () => {};
   }
   if (str.startsWith('~$sym:')) {
     return Symbol(str.slice(6));
   }
   if (str.startsWith('~$udf')) {
-    return undefined
+    return undefined;
   }
   if (str.startsWith('~$arr:')) {
     const obj = JSON.parse(str.slice(6));
@@ -214,7 +228,10 @@ export function parser(str: string): any {
   return str;
 }
 
-async function compress(str: string, encoding: CompressionFormat = 'gzip'): Promise<string> {
+async function compress(
+  str: string,
+  encoding: CompressionFormat = 'gzip'
+): Promise<string> {
   const input = new TextEncoder().encode(str);
 
   const compressionStream = new CompressionStream(encoding);
@@ -222,7 +239,9 @@ async function compress(str: string, encoding: CompressionFormat = 'gzip'): Prom
   writer.write(input);
   writer.close();
 
-  const compressed = await new Response(compressionStream.readable).arrayBuffer();
+  const compressed = await new Response(
+    compressionStream.readable
+  ).arrayBuffer();
   const compressedData = new Uint8Array(compressed);
 
   const base64Data = btoa(String.fromCharCode(...compressedData));
@@ -234,15 +253,21 @@ async function decompress(str: string): Promise<string> {
   const [encoding, base64Data] = str.split(':');
 
   const binaryData = atob(base64Data);
-  const compressedData = new Uint8Array(binaryData.length).map((_, i) => binaryData.charCodeAt(i));
+  const compressedData = new Uint8Array(binaryData.length).map((_, i) =>
+    binaryData.charCodeAt(i)
+  );
 
-  const decompressionStream = new DecompressionStream(encoding as CompressionFormat);
+  const decompressionStream = new DecompressionStream(
+    encoding as CompressionFormat
+  );
   const writer = decompressionStream.writable.getWriter();
   writer.write(compressedData);
   writer.close();
 
-  const decompressed = await new Response(decompressionStream.readable).arrayBuffer();
+  const decompressed = await new Response(
+    decompressionStream.readable
+  ).arrayBuffer();
   return new TextDecoder().decode(decompressed);
 }
 
-export default Options
+export default Options;

@@ -1,224 +1,205 @@
-import type { IAudioMetadata } from 'music-metadata-browser';
-import { clamp } from './util';
-import ColorThief from 'color-thief-ts';
-import Color from 'color';
-import type { IFrames } from '@okyle/id3-js/dist/frameDefinitions';
+import type { IAudioMetadata } from "music-metadata-browser";
 
-const colorThief = new ColorThief();
-
-export type AudioOptions = {
-  currentPos?: number;
-  onLoad: (this: MusicService) => any;
-};
+import { clamp, fastAvgColor, CustomEventHandler } from "@vue-material/core";
 
 export type AudioImage = {
-  data: string;
-  color: string;
-  blur: string;
+	data: string;
+	blur: string;
+	color: string;
 };
 
 export type AudioDetails = {
-  duration: number;
-  artist?: string;
-  album?: string;
-  title: string;
+	duration: number;
+	artist?: string;
+	album?: string;
+	title: string;
 };
 
-const updatedEvent = new CustomEvent('musicupdated', { bubbles: false });
-const seekedEvent = new CustomEvent('seeked', { bubbles: false });
-const resetEvent = new CustomEvent('reset', { bubbles: false });
-const loadingEvent = new CustomEvent('loading', { bubbles: false });
-const errorEvent = new CustomEvent('parse-error', { bubbles: false });
+type AudioServiceEvents = {
+	update: undefined;
+	seek: [time: number];
+	playpause: [state: boolean];
+	reset: undefined;
+	loading: undefined;
+	error: [err: Error];
+	load: undefined;
+};
+class AudioService extends CustomEventHandler<AudioServiceEvents> {
+	private _instance = new Audio();
+	private cleanup = () => {};
+	metadata?: IAudioMetadata;
+	picture?: AudioImage;
 
-class MusicService extends Audio {
-  constructor();
-  constructor(file: File, opts?: AudioOptions);
-  constructor(file?: File, opts?: AudioOptions) {
-    super();
+	get details() {
+		return {
+			duration: this._instance.duration,
+			artist: this.metadata?.common.artist,
+			album: this.metadata?.common.album,
+			title: this.metadata?.common.title || "",
+		};
+	}
 
-    file && this.updateFile(file, opts);
-  }
+	get instance() {
+		return this._instance;
+	}
 
-  getDetails(): AudioDetails {
-    return {
-      duration: this.duration,
-      artist: this.metadata?.common.artist,
-      album: this.metadata?.common.album,
-      title: this.metadata?.common.title || '',
-    };
-  }
+	constructor(src?: string) {
+		super();
 
-  updateFile(file?: File | Blob, opts?: AudioOptions) {
-    if (!file) return false;
-    this.dispatchEvent(loadingEvent);
+		if (src) this.src = src;
+	}
 
-    setTimeout(async () => {
-      try {
-        const music = await import('music-metadata-browser');
-        this.metadata = await music.parseBlob(file);
-        this.metadata.common.title ??= 'name' in file ? file.name : '';
-        this.currentTime = opts?.currentPos ?? 0;
+	initEvents() {
+		const player = this._instance;
 
-        const handler = () => {
-          opts?.onLoad?.call(this);
-          this.removeEventListener('loadeddata', handler);
-          this.dispatchEvent(updatedEvent);
-        };
-        this.addEventListener('loadeddata', handler);
+		const onSeek = () => {
+			this.currentTime = player.currentTime;
+		};
 
-        this.picture = await this.getImage();
-        this.src = URL.createObjectURL(file);
-        this.loadMediaSession();
-        this.load();
-      } catch (err) {
-        if (err) {
-          this.dispatchEvent(errorEvent);
-        }
-      }
-    });
-  }
+		const playPause = () => {
+			this.emit("playpause", !player.paused);
+		};
 
-  private loadMediaSession() {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: this.metadata?.common.title,
-      artist: this.metadata?.common.artist,
-      album: this.metadata?.common.album,
-      artwork: this.picture?.data
-        ? [
-            {
-              src: this.picture.data,
-              sizes: '512x512',
-              type: 'image/jpeg',
-            },
-          ]
-        : [],
-    });
+		player.addEventListener("seeked", onSeek);
+		player.addEventListener("play", playPause);
+		player.addEventListener("pause", playPause);
 
-    navigator.mediaSession.setActionHandler('seekbackward', () => {
-      this.fastSeek(-5);
-    });
+		return () => {
+			player.removeEventListener("seeked", onSeek);
+			player.removeEventListener("play", playPause);
+			player.removeEventListener("pause", playPause);
+		};
+	}
 
-    navigator.mediaSession.setActionHandler('seekforward', () => {
-      this.fastSeek(5);
-    });
-  }
+	private async loadPicture(): Promise<AudioImage | undefined> {
+		const dataBuffer = this.metadata?.common.picture?.[0].data;
 
-  playPause() {
-    isFinite(this.duration) && this.paused ? this.play() : this.pause();
-  }
+		if (dataBuffer) {
+			const Image = (await import("image-js")).default;
+			const audioImage = await Image.load(dataBuffer);
+			const _data = audioImage.toBlob("image/jpeg");
+			const _blur = audioImage
+				.resize({ width: 200, height: 200 })
+				.blurFilter({ radius: 4 })
+				.toBlob();
 
-  setVolume(volume: number) {
-    if (volume === 0) {
-      this.muted = true;
-      return;
-    }
+			const [data, blur] = await Promise.all([_data, _blur]);
 
-    this.muted = false;
-    this.volume = clamp(volume / 100, 0.01, 100);
-  }
+			return {
+				color: await fastAvgColor(data),
+				data: URL.createObjectURL(data),
+				blur: URL.createObjectURL(blur),
+			};
+		}
+	}
 
-  fastSeek(time: number): void {
-    if (this.currentTime + time >= this.duration) {
-      this.currentTime = this.duration;
-    } else if (this.currentTime + time <= 0) {
-      this.currentTime = 0;
-    } else {
-      this.currentTime += time;
-    }
+	private loadMediaSession() {
+		if (!this.metadata) return;
 
-    this.dispatchEvent(seekedEvent);
-  }
+		const { title, artist, album } = this.metadata.common;
+		navigator.mediaSession.metadata = new MediaMetadata({
+			title,
+			artist,
+			album,
+			artwork: this.picture?.data
+				? [
+						{
+							src: this.picture.data,
+							sizes: "512x512",
+							type: "image/jpeg",
+						},
+					]
+				: [],
+		});
 
-  private async getImage(): Promise<AudioImage> {
-    let imageData = { data: '', color: '#454545', blur: '' };
-    const image = this.metadata?.common.picture?.[0].data;
+		navigator.mediaSession.setActionHandler("play", () => {
+			this.playPause();
+		});
 
-    if (image) {
-      const Image = (await import('image-js')).default;
-      const audioImage = await Image.load(image);
+		navigator.mediaSession.setActionHandler("pause", () => {
+			this.playPause();
+		});
 
-      const color = await colorThief.getColorAsync(
-        audioImage.toDataURL('image/jpeg')
-      );
-      const data = audioImage.toBlob('image/jpeg');
-      const blur = audioImage
-        .resize({ width: 200, height: 200 })
-        .blurFilter({ radius: 4 })
-        .toBlob();
+		navigator.mediaSession.setActionHandler("seekto", (details) => {
+			this.currentTime = details.seekTime || 0;
+		});
 
-      const awaited = await Promise.all([color, data, blur]);
+		navigator.mediaSession.setActionHandler("pause", () => {
+			this.playPause();
+		});
+	}
 
-      imageData.color = Color(color).hexa();
-      imageData.data = URL.createObjectURL(awaited[1]);
-      imageData.blur = URL.createObjectURL(awaited[2]);
-    }
-    return imageData;
-  }
+	get src() {
+		return this._instance.src;
+	}
 
-  reset(ignore: boolean = false) {
-    this.pause();
+	set src(src: string) {
+		fetch(src).then(async (res) => {
+			if (res.ok) this.updateFile(await res.blob(), true);
+			throw new Error(`Failed to load audio: ${res.statusText}`);
+		});
+	}
 
-    this.src && URL.revokeObjectURL(this.src);
-    this.picture?.blur && URL.revokeObjectURL(this.picture.blur);
-    this.picture?.data && URL.revokeObjectURL(this.picture.data);
+	updateFile(file: Blob | File, init?: boolean) {
+		setTimeout(async () => {
+			const music = await import("music-metadata-browser");
+			this.metadata = await music.parseBlob(file);
+			this.metadata.common.title ??= "name" in file ? file.name : "";
+			this.picture = await this.loadPicture();
 
-    this.src = '';
-    this.picture = undefined;
-    this.metadata = undefined;
+			this._instance.addEventListener(
+				"loadeddata",
+				() => {
+					this.loadMediaSession();
+					this.cleanup = this.initEvents();
+					init && this.emit("load");
+					this.emit("update");
+				},
+				{ once: true },
+			);
 
-    this.currentTime = 0;
+			this._instance.src = URL.createObjectURL(file);
+			this._instance.load();
+		});
+	}
 
-    this.load();
+	playPause() {
+		const instance = this._instance;
+		const state = Number.isFinite(instance.duration) && instance.paused;
+		state ? instance.play() : instance.pause();
 
-    if (!ignore) {
-      this.dispatchEvent(resetEvent);
-      this.dispatchEvent(updatedEvent);
-    }
-  }
+		this.emit("playpause", !state);
+	}
+
+	get currentTime() {
+		return this._instance.currentTime;
+	}
+
+	set currentTime(time: number) {
+		const newTime = clamp(time, 0, this._instance.duration);
+		this._instance.currentTime = newTime;
+
+		this.emit("seek", newTime);
+	}
+
+	reset(ignore = false) {
+		const player = this._instance;
+
+		this.cleanup();
+		player.pause();
+		player.src = "";
+		player.currentTime = 0;
+
+		if (this.picture) {
+			URL.revokeObjectURL(this.picture.data);
+			URL.revokeObjectURL(this.picture.blur);
+			this.picture = undefined;
+		}
+
+		this.metadata = undefined;
+		this.emit("reset");
+		player.load();
+	}
 }
 
-interface MusicService extends HTMLAudioElement {
-  metadata: IAudioMetadata | undefined;
-  iframes: IFrames;
-  picture: AudioImage | undefined;
-
-  addEventListener<K extends keyof HTMLMediaElementEventMap>(
-    type: K,
-    listener: (this: HTMLAudioElement, ev: HTMLMediaElementEventMap[K]) => any,
-    options?: boolean | AddEventListenerOptions | undefined
-  ): void;
-  addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions | undefined
-  ): void;
-  addEventListener(
-    type: 'musicupdated',
-    listener: (this: MusicService, ev: CustomEvent) => any,
-    options?: boolean | AddEventListenerOptions
-  ): void;
-
-  removeEventListener<K extends keyof HTMLMediaElementEventMap>(
-    type: K,
-    listener: (this: HTMLAudioElement, ev: HTMLMediaElementEventMap[K]) => any,
-    options?: boolean | EventListenerOptions | undefined
-  ): void;
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions | undefined
-  ): void;
-  removeEventListener(
-    type: 'musicupdated',
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions | undefined
-  ): void;
-
-  updateFile(file: File, opts?: AudioOptions): void;
-}
-
-window.customElements.define('music-service', MusicService, {
-  extends: 'audio',
-});
-
-export default MusicService;
+export default AudioService;

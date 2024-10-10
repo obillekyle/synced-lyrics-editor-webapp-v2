@@ -16,6 +16,7 @@
   import LyricCard from './components/screens/lyric-card.vue';
   import _presets from './components/modals/_presets';
   import Test from './components/test.vue';
+import { Layout, Navigation } from '@vue-material/core';
 
   const Player = window.app.player;
   const Colors = window.app.colors;
@@ -201,7 +202,16 @@
     <Progress :value="Infinity" />
   </div>
 
-  <Styles />
+  <Layout>
+    <template #navbar>
+      <Navigation>
+        <AppLogo />
+
+        <Navigation.Item>
+      </Navigation>
+    </template>
+
+  </Layout>
   <template v-if="ready">
     <Test v-if="appPath === '/test'" />
     <LyricCard v-else-if="appPath === '/lyric-card'" />
