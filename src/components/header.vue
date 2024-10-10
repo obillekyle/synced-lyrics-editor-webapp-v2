@@ -1,57 +1,45 @@
 <script setup lang="ts">
-  import { inject, onMounted, onUnmounted, ref, type Ref } from 'vue';
+import type { Screens } from "@/app/main";
 
-  import I18nString from './elements/Text/i18n-string.vue';
-  import IconButton from './elements/Button/icon-button.vue';
-  import presets from './modals/_presets';
-  import Switch from './elements/Switches/switch.vue';
-  import Divider from './elements/Divider/divider.vue';
-  import type { Screens } from '@/app/main';
-  import Button from './elements/Button/button.vue';
-  import Floater from './elements/Text/floater.vue';
+import I18nString from "./elements/Text/i18n-string.vue";
+import presets from "./modals/_presets";
+import {
+	IconButton,
+	Switch,
+	Divider,
+	Button,
+	Floater,
+	TopAppBar,
+} from "@vue-material/core";
+import { useScreen } from "@/hooks/use-screen";
+import { useSession } from "@/hooks/use-session";
 
-  const screenNames: Record<Screens, string> = {
-    home: 'APP_HOME',
-    edit: 'APP_EDIT',
-    timing: 'APP_TIMING',
-    lyric: 'APP_LYRIC',
-    debug: 'DEBUG',
-    files: 'FILES',
-  };
+const screenNames: Record<Screens, string> = {
+	home: "APP_HOME",
+	edit: "APP_EDIT",
+	timing: "APP_TIMING",
+	lyric: "APP_LYRIC",
+	debug: "DEBUG",
+};
 
-  const screen = window.app.screen;
-  const current = ref(screen.current);
-
-  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
-  const showTranslate = inject<Ref<boolean>>('showTranslate')!;
-
-  function handleChange(value: typeof current.value) {
-    current.value = value;
-  }
-
-  onMounted(() => {
-    screen.listen('update', handleChange);
-  });
-
-  onUnmounted(() => {
-    screen.detach('update', handleChange);
-  });
+const screen = useScreen();
+const session = useSession();
 </script>
 
 <template>
-  <header :data-screen="current" class="app-header">
-    <I18nString :entry="screenNames[current]" element="h3" />
+  <TopAppBar :data-screen="screen">
+    <I18nString :entry="screenNames[screen]" element="h3" />
     <div class="actions">
-      <template v-if="current === 'lyric'">
+      <template v-if="screen === 'lyric'">
         <I18nString entry="TRANSLATE" fallback="Translate" />
-        <Switch v-model="showTranslate" title="Translate" />
+        <Switch v-model="session.preview.translate" title="Translate" />
         <Divider direction="y" size="24" margin="none" />
       </template>
 
-      <template v-if="current === 'timing'">
+      <template v-if="screen === 'timing'">
         <IconButton
-          :icon="!sortMode ? 'mdi:sort-ascending' : 'mdi:clock-edit-outline'"
-          :onclick="() => (sortMode = !sortMode)"
+          :icon="session.timing.sorting ? 'mdi:clock-edit-outline' : 'mdi:sort-ascending'"
+          @click="session.timing.sorting = !session.timing.sorting"
           title="Switch sorting mode"
         />
         <Divider direction="y" size="24" margin="none" />
@@ -66,57 +54,15 @@
         />
       </Floater>
       <Button
-        variant="subtle"
+        variant="tonal"
         title="Export"
         icon="material-symbols:download"
         right-icon="mdi:export"
-        radius="sm"
+        r="#xs"
         @click="presets.download"
       >
         <I18nString entry="EXPORT" />
       </Button>
     </div>
-  </header>
+  </TopAppBar>
 </template>
-
-<style lang="scss">
-  body:has(.app-header[data-screen='lyric']) {
-    --app-header-color: transparent;
-  }
-
-  .app-header {
-    height: var(--app-header-height);
-    padding-inline: var(--sm);
-    background-color: var(--app-header-color);
-
-    display: flex;
-    align-items: center;
-    position: relative;
-
-    user-select: none;
-
-    &[data-screen='lyric'] {
-      border-bottom-color: transparent;
-    }
-
-    h3 {
-      font-weight: 600;
-      font-size: var(--font-lg);
-      margin-left: var(--sm);
-    }
-
-    .actions {
-      right: 0;
-      position: absolute;
-      align-items: center;
-      display: flex;
-      background-color: inherit;
-      padding-right: var(--sm);
-      gap: var(--xs);
-
-      .switch-wrapper {
-        margin-inline: 12px;
-      }
-    }
-  }
-</style>

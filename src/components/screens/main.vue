@@ -1,40 +1,22 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue';
-
   import homeScreen from './home.vue';
   import editScreen from './edit.vue';
   import timingScreen from './timing.vue';
   import previewScreen from './lyric.vue';
   import debugScreen from './debug.vue';
-  import filesScreen from './files.vue';
+  import { useScreen } from '@/hooks/use-screen';
 
-  const screen = window.app.screen;
-  const options = window.app.options;
+  const screen = useScreen()
 
-  const activeScreen = ref(screen.current || 'timing');
-
-  function screenChange(value: typeof activeScreen.value) {
-    activeScreen.value = value;
-    options.set('screen', value);
-  }
-
-  onMounted(() => {
-    screen.addEventListener('update', screenChange);
-  });
-
-  onUnmounted(() => {
-    screen.removeEventListener('update', screenChange);
-  });
 </script>
 
 <template>
   <div class="app-main-content">
-    <home-screen v-if="activeScreen == 'home'" />
-    <edit-screen v-if="activeScreen == 'edit'" />
-    <timing-screen v-if="activeScreen == 'timing'" />
-    <preview-screen v-if="activeScreen == 'lyric'" />
-    <debug-screen v-if="activeScreen == 'debug'" />
-    <files-screen v-if="activeScreen == 'files'" />
+    <home-screen v-if="screen == 'home'" />
+    <edit-screen v-if="screen == 'edit'" />
+    <timing-screen v-if="screen == 'timing'" />
+    <preview-screen v-if="screen == 'lyric'" />
+    <debug-screen v-if="screen == 'debug'" />
   </div>
 </template>
 
