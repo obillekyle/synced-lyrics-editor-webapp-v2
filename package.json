@@ -28,7 +28,7 @@
     "vue-router": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
+    "@biomejs/biome": "1.9.3",
     "@tsconfig/node20": "^20.1.4",
     "@types/color": "^3.0.6",
     "@types/node": "^22.5.3",
