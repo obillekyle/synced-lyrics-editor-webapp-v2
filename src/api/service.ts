@@ -1,6 +1,7 @@
 import type { IAudioMetadata } from "music-metadata-browser";
 
 import { clamp, fastAvgColor, CustomEventHandler } from "@vue-material/core";
+import { bufferToBlob, ImgUtil } from "@/utils/image";
 
 export type AudioImage = {
 	data: string;
@@ -75,15 +76,9 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 		const dataBuffer = this.metadata?.common.picture?.[0].data;
 
 		if (dataBuffer) {
-			const Image = (await import("image-js")).default;
-			const audioImage = await Image.load(dataBuffer);
-			const _data = audioImage.toBlob("image/jpeg");
-			const _blur = audioImage
-				.resize({ width: 200, height: 200 })
-				.blurFilter({ radius: 4 })
-				.toBlob();
-
-			const [data, blur] = await Promise.all([_data, _blur]);
+			const data = bufferToBlob(dataBuffer);
+			const image = await ImgUtil.from(data);
+			const blur = await image.resize(200).blur(5).toBlob();
 
 			return {
 				color: await fastAvgColor(data),
@@ -112,20 +107,11 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 				: [],
 		});
 
-		navigator.mediaSession.setActionHandler("play", () => {
-			this.playPause();
-		});
-
-		navigator.mediaSession.setActionHandler("pause", () => {
-			this.playPause();
-		});
+		navigator.mediaSession.setActionHandler("play", () => this.playPause());
+		navigator.mediaSession.setActionHandler("pause", () => this.playPause());
 
 		navigator.mediaSession.setActionHandler("seekto", (details) => {
 			this.currentTime = details.seekTime || 0;
-		});
-
-		navigator.mediaSession.setActionHandler("pause", () => {
-			this.playPause();
 		});
 	}
 
@@ -140,6 +126,13 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 		});
 	}
 
+	private onLoad(init?: boolean) {
+		this.loadMediaSession();
+		this.cleanup = this.initEvents();
+		init && this.emit("load");
+		this.emit("update");
+	}
+
 	updateFile(file: Blob | File, init?: boolean) {
 		setTimeout(async () => {
 			const music = await import("music-metadata-browser");
@@ -149,12 +142,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 
 			this._instance.addEventListener(
 				"loadeddata",
-				() => {
-					this.loadMediaSession();
-					this.cleanup = this.initEvents();
-					init && this.emit("load");
-					this.emit("update");
-				},
+				this.onLoad.bind(this, init),
 				{ once: true },
 			);
 
