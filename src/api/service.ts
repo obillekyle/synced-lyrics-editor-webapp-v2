@@ -30,6 +30,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 	private cleanup = () => {};
 	metadata?: IAudioMetadata;
 	picture?: AudioImage;
+	ready = false;
 
 	get details() {
 		return {
@@ -127,6 +128,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 	}
 
 	private onLoad(init?: boolean) {
+		this.ready = true;
 		this.loadMediaSession();
 		this.cleanup = this.initEvents();
 		init && this.emit("load");
@@ -170,7 +172,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 		this.emit("seek", newTime);
 	}
 
-	reset(ignore = false) {
+	reset() {
 		const player = this._instance;
 
 		this.cleanup();
@@ -184,6 +186,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 			this.picture = undefined;
 		}
 
+		this.ready = false;
 		this.metadata = undefined;
 		this.emit("reset");
 		player.load();
