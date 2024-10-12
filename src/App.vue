@@ -10,7 +10,6 @@ import AppPlayer from "./components/player.vue";
 import LrcScreen from "./components/screens/main.vue";
 import LyricCard from "./components/screens/lyric-card.vue";
 import _presets from "./components/modals/_presets";
-import Test from "./components/test.vue";
 import { Layout } from "@vue-material/core";
 import { useScreen } from "./hooks/use-screen";
 import { useConfig } from "./hooks/use-config";
@@ -77,8 +76,7 @@ watch(page, (page) => {
 
     <template v-if="ready">
 
-      <Test v-if="page === '/test'" />
-      <LyricCard v-else-if="page === '/lyric-card'" />
+      <LyricCard v-if="page === 'lyric-card'" />
       <template v-else>
         <I18nString entry="ALPHA" :element="AppTag" v-if="!config.preferences" />
         <LrcScreen />

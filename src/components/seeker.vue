@@ -1,107 +1,73 @@
 <script setup lang="ts">
-  import type MusicService from '@/api/service';
-  import { throttler, getClientPos, getUnique, clamp } from '@/api/util';
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+import type MusicService from "@/api/service";
+import { throttler, clamp, useDrag, useRect } from "@vue-material/core";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 
-  const Player = window.app.player;
-  const Lyrics = window.app.lyric;
+const Player = window.app.player;
+const Lyrics = window.app.lyric;
 
-  const time = ref(0);
-  const duration = ref(NaN);
-  const bypass = ref<number>();
-  const wrapper = ref<HTMLElement | null>(null);
-  const id = getUnique('seeker');
+const audio = reactive({
+	time: Player.currentTime,
+	duration: Player.instance.duration,
+});
 
-  function timeUpdate(this: MusicService) {
-    throttler(
-      () => {
-        if (!isFinite(Player.duration)) return;
-        time.value = this.currentTime;
-      },
-      {
-        key: id,
-        blockTime: 500,
-        endCall: true,
-      }
-    );
-  }
+const root = ref<HTMLElement>();
+const rect = useRect(root);
 
-  function onMusicUpdate(this: MusicService) {
-    duration.value = this.duration;
-  }
+function update() {
+	if (!Player.ready || dragging.value) return;
 
-  function seekStart(event: MouseEvent | TouchEvent) {
-    if (!isFinite(Player.duration)) return;
-    bypass.value = Player.currentTime;
-    document.body.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
-    seeking(event);
-  }
+	audio.time = Player.currentTime;
+}
 
-  function seeking(event: MouseEvent | TouchEvent) {
-    if (bypass.value === undefined) return;
-    if (!isFinite(Player.duration)) return;
-    const pos = getClientPos(event);
-    const rect = wrapper.value!.getBoundingClientRect();
-    const offset = clamp(pos.x - rect.left, 0, rect.width);
+function timeUpdate(this: MusicService) {
+	throttler(update, {
+		key: "seeker",
+		wait: 500,
+		endCall: true,
+	});
+}
 
-    const currentTime = (offset / rect.width) * Player.duration;
-    bypass.value = currentTime;
-  }
+function onMusicUpdate(this: MusicService) {
+	audio.duration = this.instance.duration;
+}
 
-  function seeked(this: MusicService) {
-    if (bypass.value === undefined) return;
+function setter(x: number, set = true) {
+	if (!rect.ready || !root.value) return;
+	const offset = clamp(x, 0, rect.width);
+	const time = (offset / rect.width) * Player.instance.duration;
 
-    document.body.style.cursor = 'auto';
-    document.body.style.userSelect = 'auto';
+	audio.time = time;
 
-    Player.currentTime = bypass.value;
-    time.value = bypass.value;
-    bypass.value = undefined;
-  }
+	if (set) {
+		Player.currentTime = time;
+	}
+}
 
-  const seekerWidth = computed(() => {
-    const newTime = bypass.value ?? time.value;
+const [dragging, dragEvent] = useDrag({
+	move: ({ x }) => setter(x, false),
+	end: ({ x }) => setter(x, true),
+});
 
-    return (newTime / Player.duration || 0) * 100;
-  });
+const seekerWidth = computed(() => {
+	return (audio.time / audio.duration || 0) * 100;
+});
 
-  onMounted(() => {
-    Player.addEventListener('timeupdate', timeUpdate);
-    Player.addEventListener('musicupdated', onMusicUpdate);
-    Player.addEventListener('seeked', seeked);
+onMounted(() => {
+	Player.addEventListener("musicupdated", onMusicUpdate);
+	Player.instance.addEventListener("timeupdate", timeUpdate);
+});
 
-    document.addEventListener('mousemove', seeking);
-    document.addEventListener('touchmove', seeking);
-
-    document.addEventListener('mouseup', seeked);
-    document.addEventListener('touchend', seeked);
-    document.addEventListener('touchcancel', seeked);
-  });
-
-  onUnmounted(() => {
-    Player.removeEventListener('timeupdate', timeUpdate);
-    Player.removeEventListener('musicupdated', onMusicUpdate);
-    Player.removeEventListener('seeked', seeked);
-
-    document.removeEventListener('mousemove', seeking);
-    document.removeEventListener('touchmove', seeking);
-
-    document.removeEventListener('mouseup', seeked);
-    document.removeEventListener('touchend', seeked);
-    document.removeEventListener('touchcancel', seeked);
-  });
+onUnmounted(() => {
+	Player.removeEventListener("musicupdated", onMusicUpdate);
+	Player.instance.removeEventListener("timeupdate", timeUpdate);
+});
 </script>
 
 <template>
-  <div class="music-seeker" @mousedown="seekStart" @touchstart="seekStart">
-    <div class="progress" ref="wrapper">
-      <div
-        class="progress-bar"
-        :class="{ dragging: bypass !== undefined }"
-        :style="`--offset: ${seekerWidth}%`"
-        :data-val="Lyrics.timeToString((bypass ?? time) * 1000)"
-      />
+  <div class="music-seeker" @pointerdown="dragEvent">
+    <div class="progress" ref="root" :style="{ '--offset': seekerWidth + '%' }">
+      <div class="progress-bar" :class="{ dragging }" :data-val="Lyrics.timeToString(audio.time * 1000)" />
     </div>
   </div>
 </template>
