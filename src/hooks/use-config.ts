@@ -4,8 +4,10 @@ import { useShared } from "./use-shared";
 type Config = {
 	version: number;
 	preferences: {
+		showLrcWarn: boolean;
 		showKeyBinds: boolean;
 		theme: "light" | "dark";
+		useMonaco: boolean;
 		colorScheme: {
 			primary?: string;
 			secondary?: string;
@@ -27,6 +29,8 @@ type Config = {
 const defaultConfig: Config = {
 	version: 1,
 	preferences: {
+		useMonaco: false,
+		showLrcWarn: true,
 		showKeyBinds: true,
 		theme: "light",
 		colorScheme: {},
