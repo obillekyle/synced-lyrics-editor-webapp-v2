@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Screens } from "@/app/main";
 
-import I18nString from "./elements/Text/i18n-string.vue";
-import presets from "./modals/_presets";
+import I18nString from "./i18n-string.vue";
+import presets from "./modals/presets";
 import {
 	IconButton,
 	Switch,

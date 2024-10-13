@@ -1,106 +1,106 @@
 <script setup lang="ts">
-  import type MusicService from '@/api/service';
-  import { $, rippleEffect, throttler } from '@/api/util';
-  import {
-    type Ref,
-    inject,
-    onMounted,
-    onUnmounted,
-    ref,
-    shallowRef,
-  } from 'vue';
-  import animatedScroll from 'animated-scroll-to';
-  import playingIndicator from '../playing-indicator.vue';
-  import { getTranslatedText } from '@/api/util/main';
-  import AwaitedText from '../elements/Text/awaited-text.vue';
+import type MusicService from "@/api/service";
+import { type Ref, inject, onMounted, onUnmounted, ref, shallowRef } from "vue";
+import animatedScroll from "animated-scroll-to";
+import playingIndicator from "../playing-indicator.vue";
 
-  const Player = window.app.player;
-  const Lyrics = window.app.lyric;
-  const Lang = window.app.i18n;
+import {
+	$,
+	rippleEffect,
+	throttler,
+	AwaitedText,
+	getTranslatedText,
+} from "@vue-material/core";
+import { useSession } from "@/hooks/use-session";
+import { useLang } from "@/hooks/use-lang";
 
-  const lyrics = shallowRef(Lyrics.getRaw());
-  const bypass = ref(false);
+const Player = window.app.player;
+const Lyrics = window.app.lyric;
 
-  const previewPane = ref<HTMLElement | null>(null);
-  const currentIndex = ref(-1);
-  const showTranslate = inject<Ref<boolean>>('showTranslate')!;
-  const lang = Lang.lang;
+const lyrics = shallowRef(Lyrics.getRaw());
+const bypass = ref(false);
 
-  const lrcChange = () => {
-    bypass.value = true;
-    lyrics.value = Lyrics.getRaw();
-    handleCurrentIndex.call(Player);
-  };
+const previewPane = ref<HTMLElement | null>(null);
+const currentIndex = ref(-1);
+const session = useSession();
+const lang = useLang("en");
 
-  function handleCurrentIndex(this: MusicService) {
-    throttler(
-      async () => {
-        const index = Lyrics.findIndex(this.currentTime * 1000 + 300);
-        if (index == -1 || currentIndex.value == index) return;
+const lrcChange = () => {
+	bypass.value = true;
+	lyrics.value = Lyrics.getRaw();
+	handleCurrentIndex.call(Player);
+};
 
-        bypass.value = false;
-        const element = previewPane.value?.children[index];
+function handleCurrentIndex(this: MusicService) {
+	throttler(
+		async () => {
+			const index = Lyrics.findIndex(this.currentTime * 1000 + 300);
+			if (index === -1 || currentIndex.value === index) return;
 
-        if (element) {
-          currentIndex.value = index;
-          const main = $('main')!;
+			bypass.value = false;
+			const element = previewPane.value?.children[index];
 
-          const previous = previewPane.value?.querySelector('.active');
-          previous?.classList.remove('active');
-          element?.classList.add('active');
+			if (element) {
+				currentIndex.value = index;
+				// biome-ignore lint/style/noNonNullAssertion: <explanation>
+				const main = $("main")!;
 
-          const rect = main.getBoundingClientRect();
-          const halfElement = element.clientHeight / 1.75;
-          const offset = rect.height / 2 - halfElement;
+				const previous = previewPane.value?.querySelector(".active");
+				previous?.classList.remove("active");
+				element?.classList.add("active");
 
-          await animatedScroll(element, {
-            speed: 400,
-            elementToScroll: main,
-            verticalOffset: offset * -1,
-          });
-        }
-      },
-      {
-        key: 'getLRCIndex',
-        blockTime: 100,
-        bypass: bypass.value,
-        endCall: true,
-      }
-    );
-  }
+				const rect = main.getBoundingClientRect();
+				const halfElement = element.clientHeight / 1.75;
+				const offset = rect.height / 2 - halfElement;
 
-  const resetIndex = () => {
-    bypass.value = true;
-    currentIndex.value;
-    handleCurrentIndex.call(Player);
-  };
+				await animatedScroll(element, {
+					speed: 400,
+					elementToScroll: main,
+					verticalOffset: offset * -1,
+				});
+			}
+		},
+		{
+			key: "getLRCIndex",
+			blockTime: 100,
+			bypass: bypass.value,
+			endCall: true,
+		},
+	);
+}
 
-  function isError(index: number) {
-    return (
-      index > 0 &&
-      lyrics.value.lines[index - 1].time > lyrics.value.lines[index].time
-    );
-  }
+const resetIndex = () => {
+	bypass.value = true;
+	currentIndex.value;
+	handleCurrentIndex.call(Player);
+};
 
-  function setTime(time: number) {
-    if (isFinite(Player.duration)) {
-      bypass.value = true;
-      Player.currentTime = time / 1000;
-    }
-  }
+function isError(index: number) {
+	return (
+		index > 0 &&
+		lyrics.value.lines[index - 1].time > lyrics.value.lines[index].time
+	);
+}
 
-  onMounted(() => {
-    lrcChange();
-    Lyrics.addEventListener('parsed', lrcChange);
-    Player.addEventListener('timeupdate', handleCurrentIndex);
-    Player.addEventListener('musicupdated', resetIndex);
-  });
+function setTime(time: number) {
+	if (Player.ready) {
+		bypass.value = true;
+		Player.currentTime = time / 1000;
+	}
+}
 
-  onUnmounted(() => {
-    Lyrics.removeEventListener('parsed', lrcChange);
-    Player.removeEventListener('timeupdate', handleCurrentIndex);
-    Player.removeEventListener('musicupdated', resetIndex);
-  });
+onMounted(() => {
+	lrcChange();
+	Lyrics.addEventListener("parsed", lrcChange);
+	Player.addEventListener("timeupdate", handleCurrentIndex);
+	Player.addEventListener("musicupdated", resetIndex);
+});
+
+onUnmounted(() => {
+	Lyrics.removeEventListener("parsed", lrcChange);
+	Player.removeEventListener("timeupdate", handleCurrentIndex);
+	Player.removeEventListener("musicupdated", resetIndex);
+});
 </script>
 
 <template>
@@ -121,8 +121,8 @@
       </div>
       <div class="data" v-else>
         <AwaitedText
-          v-if="showTranslate && data"
-          :text="getTranslatedText(data, lang)"
+          v-if="session.preview.translate && data"
+          :text="getTranslatedText(data, lang.lang)"
           element="div"
           class="translated"
         />

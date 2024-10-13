@@ -1,245 +1,219 @@
 <script setup lang="ts">
-  import { $, clamp } from '@/api/util';
-  import { onMounted, onUnmounted, ref, watch, inject, type Ref } from 'vue';
-  import iconButton from '../elements/Button/icon-button.vue';
+import type { Ref } from "vue";
+import type { LRCLine, LRCTags } from "@/api/parser";
+import type { ObjectValue } from "@vue-material/core/utils/other/to-object-value.js";
 
-  import animatedScroll from 'animated-scroll-to';
-  import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
-  import type { LRCLine, LRCTags } from '@/api/parser';
-  import List from '../elements/List/list.vue';
-  import type { ListItemType } from '../elements/List/types';
-  import TimingList from './timing-list.vue';
-  import IconButton from '../elements/Button/icon-button.vue';
-  import { onSelfEvent } from '@/api/util/dom';
+import { inject, onMounted, onUnmounted, ref, watch, reactive } from "vue";
+import { LRCParser } from "@/api/parser";
 
-  const Lyrics = window.app.lyric;
-  const Player = window.app.player;
-  const Keybinds = getKeybinds();
+import { getKeybinds, keyHandlers, processKey } from "../keybinds/keys";
+import { useSession } from "@/hooks/use-session";
+import { $, IconButton, clamp, targetsSelf } from "@vue-material/core";
 
-  const focus = ref(-1);
-  const edit = ref(false);
-  const lines = ref<ListItemType<LRCLine>[]>([]);
-  const tags = ref<LRCTags>({});
+import animatedScroll from "animated-scroll-to";
+import SortScreen from "./sort-screen.vue";
 
-  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
-  const timingPane = ref<HTMLElement | null>(null);
+const Lyrics = window.app.lyric;
+const Player = window.app.player;
+const Keybinds = getKeybinds();
 
-  const setFocus = (value: typeof focus.value) => {
-    if (focus.value == value) return;
-    const focused = timingPane.value?.children[value];
-    edit.value = false;
+const editor = reactive({
+	focus: -1,
+	editing: false,
+});
 
-    if (!focused) {
-      if (value >= lines.value.length) {
-        focus.value = -1;
-        return;
-      }
-      focus.value = value;
-      return;
-    }
+const lines = ref<LRCLine[]>([]);
+const tags = ref<LRCTags>({});
 
-    focus.value = value;
-    const main = $('main')!;
+const toggleEdit: (value?: boolean) => void = (value) => {
+	editor.editing = value ?? !editor.editing;
+};
 
-    const rect = main.getBoundingClientRect();
-    const halfElement = focused.clientHeight / 2;
-    const offset = rect.height / 2 - halfElement;
+const session = useSession();
+const timingPane = ref<HTMLElement>();
 
-    animatedScroll(focused, {
-      speed: 400,
-      verticalOffset: offset * -1,
-      elementToScroll: main,
-      cancelOnUserAction: true,
-    });
-  };
+const setFocus = (value: number) => {
+	if (editor.focus === value) return;
 
-  const handleLyricsParse = () => {
-    const lrcData = Lyrics.getRaw();
+	const focused = timingPane.value?.children[value];
+	editor.editing = false;
 
-    lines.value = lrcData.lines.map((line) => ({
-      id: line.id,
-      props: line,
-    }));
+	if (!focused) {
+		editor.focus = value >= lines.value.length ? -1 : value;
+		return;
+	}
 
-    tags.value = lrcData.tags;
-    setFocus(-1);
-  };
+	editor.focus = value;
+	// biome-ignore lint/style/noNonNullAssertion: <explanation>
+	const main = $("main")!;
 
-  const handleLineAdd = (index: number, data: LRCLine) => {
-    lines.value.splice(index, 0, { id: data.id, props: data });
-    setFocus(index);
-  };
+	const rect = main.getBoundingClientRect();
+	const halfElement = focused.clientHeight / 2;
+	const offset = rect.height / 2 - halfElement;
 
-  const handleLineRemove = (index: number) => {
-    lines.value.splice(index, 1);
-    setFocus(index >= lines.value.length ? index - 1 : index);
-  };
+	animatedScroll(focused, {
+		speed: 400,
+		verticalOffset: offset * -1,
+		elementToScroll: main,
+		cancelOnUserAction: true,
+	});
+};
 
-  const handleLineUpdate = (index: number, data: LRCLine) => {
-    lines.value[index] = { id: data.id, props: data };
-  };
+const setTimeFromMusicCurrent = (e?: MouseEvent) => {
+	const index = editor.focus;
 
-  const toggleEdit = () => (edit.value = !edit.value);
-  const setTimeFromMusicCurrent = (e?: MouseEvent) => {
-    const index = focus.value;
+	if (index === -1) return;
+	if (!lines.value[index]) return;
+	if (!Player.ready) return;
 
-    if (index == -1) return;
-    if (!lines.value[index]) return;
-    if (!isFinite(Player.duration)) return;
+	const newIndex = index + 1 === lines.value.length ? index : index + 1;
+	const currentTime = Player.currentTime * 1000;
 
-    const newIndex = index + 1 === lines.value.length ? index : index + 1;
-    const currentTime = Player.currentTime * 1000;
+	e?.stopPropagation?.();
+	setFocus(newIndex);
 
-    e?.stopPropagation?.();
-    setFocus(newIndex);
+	if (lines.value[newIndex].props.time != currentTime) {
+		Lyrics.updateLine(index, { time: currentTime });
+	}
+};
 
-    if (lines.value[newIndex].props.time != currentTime) {
-      Lyrics.updateLine(index, { time: currentTime });
-    }
-  };
+const adjustTime = (value: number) => {
+	const index = focus.value;
+	const lrcLine = lines.value[index];
 
-  const adjustTime = (value: number) => {
-    const index = focus.value;
-    const lrcLine = lines.value[index];
+	if (index == -1) return;
+	if (!lrcLine) return;
 
-    if (index == -1) return;
-    if (!lrcLine) return;
+	const time = lrcLine.props.time + value;
 
-    const time = lrcLine.props.time + value;
+	if (!Player.paused) {
+		Player.currentTime = clamp(time / 1000, 0, Player.duration);
+	}
 
-    if (!Player.paused) {
-      Player.currentTime = clamp(time / 1000, 0, Player.duration);
-    }
+	Lyrics.updateLine(index, {
+		time: time < 0 ? 0 : time,
+	});
+};
 
-    Lyrics.updateLine(index, {
-      time: time < 0 ? 0 : time,
-    });
-  };
+function saveValue(index: number) {
+	const element = $<HTMLInputElement>(`.lrc-line.active .data`);
+	const value = element?.value ?? "";
+	toggleEdit();
 
-  function saveValue(index: number) {
-    const element = $<HTMLInputElement>(`.lrc-line.active .data`);
-    const value = element?.value ?? '';
-    toggleEdit();
+	Lyrics.updateLine(index, {
+		data: value.replace(/\n/g, ""),
+		type: "single",
+	});
+}
 
-    Lyrics.updateLine(index, {
-      data: value.replace(/\n/g, ''),
-      type: 'single',
-    });
-  }
+function handleKeyDown(e: KeyboardEvent) {
+	const index = focus.value;
+	const lyrics = lines.value;
 
-  function handleKeyDown(e: KeyboardEvent) {
-    const index = focus.value;
-    const lyrics = lines.value;
+	if (e.ctrlKey) return;
+	if (edit.value) return;
+	if (document.activeElement instanceof HTMLInputElement) return;
+	document.activeElement instanceof HTMLElement &&
+		document.activeElement.blur();
 
-    if (e.ctrlKey) return;
-    if (edit.value) return;
-    if (document.activeElement instanceof HTMLInputElement) return;
-    document.activeElement instanceof HTMLElement &&
-      document.activeElement.blur();
+	processKey(Keybinds.timing.adjustTimeBackward, e, () => {
+		adjustTime(-100);
+	});
+	processKey(Keybinds.timing.adjustTimeForward, e, () => {
+		adjustTime(100);
+	});
 
-    processKey(Keybinds.timing.adjustTimeBackward, e, () => {
-      adjustTime(-100);
-    });
-    processKey(Keybinds.timing.adjustTimeForward, e, () => {
-      adjustTime(100);
-    });
+	processKey(Keybinds.timing.arrowDownFocus, e, () => {
+		setFocus(index + 1 >= lyrics.length ? index : index + 1);
+	});
+	processKey(Keybinds.timing.arrowUpFocus, e, () => {
+		setFocus(index == 0 ? 0 : (index < 0 ? lyrics.length : index) - 1);
+	});
+}
 
-    processKey(Keybinds.timing.arrowDownFocus, e, () => {
-      setFocus(index + 1 >= lyrics.length ? index : index + 1);
-    });
-    processKey(Keybinds.timing.arrowUpFocus, e, () => {
-      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.length : index) - 1);
-    });
-  }
+function addNewLineFromFocus(reverse: boolean = false) {
+	const index = focus.value;
+	const newItem = Lyrics.EMPTYLINE;
+	Lyrics.addLine(newItem, reverse ? index - 1 : index);
+}
 
-  function addNewLineFromFocus(reverse: boolean = false) {
-    const index = focus.value;
-    const newItem = Lyrics.EMPTYLINE;
-    Lyrics.addLine(newItem, reverse ? index - 1 : index);
-  }
+function handleKeyUp(e: KeyboardEvent) {
+	const index = focus.value;
 
-  function handleKeyUp(e: KeyboardEvent) {
-    const index = focus.value;
+	if (e.ctrlKey) return;
+	if (edit.value) {
+		switch (e.key) {
+			case "Enter":
+				$("#app")?.focus();
+				saveValue(index);
+				break;
+		}
+		return;
+	}
 
-    if (e.ctrlKey) return;
-    if (edit.value) {
-      switch (e.key) {
-        case 'Enter':
-          $('#app')?.focus();
-          saveValue(index);
-          break;
-      }
-      return;
-    }
+	if (index === -1) {
+		processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine);
+		processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine);
+		return;
+	}
 
-    if (index == -1) {
-      processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine);
-      processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine);
-      return;
-    }
+	processKey(Keybinds.timing.setLineTiming, e, () => {
+		setTimeFromMusicCurrent();
+		!Player.instance.paused && setFocus(index + 1);
+	});
 
-    processKey(Keybinds.timing.setLineTiming, e, () => {
-      setTimeFromMusicCurrent();
-      !Player.paused && setFocus(index + 1);
-    });
+	processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit());
+	processKey(Keybinds.timing.deleteLine, e, () => Lyrics.removeLine(index));
+	processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1));
+	processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus());
+	processKey(Keybinds.timing.addNewLineReverse, e, () =>
+		addNewLineFromFocus(true),
+	);
+}
 
-    processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit());
-    processKey(Keybinds.timing.deleteLine, e, () => Lyrics.removeLine(index));
-    processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1));
-    processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus());
-    processKey(Keybinds.timing.addNewLineReverse, e, () =>
-      addNewLineFromFocus(true)
-    );
-  }
+watch(edit, (value) => {
+	if (value) {
+		setTimeout(() => {
+			const element = $<HTMLInputElement>(`.lrc-line.active .data`);
+			if (element) {
+				element.focus();
+				element.setSelectionRange(element.value.length, element.value.length);
+			}
+		});
+	}
+});
 
-  watch(edit, (value) => {
-    if (value) {
-      setTimeout(() => {
-        const element = $<HTMLInputElement>(`.lrc-line.active .data`);
-        if (element) {
-          element.focus();
-          element.setSelectionRange(element.value.length, element.value.length);
-        }
-      });
-    }
-  });
+function handleLyricsParse() {
+	lines.value = Lyrics.lines;
+	tags.value = Lyrics.tags;
+}
 
-  onMounted(() => {
-    handleLyricsParse();
+onMounted(() => {
+	handleLyricsParse();
 
-    Lyrics.addEventListener('parsed', handleLyricsParse);
-    Lyrics.addEventListener('line-added', handleLineAdd);
-    Lyrics.addEventListener('line-removed', handleLineRemove);
-    Lyrics.addEventListener('line-updated', handleLineUpdate);
+	Lyrics.addEventListener("parsed", handleLyricsParse);
+	Lyrics.addEventListener("line-added", handleLyricsParse);
+	Lyrics.addEventListener("line-removed", handleLyricsParse);
+	Lyrics.addEventListener("line-updated", handleLyricsParse);
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-  });
+	window.addEventListener("keydown", handleKeyDown);
+	window.addEventListener("keyup", handleKeyUp);
+});
 
-  onUnmounted(() => {
-    Lyrics.removeEventListener('parsed', handleLyricsParse);
-    Lyrics.removeEventListener('line-added', handleLineAdd);
-    Lyrics.removeEventListener('line-removed', handleLineRemove);
-    Lyrics.removeEventListener('line-updated', handleLineUpdate);
+onUnmounted(() => {
+	Lyrics.removeEventListener("parsed", handleLyricsParse);
+	Lyrics.removeEventListener("line-added", handleLyricsParse);
+	Lyrics.removeEventListener("line-removed", handleLyricsParse);
+	Lyrics.removeEventListener("line-updated", handleLyricsParse);
 
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('keyup', handleKeyUp);
-  });
-
-  function dismissLine(id: number) {
-    Lyrics.removeLine(id);
-  }
+	window.removeEventListener("keydown", handleKeyDown);
+	window.removeEventListener("keyup", handleKeyUp);
+});
 </script>
 
 <template>
-  <div class="timing-screen-drag" v-if="sortMode">
-    <div class="guide">Swipe left or right to remove</div>
-    <List
-      :items="lines"
-      :list-comp="TimingList"
-      :on-dismiss="dismissLine"
-      swipe="dismiss"
-    />
+  <div class="timing-screen-drag" v-if="session.timing.sorting">
+    <SortScreen />
   </div>
 
   <div
@@ -262,11 +236,11 @@
         active: focus == index,
         edit,
       }"
-      :onClick="(e) => onSelfEvent(e, () => setFocus(index))"
-      v-for="({ id, props }, index) in lines"
+      @click="targetsSelf($event, () => setFocus(index))"
+      v-for="({ id, time, data }, index) in lines"
     >
-      <div class="time" @click="() => (Player.currentTime = props.time / 1000)">
-        {{ Lyrics.timeToString(props.time) }}
+      <div class="time" @click="() => (Player.currentTime = time / 1000)">
+        {{ Lyrics.timeToString(time) }}
       </div>
       <div v-if="focus == index" class="add-line-buttons">
         <IconButton
@@ -284,9 +258,7 @@
       <textarea
         class="data"
         v-if="focus == index && edit"
-        :defaultValue="
-          typeof props.data == 'string' ? props.data : props.data.join('')
-        "
+        :defaultValue=" typeof data == 'string' ? data : data.join('')"
       />
 
       <div class="data" v-else @dblclick="() => toggleEdit()">

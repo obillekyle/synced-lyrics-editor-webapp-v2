@@ -1,76 +1,58 @@
 <script setup lang="ts">
-  import { $, debounce, evaluate } from '@/api/util';
-  import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
-  import { KeyboardGuides, type BindItems, as } from './keys';
-  import { useToggle } from '../hooks/update';
-  import entry from './entry.vue';
+import { $, debounce, evaluate } from "@vue-material/core";
+import { onMounted, onUnmounted, ref, reactive } from "vue";
+import { KeyboardGuides, type BindItems, as } from "./keys";
+import entry from "./entry.vue";
+import { useScreen } from "@/hooks/use-screen";
 
-  const Screen = window.app.screen;
+const keyActive = reactive({
+	ctrl: false,
+	shift: false,
+	alt: false,
+	meta: false,
+});
 
-  const keyActive = shallowRef({
-    ctrl: false,
-    shift: false,
-    alt: false,
-    meta: false,
-  });
+const binds = KeyboardGuides();
 
-  const update = ref(false);
-  const onUpdate = () => (update.value = !update.value);
-  const screen = ref(Screen.current);
+function matches(special?: [boolean, boolean, boolean, boolean]) {
+	special ??= [false, false, false, false];
 
-  const binds = KeyboardGuides();
+	if (special[0] && !keyActive.ctrl) return false;
+	if (special[1] && !keyActive.alt) return false;
+	if (special[2] && !keyActive.shift) return false;
+	if (special[3] && !keyActive.meta) return false;
+	return true;
+}
 
-  function setScreen() {
-    screen.value = Screen.current;
-  }
+function onKey(e: KeyboardEvent) {
+	debounce(
+		() =>
+			Object.assign(keyActive, {
+				ctrl: e.ctrlKey,
+				shift: e.shiftKey,
+				alt: e.altKey,
+				meta: e.metaKey,
+			}),
+		{
+			wait: 100,
+			key: "keyActive",
+		},
+	);
+}
 
-  function matches(special?: [boolean, boolean, boolean, boolean]) {
-    special ??= [false, false, false, false];
-    const value = keyActive.value;
+onMounted(() => {
+	addEventListener("keydown", onKey);
+	addEventListener("keyup", onKey);
+});
 
-    if (special[0] && !value.ctrl) return false;
-    if (special[1] && !value.alt) return false;
-    if (special[2] && !value.shift) return false;
-    if (special[3] && !value.meta) return false;
-    return true;
-  }
-
-  function onKey(e: KeyboardEvent) {
-    debounce(
-      function () {
-        keyActive.value = {
-          ctrl: e.ctrlKey,
-          shift: e.shiftKey,
-          alt: e.altKey,
-          meta: e.metaKey,
-        };
-      },
-      50,
-      'keyActive-' + e.key
-    );
-  }
-
-  onMounted(() => {
-    const app = $('#app')!;
-
-    app.addEventListener('click', onUpdate);
-    app.addEventListener('keydown', onKey);
-    app.addEventListener('keyup', onKey);
-    Screen.addEventListener('screenchange', setScreen);
-  });
-
-  onUnmounted(() => {
-    const app = $('#app')!;
-
-    app.removeEventListener('click', onUpdate);
-    app.removeEventListener('keydown', onKey);
-    app.removeEventListener('keyup', onKey);
-    Screen.removeEventListener('screenchange', setScreen);
-  });
+onUnmounted(() => {
+	removeEventListener("keydown", onKey);
+	removeEventListener("keyup", onKey);
+});
 </script>
 
 <template>
-  <div class="keybinds" :update="update">
+  <div class="keybinds">
     <template v-for="(item, _key) in binds">
       <template v-if="'label' in item">
         <entry

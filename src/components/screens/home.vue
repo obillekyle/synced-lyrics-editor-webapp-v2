@@ -1,60 +1,63 @@
 p
 <script setup lang="ts">
-  import { onMounted } from 'vue';
-  import Divider from '../elements/Divider/divider.vue';
-  import { Icon } from '@iconify/vue';
-  import _presets from '../modals/_presets';
-  import { keyHandlers } from '../keybinds/keys';
-  import { rippleEffect } from '@/api/util';
-  import SvgBg from './svg-bg.vue';
-  import SquareImage from '../elements/square-image.vue';
-  import WavyDivider from '../elements/Divider/wavy-divider.vue';
-  import Button from '../elements/Button/button.vue';
+import { Icon } from "@iconify/vue";
+import { keyHandlers } from "../keybinds/keys";
 
-  const Screen = window.app.screen;
-  const version = window.app.version_string;
-  const pwa = window.app.pwa;
+import _presets from "../modals/presets";
+import SvgBg from "./svg-bg.vue";
 
-  const links: { label: string; link?: string }[] = [
-    {
-      label: 'Website',
-      link: 'https://okyle.xyz',
-    },
-    {
-      label: 'Github Repo',
-      link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-    },
-    {
-      label: 'Old Synced Lyrics Maker',
-      link: 'https://lyrics-editor.okyle.xyz',
-    },
-    {
-      label: 'Inspired by Material Design v3',
-      link: 'https://m3.material.io/',
-    },
-    {
-      label: 'Report an issue',
-      link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues',
-    },
-  ];
+import {
+	SquareImage,
+	WavyDivider,
+	Button,
+	rippleEffect,
+} from "@vue-material/core";
+import { useScreen } from "@/hooks/use-screen";
 
-  function share() {
-    navigator.share({
-      title: 'Synced Lyrics Editor v2',
-      url: 'https://sle.okyle.xyz',
-    });
-  }
+const screen = useScreen();
+const version = window.app.version_string;
+const pwa = window.app.pwa;
 
-  function toGithubRepo() {
-    window.open(
-      'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-      '_blank'
-    );
-  }
+const links: { label: string; link?: string }[] = [
+	{
+		label: "Website",
+		link: "https://okyle.xyz",
+	},
+	{
+		label: "Github Repo",
+		link: "https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
+	},
+	{
+		label: "Old Synced Lyrics Maker",
+		link: "https://lyrics-editor.okyle.xyz",
+	},
+	{
+		label: "Inspired by Material Design v3",
+		link: "https://m3.material.io/",
+	},
+	{
+		label: "Report an issue",
+		link: "https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues",
+	},
+];
 
-  function toLCMaker() {
-    history.pushState(null, '', '/lyric-card');
-  }
+function share() {
+	navigator.share({
+		title: "Synced Lyrics Editor v2",
+		url: "https://sle.okyle.xyz",
+	});
+}
+
+function toGithubRepo() {
+	window.open(
+		"https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
+		"_blank",
+	);
+}
+
+function toLCMaker() {
+	history.pushState(null, "", "/lyric-card");
+}
 </script>
 
 <template>
@@ -72,7 +75,7 @@ p
         <SquareImage
           src="/assets/logo.png"
           alt="Lyric"
-          size="200"
+          :size="200"
           frame="circle"
         />
       </div>
@@ -111,7 +114,7 @@ p
 
         <div
           class="card"
-          @click="() => Screen.set('edit')"
+          @click="screen = 'edit'"
           @pointerdown="rippleEffect"
         >
           <div class="icon">

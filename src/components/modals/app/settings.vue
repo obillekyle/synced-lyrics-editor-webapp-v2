@@ -1,299 +1,305 @@
 <script setup lang="ts">
-  import { computed, inject, onMounted, onUnmounted, ref } from 'vue';
+import type { ModalProps, MaybeFunction } from "@vue-material/core";
+import type { UtilityFunction } from "@vue-material/core/utils/component-manager";
 
-  import type { ModalActionsArgs } from '@/api/modals';
-  import { $, evaluate, rippleEffect, type MaybeFunction } from '@/api/util';
-  import { Icon } from '@iconify/vue';
+import { computed, onMounted, onUnmounted, reactive } from "vue";
+import { Icon } from "@iconify/vue";
 
-  import I18nString from '../../elements/Text/i18n-string.vue';
-  import IconButton from '../../elements/Button/icon-button.vue';
-  import Switch from '../../elements/Switches/switch.vue';
-  import _presets from '../_presets';
-  import TextInput from '@/components/elements/Input/text-input.vue';
+import {
+	$,
+	TextInput,
+	Switch,
+	evaluate,
+	IconButton,
+	rippleEffect,
+} from "@vue-material/core";
+import { useConfig } from "@/hooks/use-config";
+import { useLang } from "@/hooks/use-lang";
 
-  const Options = window.app.options;
-  const Lang = window.app.i18n;
+import _presets from "../presets";
+import I18nString from "../../i18n-string.vue";
 
-  const fns = inject<ModalActionsArgs>('fns')!;
+interface Props {
+	utils: UtilityFunction<ModalProps>;
+}
 
-  const shown = ref(false);
-  const active = ref('general');
-  const updateKey = ref(false);
-  const search = ref('');
-  const update = () => (updateKey.value = !updateKey.value);
-  type Stringish = MaybeFunction<string>;
-  type Booleanish = MaybeFunction<boolean>;
+const lang = useLang("en");
+const config = useConfig();
 
-  const langs: Record<string, string> = {
-    en: 'English',
-    zh: '简体中文',
-    ja: '日本語',
-    ko: '한국어',
-    ph: 'Filipino',
-    hi: 'हिंदी',
-    id: 'Indonesian',
-    ur: 'اردو',
-  };
+defineProps<Props>();
 
-  type SettingEntry =
-    | {
-        type: 'switch';
-        name: Stringish;
-        icon?: Stringish;
-        desc?: Stringish;
-        disabled?: Booleanish;
-        value: () => boolean | undefined;
-        onChange?: (value: boolean) => any;
-      }
-    | {
-        type: 'info';
-        name: Stringish;
-        icon?: Stringish;
-        desc?: Stringish;
-      }
-    | {
-        type: 'divider';
-        name?: Stringish;
-        sticky?: Booleanish;
-      }
-    | {
-        type: 'button';
-        name: Stringish;
-        icon?: Stringish;
-        desc?: Stringish;
-        disabled?: Booleanish;
-        onClick?: () => any;
-      };
+const options = reactive({
+	sidebar: false,
+	search: "",
+	active: "general",
+});
 
-  type SettingEntries = {
-    [key: string]: {
-      name: Stringish;
-      desc?: Stringish;
-      icon?: Stringish;
-      disabled?: Booleanish;
-      items: SettingEntry[];
-    };
-  };
+type Stringish = MaybeFunction<string>;
+type Booleanish = MaybeFunction<boolean>;
 
-  const entries = computed<SettingEntries>(() => {
-    updateKey.value;
+const langs: Record<string, string> = {
+	en: "English",
+	zh: "简体中文",
+	ja: "日本語",
+	ko: "한국어",
+	ph: "Filipino",
+	hi: "हिंदी",
+	id: "Indonesian",
+	ur: "اردو",
+};
 
-    return {
-      general: {
-        name: 'SETTINGS_GENERAL',
-        items: [
-          {
-            type: 'switch',
-            name: () =>
-              Options.get('theme', 'dark') == 'dark'
-                ? 'Dark Mode'
-                : 'Light Mode',
-            icon: () =>
-              Options.get('theme', 'dark') == 'dark'
-                ? 'material-symbols:dark-mode-outline'
-                : 'material-symbols:light-mode-outline',
-            desc: () =>
-              `Switch to ${Options.get('theme', 'dark') == 'dark' ? 'light' : 'dark'} mode`,
-            value: () => Options.get('theme', 'dark') == 'dark',
-            onChange: (v) => Options.set('theme', v ? 'dark' : 'light'),
-          },
-          {
-            type: 'divider',
-            name: 'Navigation',
-          },
-          {
-            type: 'switch',
-            name: 'Show Home Button',
-            icon: 'material-symbols:home-outline',
-            desc: 'Show the home button at the navigation',
-            value: () => Options.get('showHome', true),
-            onChange: (v) => Options.set('showHome', v),
-          },
-          {
-            type: 'switch',
-            name: 'Center Navigation Buttons',
-            icon: 'material-symbols:vertical-align-center',
-            desc: 'Center the navigation buttons',
-            value: () => Options.get('centered-nav-buttons', true),
-            onChange: (v) => Options.set('centered-nav-buttons', v),
-          },
-          {
-            type: 'divider',
-            name: 'Keyboard',
-          },
-          {
-            type: 'switch',
-            name: 'Show Keybind Guide',
-            icon: 'material-symbols:keyboard-outline',
-            desc: 'Show the dynamic keybind guide on the bottom left of the screen',
-            value: () => Options.get('showKeyBinds'),
-            onChange: (v) => Options.set('showKeyBinds', v),
-          },
-          {
-            type: 'button',
-            name: 'View Key Bindings',
-            icon: 'material-symbols:open-in-new',
-            desc: 'View all keybindings',
-            onClick: () => _presets.showKeyBinds(),
-          },
-        ],
-      },
-      lang: {
-        name: 'SETTINGS_LANG',
-        items: [
-          {
-            type: 'info',
-            name: 'We only provide translations of these languages',
-            icon: 'material-symbols:info-outline',
-            desc: `If you think we are missing or have an incorrect 
+type SettingEntry =
+	| {
+			type: "switch";
+			name: Stringish;
+			icon?: Stringish;
+			desc?: Stringish;
+			disabled?: Booleanish;
+			value: () => boolean | undefined;
+			onChange?: (value: boolean) => void;
+	  }
+	| {
+			type: "info";
+			name: Stringish;
+			icon?: Stringish;
+			desc?: Stringish;
+	  }
+	| {
+			type: "divider";
+			name?: Stringish;
+			sticky?: Booleanish;
+	  }
+	| {
+			type: "button";
+			name: Stringish;
+			icon?: Stringish;
+			desc?: Stringish;
+			disabled?: Booleanish;
+			onClick?: () => void;
+	  };
+
+type SettingEntries = {
+	[key: string]: {
+		name: Stringish;
+		desc?: Stringish;
+		icon?: Stringish;
+		disabled?: Booleanish;
+		items: SettingEntry[];
+	};
+};
+const entries = computed<SettingEntries>(() => {
+	return {
+		general: {
+			name: "SETTINGS_GENERAL",
+			items: [
+				{
+					type: "switch",
+					name:
+						config.preferences.theme === "dark" ? "Dark Mode" : "Light Mode",
+					icon:
+						config.preferences.theme === "dark"
+							? "material-symbols:dark-mode-outline"
+							: "material-symbols:light-mode-outline",
+					desc: `Switch to ${config.preferences.theme === "dark" ? "light" : "dark"} mode`,
+					value: config.preferences.theme === "dark",
+					onChange: (v) => {
+						config.preferences.theme = v ? "dark" : "light";
+					},
+				},
+				{
+					type: "divider",
+					name: "Navigation",
+				},
+				{
+					type: "switch",
+					name: "Show Home Button",
+					icon: "material-symbols:home-outline",
+					desc: "Show the home button at the navigation",
+					value: config.navigation.showHome,
+					onChange: (v) => {
+						config.navigation.showHome = v;
+					},
+				},
+				{
+					type: "switch",
+					name: "Center Navigation Buttons",
+					icon: "material-symbols:vertical-align-center",
+					desc: "Center the navigation buttons",
+					value: config.navigation.centered,
+					onChange: (v) => {
+						config.navigation.centered = v;
+					},
+				},
+				{
+					type: "divider",
+					name: "Keyboard",
+				},
+				{
+					type: "switch",
+					name: "Show Keybind Guide",
+					icon: "material-symbols:keyboard-outline",
+					desc: "Show the dynamic keybind guide on the bottom left of the screen",
+					value: config.preferences.showKeyBinds,
+					onChange: (v) => {
+						config.preferences.showKeyBinds = v;
+					},
+				},
+				{
+					type: "button",
+					name: "View Key Bindings",
+					icon: "material-symbols:open-in-new",
+					desc: "View all keybindings",
+					onClick: () => _presets.showKeyBinds(),
+				},
+			],
+		},
+		lang: {
+			name: "SETTINGS_LANG",
+			items: [
+				{
+					type: "info",
+					name: "We only provide translations of these languages",
+					icon: "material-symbols:info-outline",
+					desc: `If you think we are missing or have an incorrect 
             translation, please create an issue on GitHub`,
-          },
-          {
-            type: 'divider',
-            name: 'Current language',
-          },
-          {
-            type: 'button',
-            name: () => langs[Lang.lang] || 'English',
-            icon: 'material-symbols:check',
-          },
-          {
-            type: 'divider',
-            name: 'Available languages',
-          },
-          ...(Object.keys(langs).map((key) => ({
-            type: 'button',
-            name: langs[key],
-            icon:
-              key === Lang.lang
-                ? 'material-symbols:check'
-                : 'circle-flags:' + key,
-            onClick: () => Lang.set(key),
-          })) as SettingEntry[]),
-        ],
-      },
-      misc: {
-        name: 'SETTINGS_MISC',
-        items: [
-          {
-            type: 'switch',
-            name: 'Show Changelog',
-            icon: 'material-symbols:book-2-outline',
-            desc: () => {
-              return Options.get('showChangeLog')
-                ? 'Changelog is shown every time the app loads'
-                : 'Changelog is shown only once the app updates';
-            },
-            value: () => Options.get('showChangeLog'),
-            onChange: (v) => Options.set('showChangeLog', v),
-          },
-          {
-            type: 'divider',
-            name: 'Development',
-          },
-          {
-            type: 'switch',
-            name: 'Hide development tag',
-            icon: 'material-symbols:text-rotation-angleup',
-            desc: () => {
-              return Options.get('dev-tag', false)
-                ? 'Tags like alpha or beta are hidden'
-                : 'Tags like alpha or beta are shown';
-            },
-            value: () => Options.get('dev-tag', false),
-            onChange: (v) => Options.set('dev-tag', v),
-          },
-          {
-            type: 'switch',
-            name: 'Debug Mode',
-            icon: 'material-symbols:bug-report-outline',
-            desc: () => {
-              return Options.get('debug', false)
-                ? 'Debug mode is enabled'
-                : 'Debug mode is disabled';
-            },
-            value: () => Options.get('debug', false),
-            onChange: (v) => Options.set('debug', v),
-          },
-          {
-            type: 'divider',
-            name: 'Experimental',
-          },
-          {
-            type: 'switch',
-            name: 'Enable Code Editor',
-            icon: 'material-symbols:code',
-            desc: () => {
-              return Options.get('experimentalCodeEditor', false)
-                ? 'Enabled'
-                : 'Disabled';
-            },
-            value: () => Options.get('experimentalCodeEditor', false),
-            onChange: (v) => Options.set('experimentalCodeEditor', v),
-          },
-          {
-            type: 'divider',
-            name: 'App info',
-          },
-          {
-            type: 'info',
-            name: 'Version',
-            desc: () => `${window.app.version_string} (${window.app.version})`,
-          },
-          {
-            type: 'info',
-            name: 'Author',
-            desc: 'Kyle (@obillekyle)',
-          },
-          {
-            type: 'button',
-            name: 'View source',
-            icon: 'material-symbols:open-in-new',
-            desc: 'synced-lyrics-editor-webapp-v2',
-            onClick: () =>
-              window.open(
-                'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-                '_blank'
-              ),
-          },
-        ],
-      },
-    };
-  });
+				},
+				{
+					type: "divider",
+					name: "Current language",
+				},
+				{
+					type: "button",
+					name: () => langs[lang.lang] || "English",
+					icon: "material-symbols:check",
+				},
+				{
+					type: "divider",
+					name: "Available languages",
+				},
+				...(Object.keys(langs).map((key) => ({
+					type: "button",
+					name: langs[key],
+					icon:
+						key === lang.lang
+							? "material-symbols:check"
+							: `circle-flags:${key}`,
+					onClick: () => lang.set(key),
+				})) as SettingEntry[]),
+			],
+		},
+		misc: {
+			name: "SETTINGS_MISC",
+			items: [
+				{
+					type: "switch",
+					name: "Show Changelog",
+					icon: "material-symbols:book-2-outline",
+					desc: config.showChangeLog
+						? "Changelog is shown every time the app loads"
+						: "Changelog is shown only once the app updates",
+					value: config.showChangeLog,
+					onChange: (v) => {
+						config.showChangeLog = v;
+					},
+				},
+				{
+					type: "divider",
+					name: "Development",
+				},
+				{
+					type: "switch",
+					name: "Hide development tag",
+					icon: "material-symbols:text-rotation-angleup",
+					desc: config.showBuildType
+						? "Tags like alpha or beta are hidden"
+						: "Tags like alpha or beta are shown",
 
-  const result = computed(() => {
-    return search.value
-      ? Object.values(entries.value)
-          .map((entry) => entry.items)
-          .flat()
-          .filter((item) => {
-            if (item.type === 'divider') return;
-            const name = evaluate(item.name);
-            return (
-              name && name.toLowerCase().includes(search.value.toLowerCase())
-            );
-          })
-      : entries.value[active.value].items;
-  });
+					value: config.showBuildType,
+					onChange: (v) => {
+						config.showBuildType = v;
+					},
+				},
+				{
+					type: "switch",
+					name: "Debug Mode",
+					icon: "material-symbols:bug-report-outline",
+					desc: config.debug
+						? "Debug mode is enabled"
+						: "Debug mode is disabled",
+					value: config.debug,
+					onChange: (v) => config.debug,
+				},
+				{
+					type: "divider",
+					name: "Experimental",
+				},
+				{
+					type: "switch",
+					name: "Enable Code Editor",
+					icon: "material-symbols:code",
+					value: config.preferences.useMonaco,
+					desc: config.preferences.useMonaco ? "Enabled" : "Disabled",
+					onChange: (v) => {
+						config.preferences.useMonaco = v;
+					},
+				},
+				{
+					type: "divider",
+					name: "App info",
+				},
+				{
+					type: "info",
+					name: "Version",
+					desc: () => `${window.app.version_string} (${window.app.version})`,
+				},
+				{
+					type: "info",
+					name: "Author",
+					desc: "Kyle (@obillekyle)",
+				},
+				{
+					type: "button",
+					name: "View source",
+					icon: "material-symbols:open-in-new",
+					desc: "synced-lyrics-editor-webapp-v2",
+					onClick: () =>
+						window.open(
+							"https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
+							"_blank",
+						),
+				},
+			],
+		},
+	} as SettingEntries;
+});
 
-  onMounted(() => Lang.listen('update', update));
-  onUnmounted(() => Lang.detach('update', update));
+const result = computed(() => {
+	return options.search
+		? Object.values(entries.value)
+				.flatMap((entry) => entry.items)
+				.filter((item) => {
+					if (item.type === "divider") return;
+					const name = evaluate(item.name);
+					return name?.toLowerCase().includes(options.search.toLowerCase());
+				})
+		: entries.value[options.active].items;
+});
 </script>
 
 <template>
-  <div class="settings-wrapper" :shown="shown" @click="update">
+  <div class="settings-wrapper" :shown="options.sidebar" >
     <header>
       <IconButton
-        v-if="shown"
+        v-if="options.sidebar"
         icon="material-symbols:arrow-back"
         class="back"
-        @click="() => (shown = false)"
+        @click="options.sidebar = false"
         title="Back"
       />
       <I18nString element="div" class="title" entry="SETTINGS" />
       <icon-button
         icon="material-symbols:close"
-        @click="() => fns.close()"
+        @click="utils.close()"
         title="Close"
       />
     </header>
@@ -304,7 +310,7 @@
           <TextInput
             type="text"
             placeholder="Search..."
-            v-model="search"
+            v-model="options.search"
             height="md"
             span
           />
@@ -313,15 +319,13 @@
           class="entry"
           :key="name"
           @pointerdown="rippleEffect"
-          :class="{ active: name == active }"
+          :class="{ active: name == options.active }"
           v-for="(item, name) in entries"
-          @click="
-            () => {
-              shown = true;
-              search = '';
-              active = name + '';
-            }
-          "
+          @click="Object.assign(options, { 
+            sidebar: true,
+            active: name,
+            search: ''
+          })"
         >
           <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
           <I18nString
@@ -340,7 +344,7 @@
       </div>
     </div>
     <div class="constraint">
-      <div class="settings-screen" :style="{ '--hl': search }">
+      <div class="settings-screen" :style="{ '--hl': options.search }">
         <div class="scroll-wrapper">
           <template v-for="(item, index) in result">
             <div
@@ -380,7 +384,7 @@
               :key="'button-' + index"
               @pointerdown="rippleEffect"
               v-else-if="item.type == 'button'"
-              @click="() => item.disabled || evaluate(item.onClick)()"
+              @click="() => item.disabled || evaluate(item.onClick)"
             >
               <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
               <div class="name">{{ evaluate(item.name) }}</div>

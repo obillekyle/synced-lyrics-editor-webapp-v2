@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import _presets from '../modals/_presets';
+import _presets from "../modals/presets";
 </script>
 
 <template>
