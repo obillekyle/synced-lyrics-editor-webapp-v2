@@ -1,35 +1,32 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 
-import AppTag from "./components/elements/Text/app-tag.vue";
-import I18nString from "./components/elements/Text/i18n-string.vue";
-import Progress from "./components/elements/Progress/linear-progress.vue";
+import AppTag from "./components/app-tag.vue";
+import I18nString from "./components/i18n-string.vue";
 import AppHeader from "./components/header.vue";
 import NavigationBar from "./components/navigation/navigation-bar.vue";
 import AppPlayer from "./components/player.vue";
 import LrcScreen from "./components/screens/main.vue";
 import LyricCard from "./components/screens/lyric-card.vue";
-import _presets from "./components/modals/_presets";
-import { Layout } from "@vue-material/core";
+import _presets from "./components/modals/presets";
+
+import { Layout, LinearProgress, SquareImage, $ } from "@vue-material/core";
 import { useScreen } from "./hooks/use-screen";
 import { useConfig } from "./hooks/use-config";
 import { useSession } from "./hooks/use-session";
 import { useAppData } from "./hooks/use-app-data";
 import { useLocation } from "./hooks/use-location";
-import { $ } from "./api/util";
+import { useLang } from "./hooks/use-lang";
 
 const screen = useScreen();
 const config = useConfig();
 const session = useSession();
 const appData = useAppData();
 const location = useLocation();
+const lang = useLang("en");
 
 const ready = ref(false);
-const loaderRef = ref<HTMLElement | null>(null);
-
-const page = computed(() => {
-	return location.pathname.split("/")[1];
-});
+const page = computed(() => location.pathname.split("/")[1]);
 
 function setMetaDescription(value: string) {
 	const metaDesc = $('meta[name="description"]')?.setAttribute(
@@ -57,10 +54,12 @@ watch(page, (page) => {
 </script>
 
 <template>
-  <div class="loader" :class="{ ready }" ref="loaderRef">
-    <img alt="App Logo" src="/logo.svg" width="96" height="96" />
-    <Progress :value="Infinity" />
-  </div>
+  <Transition mode="out-in" name="fade">
+    <div class="loader" v-if="lang.ready === false" ref="loaderRef">
+      <SquareImage alt="App Logo" src="/logo.svg" width="96" height="96" />
+      <LinearProgress  />
+    </div>
+  </Transition>
 
   <Layout :options="{
     theme: config.preferences.theme,
