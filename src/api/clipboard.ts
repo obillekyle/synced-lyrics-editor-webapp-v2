@@ -1,30 +1,30 @@
-import { CustomEventHandler } from './event';
+import { CustomEventHandler } from "@vue-material/core";
 
 type ClipboardEvents = {
-  set: [text: string];
+	set: [text: string];
 };
 
 export class Clipboard extends CustomEventHandler<ClipboardEvents> {
-  private value = '';
+	private value = "";
 
-  get supported(): boolean {
-    return !!navigator.clipboard;
-  }
+	get supported(): boolean {
+		return !!navigator.clipboard;
+	}
 
-  async set(text: string) {
-    this.dispatchEvent('set', [text]);
+	async set(text: string) {
+		this.dispatchEvent("set", text);
 
-    if (this.supported) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
+		if (this.supported) {
+			await navigator.clipboard.writeText(text);
+			return;
+		}
 
-    this.value = text;
-  }
+		this.value = text;
+	}
 
-  async get() {
-    return this.supported ? await navigator.clipboard.readText() : this.value;
-  }
+	async get() {
+		return this.supported ? await navigator.clipboard.readText() : this.value;
+	}
 }
 
 export default Clipboard;
