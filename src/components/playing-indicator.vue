@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { addPX } from "@vue-material/core";
+import { addPX } from '@vue-material/core'
 
 withDefaults(
 	defineProps<{
-		size?: number | string;
+		size?: number | string
 	}>(),
 	{
 		size: 24,
 	},
-);
+)
 </script>
 
 <template>

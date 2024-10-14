@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { $, debounce, evaluate } from "@vue-material/core";
-import { onMounted, onUnmounted, ref, reactive } from "vue";
-import { KeyboardGuides, type BindItems, as } from "./keys";
-import entry from "./entry.vue";
-import { useScreen } from "@/hooks/use-screen";
+import { useScreen } from '@/hooks/use-screen'
+import { $, debounce, evaluate } from '@vue-material/core'
+import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import entry from './entry.vue'
+import { type BindItems, KeyboardGuides, as } from './keys'
 
 const keyActive = reactive({
 	ctrl: false,
 	shift: false,
 	alt: false,
 	meta: false,
-});
+})
 
-const binds = KeyboardGuides();
+const binds = KeyboardGuides()
 
 function matches(special?: [boolean, boolean, boolean, boolean]) {
-	special ??= [false, false, false, false];
+	special ??= [false, false, false, false]
 
-	if (special[0] && !keyActive.ctrl) return false;
-	if (special[1] && !keyActive.alt) return false;
-	if (special[2] && !keyActive.shift) return false;
-	if (special[3] && !keyActive.meta) return false;
-	return true;
+	if (special[0] && !keyActive.ctrl) return false
+	if (special[1] && !keyActive.alt) return false
+	if (special[2] && !keyActive.shift) return false
+	if (special[3] && !keyActive.meta) return false
+	return true
 }
 
 function onKey(e: KeyboardEvent) {
@@ -35,20 +35,20 @@ function onKey(e: KeyboardEvent) {
 			}),
 		{
 			wait: 100,
-			key: "keyActive",
+			key: 'keyActive',
 		},
-	);
+	)
 }
 
 onMounted(() => {
-	addEventListener("keydown", onKey);
-	addEventListener("keyup", onKey);
-});
+	addEventListener('keydown', onKey)
+	addEventListener('keyup', onKey)
+})
 
 onUnmounted(() => {
-	removeEventListener("keydown", onKey);
-	removeEventListener("keyup", onKey);
-});
+	removeEventListener('keydown', onKey)
+	removeEventListener('keyup', onKey)
+})
 </script>
 
 <template>

@@ -1,106 +1,106 @@
 <script setup lang="ts">
-import type MusicService from "@/api/service";
-import { type Ref, inject, onMounted, onUnmounted, ref, shallowRef } from "vue";
-import animatedScroll from "animated-scroll-to";
-import playingIndicator from "../playing-indicator.vue";
+import type MusicService from '@/api/service'
+import animatedScroll from 'animated-scroll-to'
+import { type Ref, inject, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import playingIndicator from '../playing-indicator.vue'
 
+import { useLang } from '@/hooks/use-lang'
+import { useSession } from '@/hooks/use-session'
 import {
 	$,
-	rippleEffect,
-	throttler,
 	AwaitedText,
 	getTranslatedText,
-} from "@vue-material/core";
-import { useSession } from "@/hooks/use-session";
-import { useLang } from "@/hooks/use-lang";
+	rippleEffect,
+	throttler,
+} from '@vue-material/core'
 
-const Player = window.app.player;
-const Lyrics = window.app.lyric;
+const Player = window.app.player
+const Lyrics = window.app.lyric
 
-const lyrics = shallowRef(Lyrics.getRaw());
-const bypass = ref(false);
+const lyrics = shallowRef(Lyrics.getRaw())
+const bypass = ref(false)
 
-const previewPane = ref<HTMLElement | null>(null);
-const currentIndex = ref(-1);
-const session = useSession();
-const lang = useLang("en");
+const previewPane = ref<HTMLElement | null>(null)
+const currentIndex = ref(-1)
+const session = useSession()
+const lang = useLang('en')
 
 const lrcChange = () => {
-	bypass.value = true;
-	lyrics.value = Lyrics.getRaw();
-	handleCurrentIndex.call(Player);
-};
+	bypass.value = true
+	lyrics.value = Lyrics.getRaw()
+	handleCurrentIndex.call(Player)
+}
 
 function handleCurrentIndex(this: MusicService) {
 	throttler(
 		async () => {
-			const index = Lyrics.findIndex(this.currentTime * 1000 + 300);
-			if (index === -1 || currentIndex.value === index) return;
+			const index = Lyrics.findIndex(this.currentTime * 1000 + 300)
+			if (index === -1 || currentIndex.value === index) return
 
-			bypass.value = false;
-			const element = previewPane.value?.children[index];
+			bypass.value = false
+			const element = previewPane.value?.children[index]
 
 			if (element) {
-				currentIndex.value = index;
+				currentIndex.value = index
 				// biome-ignore lint/style/noNonNullAssertion: <explanation>
-				const main = $("main")!;
+				const main = $('main')!
 
-				const previous = previewPane.value?.querySelector(".active");
-				previous?.classList.remove("active");
-				element?.classList.add("active");
+				const previous = previewPane.value?.querySelector('.active')
+				previous?.classList.remove('active')
+				element?.classList.add('active')
 
-				const rect = main.getBoundingClientRect();
-				const halfElement = element.clientHeight / 1.75;
-				const offset = rect.height / 2 - halfElement;
+				const rect = main.getBoundingClientRect()
+				const halfElement = element.clientHeight / 1.75
+				const offset = rect.height / 2 - halfElement
 
 				await animatedScroll(element, {
 					speed: 400,
 					elementToScroll: main,
 					verticalOffset: offset * -1,
-				});
+				})
 			}
 		},
 		{
-			key: "getLRCIndex",
-			blockTime: 100,
-			bypass: bypass.value,
+			key: 'getLRCIndex',
+			wait: 100,
+			ignore: bypass.value,
 			endCall: true,
 		},
-	);
+	)
 }
 
 const resetIndex = () => {
-	bypass.value = true;
-	currentIndex.value;
-	handleCurrentIndex.call(Player);
-};
+	bypass.value = true
+	currentIndex.value
+	handleCurrentIndex.call(Player)
+}
 
 function isError(index: number) {
 	return (
 		index > 0 &&
 		lyrics.value.lines[index - 1].time > lyrics.value.lines[index].time
-	);
+	)
 }
 
 function setTime(time: number) {
 	if (Player.ready) {
-		bypass.value = true;
-		Player.currentTime = time / 1000;
+		bypass.value = true
+		Player.currentTime = time / 1000
 	}
 }
 
 onMounted(() => {
-	lrcChange();
-	Lyrics.addEventListener("parsed", lrcChange);
-	Player.addEventListener("timeupdate", handleCurrentIndex);
-	Player.addEventListener("musicupdated", resetIndex);
-});
+	lrcChange()
+	Lyrics.addEventListener('parsed', lrcChange)
+	Player.addEventListener('timeupdate', handleCurrentIndex)
+	Player.addEventListener('musicupdated', resetIndex)
+})
 
 onUnmounted(() => {
-	Lyrics.removeEventListener("parsed", lrcChange);
-	Player.removeEventListener("timeupdate", handleCurrentIndex);
-	Player.removeEventListener("musicupdated", resetIndex);
-});
+	Lyrics.removeEventListener('parsed', lrcChange)
+	Player.removeEventListener('timeupdate', handleCurrentIndex)
+	Player.removeEventListener('musicupdated', resetIndex)
+})
 </script>
 
 <template>

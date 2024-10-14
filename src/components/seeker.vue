@@ -1,67 +1,67 @@
 <script setup lang="ts">
-import type MusicService from "@/api/service";
-import { throttler, clamp, useDrag, useRect } from "@vue-material/core";
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
+import type MusicService from '@/api/service'
+import { clamp, throttler, useDrag, useRect } from '@vue-material/core'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
-const Player = window.app.player;
-const Lyrics = window.app.lyric;
+const Player = window.app.player
+const Lyrics = window.app.lyric
 
 const audio = reactive({
 	time: Player.currentTime,
 	duration: Player.instance.duration,
-});
+})
 
-const root = ref<HTMLElement>();
-const rect = useRect(root);
+const root = ref<HTMLElement>()
+const rect = useRect(root)
 
 function update() {
-	if (!Player.ready || dragging.value) return;
+	if (!Player.ready || dragging.value) return
 
-	audio.time = Player.currentTime;
+	audio.time = Player.currentTime
 }
 
 function timeUpdate(this: MusicService) {
 	throttler(update, {
-		key: "seeker",
+		key: 'seeker',
 		wait: 500,
 		endCall: true,
-	});
+	})
 }
 
 function onMusicUpdate(this: MusicService) {
-	audio.duration = this.instance.duration;
+	audio.duration = this.instance.duration
 }
 
 function setter(x: number, set = true) {
-	if (!rect.ready || !root.value) return;
-	const offset = clamp(x, 0, rect.width);
-	const time = (offset / rect.width) * Player.instance.duration;
+	if (!rect.ready || !root.value) return
+	const offset = clamp(x, 0, rect.width)
+	const time = (offset / rect.width) * Player.instance.duration
 
-	audio.time = time;
+	audio.time = time
 
 	if (set) {
-		Player.currentTime = time;
+		Player.currentTime = time
 	}
 }
 
 const [dragging, dragEvent] = useDrag({
 	move: ({ x }) => setter(x, false),
 	end: ({ x }) => setter(x, true),
-});
+})
 
 const seekerWidth = computed(() => {
-	return (audio.time / audio.duration || 0) * 100;
-});
+	return (audio.time / audio.duration || 0) * 100
+})
 
 onMounted(() => {
-	Player.addEventListener("musicupdated", onMusicUpdate);
-	Player.instance.addEventListener("timeupdate", timeUpdate);
-});
+	Player.addEventListener('musicupdated', onMusicUpdate)
+	Player.instance.addEventListener('timeupdate', timeUpdate)
+})
 
 onUnmounted(() => {
-	Player.removeEventListener("musicupdated", onMusicUpdate);
-	Player.instance.removeEventListener("timeupdate", timeUpdate);
-});
+	Player.removeEventListener('musicupdated', onMusicUpdate)
+	Player.instance.removeEventListener('timeupdate', timeUpdate)
+})
 </script>
 
 <template>

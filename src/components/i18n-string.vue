@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { BoxProps } from "@vue-material/core";
+import type { BoxProps } from '@vue-material/core'
 
-import { ref } from "vue";
-import { Text } from "@vue-material/core";
-import { useLang } from "@/hooks/use-lang";
+import { useLang } from '@/hooks/use-lang'
+import { Text } from '@vue-material/core'
+import { ref } from 'vue'
 
 interface I18nProps extends /* @vue-ignore */ BoxProps {
-	entry: string;
-	fallback?: string;
-	args?: unknown[];
-	apply?: string[];
+	entry: string
+	fallback?: string
+	args?: unknown[]
+	apply?: string[]
 }
 
-const value = ref<string>();
-const props = defineProps<I18nProps>();
-const lang = useLang("en");
+const value = ref<string>()
+const props = defineProps<I18nProps>()
+const lang = useLang('en')
 </script>
 
 <template>

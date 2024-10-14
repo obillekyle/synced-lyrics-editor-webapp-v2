@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import homeScreen from "./home.vue";
-import editScreen from "./edit.vue";
-import timingScreen from "./timing.vue";
-import previewScreen from "./lyric.vue";
-import { useScreen } from "@/hooks/use-screen";
+import { useScreen } from '@/hooks/use-screen'
+import editScreen from './edit.vue'
+import homeScreen from './home.vue'
+import previewScreen from './lyric.vue'
+import timingScreen from './timing.vue'
 
-const screen = useScreen();
+const screen = useScreen()
 </script>
 
 <template>

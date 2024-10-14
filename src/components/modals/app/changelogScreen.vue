@@ -1,9 +1,9 @@
 <script setup lang="ts">
-  import { parse } from 'marked';
+import { parse } from 'marked'
 
-  defineProps<{
-    data?: string;
-  }>();
+defineProps<{
+	data?: string
+}>()
 </script>
 
 <template>

@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import type { Screens } from "@/app/main";
+import type { Screens } from '@/app/main'
 
-import I18nString from "./i18n-string.vue";
-import presets from "./modals/presets";
+import { useScreen } from '@/hooks/use-screen'
+import { useSession } from '@/hooks/use-session'
 import {
+	Button,
+	Divider,
+	Floater,
 	IconButton,
 	Switch,
-	Divider,
-	Button,
-	Floater,
 	TopAppBar,
-} from "@vue-material/core";
-import { useScreen } from "@/hooks/use-screen";
-import { useSession } from "@/hooks/use-session";
+} from '@vue-material/core'
+import I18nString from './i18n-string.vue'
+import presets from './modals/presets'
 
 const screenNames: Record<Screens, string> = {
-	home: "APP_HOME",
-	edit: "APP_EDIT",
-	timing: "APP_TIMING",
-	lyric: "APP_LYRIC",
-	debug: "DEBUG",
-};
+	home: 'APP_HOME',
+	edit: 'APP_EDIT',
+	timing: 'APP_TIMING',
+	lyric: 'APP_LYRIC',
+	debug: 'DEBUG',
+}
 
-const screen = useScreen();
-const session = useSession();
+const screen = useScreen()
+const session = useSession()
 </script>
 
 <template>

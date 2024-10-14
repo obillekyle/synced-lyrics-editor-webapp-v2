@@ -1,56 +1,53 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch } from 'vue'
 
-import AppTag from "./components/app-tag.vue";
-import I18nString from "./components/i18n-string.vue";
-import AppHeader from "./components/header.vue";
-import NavigationBar from "./components/navigation/navigation-bar.vue";
-import AppPlayer from "./components/player.vue";
-import LrcScreen from "./components/screens/main.vue";
-import LyricCard from "./components/screens/lyric-card.vue";
-import _presets from "./components/modals/presets";
+import AppTag from './components/app-tag.vue'
+import AppHeader from './components/header.vue'
+import I18nString from './components/i18n-string.vue'
+import _presets from './components/modals/presets'
+import NavigationBar from './components/navigation/navigation-bar.vue'
+import AppPlayer from './components/player.vue'
+import LyricCard from './components/screens/lyric-card.vue'
+import LrcScreen from './components/screens/main.vue'
 
-import { Layout, LinearProgress, SquareImage, $ } from "@vue-material/core";
-import { useScreen } from "./hooks/use-screen";
-import { useConfig } from "./hooks/use-config";
-import { useSession } from "./hooks/use-session";
-import { useAppData } from "./hooks/use-app-data";
-import { useLocation } from "./hooks/use-location";
-import { useLang } from "./hooks/use-lang";
+import { $, Layout, LinearProgress, SquareImage } from '@vue-material/core'
+import { useAppData } from './hooks/use-app-data'
+import { useConfig } from './hooks/use-config'
+import { useLang } from './hooks/use-lang'
+import { useLocation } from './hooks/use-location'
+import { useScreen } from './hooks/use-screen'
+import { useSession } from './hooks/use-session'
 
-const screen = useScreen();
-const config = useConfig();
-const session = useSession();
-const appData = useAppData();
-const location = useLocation();
-const lang = useLang("en");
+const screen = useScreen()
+const config = useConfig()
+const session = useSession()
+const appData = useAppData()
+const location = useLocation()
+const lang = useLang('en')
 
-const ready = ref(false);
-const page = computed(() => location.pathname.split("/")[1]);
+const ready = ref(false)
+const page = computed(() => location.pathname.split('/')[1])
 
 function setMetaDescription(value: string) {
-	const metaDesc = $('meta[name="description"]')?.setAttribute(
-		"content",
-		value,
-	);
+	const metaDesc = $('meta[name="description"]')?.setAttribute('content', value)
 }
 
 watch(page, (page) => {
 	switch (page) {
-		case "lyric-card":
-			document.title = "Lyrics Card Maker | Synced Lyrics Editor and Maker v2 ";
+		case 'lyric-card':
+			document.title = 'Lyrics Card Maker | Synced Lyrics Editor and Maker v2 '
 			setMetaDescription(
-				"Create your own lyrics card in seconds with our new lyrics card maker.",
-			);
-			break;
+				'Create your own lyrics card in seconds with our new lyrics card maker.',
+			)
+			break
 		default:
-			document.title = "Synced Lyrics Editor and Maker v2";
+			document.title = 'Synced Lyrics Editor and Maker v2'
 			setMetaDescription(
-				"Create your own synced lyrics for the music you love – right from your browser. A sound file is required.",
-			);
-			break;
+				'Create your own synced lyrics for the music you love – right from your browser. A sound file is required.',
+			)
+			break
 	}
-});
+})
 </script>
 
 <template>

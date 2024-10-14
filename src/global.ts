@@ -1,33 +1,33 @@
-import { Buffer } from "buffer";
-import Clipboard from "./api/clipboard";
-import LRCParser from "@/api/parser";
-import MusicService from "@/api/service";
-import presets from "@/components/modals/presets";
-import process from "process";
-import { defaultColor, type Screens } from "./app/main";
-import { loadIcons } from "@iconify/vue/dist/iconify.js";
-import { AppIcons } from "./app/icons";
+import { Buffer } from 'buffer'
+import LRCParser from '@/api/parser'
+import MusicService from '@/api/service'
+import presets from '@/components/modals/presets'
+import { loadIcons } from '@iconify/vue/dist/iconify.js'
+import process from 'process'
+import Clipboard from './api/clipboard'
+import { AppIcons } from './app/icons'
+import { type Screens, defaultColor } from './app/main'
 
-const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0);
-const appVerString = import.meta.env.VITE_VERSION ?? "unknown";
+const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0)
+const appVerString = import.meta.env.VITE_VERSION ?? 'unknown'
 
 declare global {
 	interface Window {
 		app: {
-			version: number;
-			version_string: string;
-			player: MusicService;
-			lyric: LRCParser;
-			clipboard: Clipboard;
-			pwa: Event | null;
-			presets: typeof presets;
-		};
-		Buffer: typeof Buffer;
-		process: typeof process;
+			version: number
+			version_string: string
+			player: MusicService
+			lyric: LRCParser
+			clipboard: Clipboard
+			pwa: Event | null
+			presets: typeof presets
+		}
+		Buffer: typeof Buffer
+		process: typeof process
 	}
 }
 
-loadIcons(AppIcons);
+loadIcons(AppIcons)
 
 window.app = {
 	version: appVer,
@@ -39,12 +39,12 @@ window.app = {
 	pwa: null,
 
 	presets,
-};
+}
 
-window.addEventListener("beforeinstallprompt", (event) => {
-	event.preventDefault();
-	window.app.pwa = event;
-});
+window.addEventListener('beforeinstallprompt', (event) => {
+	event.preventDefault()
+	window.app.pwa = event
+})
 
-window.Buffer = Buffer;
-window.process = process;
+window.Buffer = Buffer
+window.process = process

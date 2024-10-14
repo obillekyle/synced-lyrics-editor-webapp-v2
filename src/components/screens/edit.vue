@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-const Lyrics = window.app.lyric;
+import { onMounted, onUnmounted, ref } from 'vue'
+const Lyrics = window.app.lyric
 
-const value = ref(Lyrics.stringify());
+const value = ref(Lyrics.stringify())
 const setValue = () => {
-	value.value = Lyrics.stringify();
-};
+	value.value = Lyrics.stringify()
+}
 
 onMounted(() => {
-	Lyrics.addEventListener("parsed", setValue);
-});
+	Lyrics.addEventListener('parsed', setValue)
+})
 
 onUnmounted(() => {
-	Lyrics.removeEventListener("parsed", setValue);
-	Lyrics.parse(value.value);
-});
+	Lyrics.removeEventListener('parsed', setValue)
+	Lyrics.parse(value.value)
+})
 </script>
 
 <template>

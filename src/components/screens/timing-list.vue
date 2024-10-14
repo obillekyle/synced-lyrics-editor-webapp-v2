@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import type { LRCLine } from '@/api/parser';
-  const Lyrics = window.app.lyric;
+import type { LRCLine } from '@/api/parser'
+const Lyrics = window.app.lyric
 
-  defineProps<LRCLine>();
+defineProps<LRCLine>()
 </script>
 
 <template>

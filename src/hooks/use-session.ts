@@ -1,13 +1,13 @@
-import { inject, provide, reactive, type Reactive } from "vue";
+import { type Reactive, inject, provide, reactive } from 'vue'
 
 type Session = {
 	timing: {
-		sorting: boolean;
-	};
+		sorting: boolean
+	}
 	preview: {
-		translate: boolean;
-	};
-};
+		translate: boolean
+	}
+}
 
 const defaultSession: Session = {
 	timing: {
@@ -16,10 +16,10 @@ const defaultSession: Session = {
 	preview: {
 		translate: false,
 	},
-};
+}
 
 export function useSession(): Reactive<Session> {
-	const session = inject("app-session", reactive(defaultSession));
-	provide("app-session", session);
-	return session;
+	const session = inject('app-session', reactive(defaultSession))
+	provide('app-session', session)
+	return session
 }

@@ -1,68 +1,68 @@
 <script setup lang="ts">
-import type { Screens } from "@/app/main";
+import type { Screens } from '@/app/main'
 
-import { computed } from "vue";
+import { computed } from 'vue'
 
-import { Navigation, Floater, IconButton } from "@vue-material/core";
-import { AppScreens } from "@/app/main";
-import { useScreen } from "@/hooks/use-screen";
-import { useConfig } from "@/hooks/use-config";
+import { AppScreens } from '@/app/main'
+import { useConfig } from '@/hooks/use-config'
+import { useScreen } from '@/hooks/use-screen'
+import { Floater, IconButton, Navigation } from '@vue-material/core'
 
-import _presets from "../modals/presets";
-import AppLogo from "./app-logo.vue";
-import I18nString from "../i18n-string.vue";
+import I18nString from '../i18n-string.vue'
+import _presets from '../modals/presets'
+import AppLogo from './app-logo.vue'
 
 type NavigationItem = {
-	icon: string;
-	value: number;
-	tKey: string;
-	label: string;
-	visible?: boolean;
-};
+	icon: string
+	value: number
+	tKey: string
+	label: string
+	visible?: boolean
+}
 
-const screen = useScreen();
-const config = useConfig();
+const screen = useScreen()
+const config = useConfig()
 const screens = computed<Record<Screens, NavigationItem>>(() => ({
 	home: {
-		icon: "material-symbols:home-outline",
+		icon: 'material-symbols:home-outline',
 		value: 0,
-		tKey: "APP_HOME",
-		label: "Home",
+		tKey: 'APP_HOME',
+		label: 'Home',
 		visible: config.navigation.showHome,
 	},
 	edit: {
-		icon: "material-symbols:edit-outline",
+		icon: 'material-symbols:edit-outline',
 		value: 1,
-		tKey: "APP_EDIT",
-		label: "Edit",
+		tKey: 'APP_EDIT',
+		label: 'Edit',
 	},
 	timing: {
-		icon: "material-symbols:hourglass-outline",
+		icon: 'material-symbols:hourglass-outline',
 		value: 2,
-		tKey: "APP_TIMING",
-		label: "Timing",
+		tKey: 'APP_TIMING',
+		label: 'Timing',
 	},
 	lyric: {
-		icon: "material-symbols:queue-music",
+		icon: 'material-symbols:queue-music',
 		value: 3,
-		tKey: "APP_LYRIC",
-		label: "Lyric",
+		tKey: 'APP_LYRIC',
+		label: 'Lyric',
 	},
 	debug: {
-		icon: "material-symbols:bug-report-outline",
+		icon: 'material-symbols:bug-report-outline',
 		value: 4,
-		tKey: "DEBUG",
-		label: "Debug",
+		tKey: 'DEBUG',
+		label: 'Debug',
 		visible: config.debug,
 	},
-}));
+}))
 
 const screenIndex = computed({
 	get: () => AppScreens.indexOf(screen.value),
 	set: (value) => {
-		screen.value = AppScreens[value] ?? "home";
+		screen.value = AppScreens[value] ?? 'home'
 	},
-});
+})
 </script>
 
 <template>

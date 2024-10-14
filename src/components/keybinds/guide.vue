@@ -1,8 +1,8 @@
 <script setup lang="ts">
-  import { as, getKeybinds, type KeyBind } from './keys';
-  import entry from './entry.vue';
+import entry from './entry.vue'
+import { type KeyBind, as, getKeybinds } from './keys'
 
-  const binds = getKeybinds();
+const binds = getKeybinds()
 </script>
 
 <template>

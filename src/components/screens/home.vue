@@ -1,62 +1,62 @@
 p
 <script setup lang="ts">
-import { Icon } from "@iconify/vue";
-import { keyHandlers } from "../keybinds/keys";
+import { Icon } from '@iconify/vue'
+import { keyHandlers } from '../keybinds/keys'
 
-import _presets from "../modals/presets";
-import SvgBg from "./svg-bg.vue";
+import _presets from '../modals/presets'
+import SvgBg from './svg-bg.vue'
 
+import { useScreen } from '@/hooks/use-screen'
 import {
+	Button,
 	SquareImage,
 	WavyDivider,
-	Button,
 	rippleEffect,
-} from "@vue-material/core";
-import { useScreen } from "@/hooks/use-screen";
+} from '@vue-material/core'
 
-const screen = useScreen();
-const version = window.app.version_string;
-const pwa = window.app.pwa;
+const screen = useScreen()
+const version = window.app.version_string
+const pwa = window.app.pwa
 
 const links: { label: string; link?: string }[] = [
 	{
-		label: "Website",
-		link: "https://okyle.xyz",
+		label: 'Website',
+		link: 'https://okyle.xyz',
 	},
 	{
-		label: "Github Repo",
-		link: "https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
+		label: 'Github Repo',
+		link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
 	},
 	{
-		label: "Old Synced Lyrics Maker",
-		link: "https://lyrics-editor.okyle.xyz",
+		label: 'Old Synced Lyrics Maker',
+		link: 'https://lyrics-editor.okyle.xyz',
 	},
 	{
-		label: "Inspired by Material Design v3",
-		link: "https://m3.material.io/",
+		label: 'Inspired by Material Design v3',
+		link: 'https://m3.material.io/',
 	},
 	{
-		label: "Report an issue",
-		link: "https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues",
+		label: 'Report an issue',
+		link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues',
 	},
-];
+]
 
 function share() {
 	navigator.share({
-		title: "Synced Lyrics Editor v2",
-		url: "https://sle.okyle.xyz",
-	});
+		title: 'Synced Lyrics Editor v2',
+		url: 'https://sle.okyle.xyz',
+	})
 }
 
 function toGithubRepo() {
 	window.open(
-		"https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
-		"_blank",
-	);
+		'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+		'_blank',
+	)
 }
 
 function toLCMaker() {
-	history.pushState(null, "", "/lyric-card");
+	history.pushState(null, '', '/lyric-card')
 }
 </script>
 

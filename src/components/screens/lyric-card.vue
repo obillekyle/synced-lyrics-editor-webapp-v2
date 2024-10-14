@@ -1,151 +1,151 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, reactive } from "vue";
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
 import {
-	ThemeProvider,
 	Button,
-	Select,
-	TextInput,
-	WavyDivider,
-	Divider,
-	Scroller,
-	Switch,
-	IconButton,
 	CircularProgress,
-	SquareImage,
+	Divider,
+	IconButton,
+	Scroller,
+	Select,
 	Slider,
+	SquareImage,
+	Switch,
+	TextInput,
+	ThemeProvider,
+	WavyDivider,
 	addPX,
+	as,
+	fastAvgColor,
 	getCSSValue,
 	openFilePicker,
 	openFilePickerAsync,
 	rippleEffect,
-	fastAvgColor,
 	throttler,
-	as,
-} from "@vue-material/core";
+} from '@vue-material/core'
 
-import FontSelect from "./font-select.vue";
-import h2c from "html2canvas";
-import type { ObjectValue } from "@vue-material/core/utils/other/to-object-value.js";
+import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
+import h2c from 'html2canvas'
+import FontSelect from './font-select.vue'
 
 const audioInfo = reactive({
-	title: "Hold my hand",
-	artist: "Random Artist",
+	title: 'Hold my hand',
+	artist: 'Random Artist',
 	currentTime: 0,
 	duration: 0,
-});
+})
 
 const lyrics = reactive({
 	line: undefined as number | undefined,
-	text: "",
+	text: '',
 	effect: false,
 	align: 0,
 	balance: false,
-});
+})
 
 const font = reactive({
-	family: "Roboto Flex",
+	family: 'Roboto Flex',
 	size: 30,
 	weight: 500,
-});
+})
 
 const downloadOptions = reactive({
-	type: "png",
+	type: 'png',
 	size: 1,
-});
+})
 
 const image = reactive({
 	radius: 12,
 	width: 48,
-	frame: "default",
-	data: "/assets/gemini-generated-image.jpg",
-});
+	frame: 'default',
+	data: '/assets/gemini-generated-image.jpg',
+})
 
 const box = reactive({
 	radius: 12,
 	padding: 16,
-	color: "",
-});
+	color: '',
+})
 
-const loading = ref(false);
+const loading = ref(false)
 
 const downloadTypes: ObjectValue[] = [
-	{ label: "PNG", value: "png" },
-	{ label: "JPG", value: "jpg" },
-	{ label: "WEBP", value: "webp" },
-];
+	{ label: 'PNG', value: 'png' },
+	{ label: 'JPG', value: 'jpg' },
+	{ label: 'WEBP', value: 'webp' },
+]
 
 const lyricsAligns = [
-	{ label: "left", value: 0 },
-	{ label: "center", value: 1 },
-	{ label: "right", value: 2 },
-];
+	{ label: 'left', value: 0 },
+	{ label: 'center', value: 1 },
+	{ label: 'right', value: 2 },
+]
 
 const downloadSizes: ObjectValue[] = [
-	{ label: "Original", value: 1 },
-	{ label: "x2", value: 2 },
-	{ label: "x4", value: 4 },
-];
+	{ label: 'Original', value: 1 },
+	{ label: 'x2', value: 2 },
+	{ label: 'x4', value: 4 },
+]
 
 const imgSizes = [
-	{ value: 48, label: "48px" },
-	{ value: 64, label: "64px" },
-	{ value: 80, label: "80px" },
-	{ value: 96, label: "96px" },
-	{ value: 128, label: "128px" },
-];
+	{ value: 48, label: '48px' },
+	{ value: 64, label: '64px' },
+	{ value: 80, label: '80px' },
+	{ value: 96, label: '96px' },
+	{ value: 128, label: '128px' },
+]
 
 const toggleEffect = () => {
-	lyrics.effect = !lyrics.effect;
-};
+	lyrics.effect = !lyrics.effect
+}
 
-const content = ref<HTMLElement | null>(null);
+const content = ref<HTMLElement | null>(null)
 
-const Player = window.app.player;
-const Lyrics = window.app.lyric;
+const Player = window.app.player
+const Lyrics = window.app.lyric
 
 function download(url: string) {
-	const link = document.createElement("a");
-	link.download = `${audioInfo.artist} - ${audioInfo.title} [Lyrics Card].${downloadOptions.type}`;
-	link.href = url;
-	link.click();
-	loading.value = false;
+	const link = document.createElement('a')
+	link.download = `${audioInfo.artist} - ${audioInfo.title} [Lyrics Card].${downloadOptions.type}`
+	link.href = url
+	link.click()
+	loading.value = false
 }
 
 function getLRCLineValue(id: number) {
-	const line = Lyrics.lines[id];
-	if (!line) return;
-	return typeof line.data === "string"
+	const line = Lyrics.lines[id]
+	if (!line) return
+	return typeof line.data === 'string'
 		? line.data
-		: line.data.map(({ line }) => line).join("");
+		: line.data.map(({ line }) => line).join('')
 }
 
 function downloadImage() {
-	loading.value = true;
-	const img = content.value;
-	if (!img) return;
+	loading.value = true
+	const img = content.value
+	if (!img) return
 
 	setTimeout(async () => {
-		const scale = downloadOptions.size;
+		const scale = downloadOptions.size
 		const canvas = await h2c(img, {
 			scale: Number(scale),
-			backgroundColor: "transparent",
-		});
+			backgroundColor: 'transparent',
+		})
 		switch (downloadOptions.type) {
-			case "png":
-				download(canvas.toDataURL());
-				break;
-			case "jpg":
-				download(canvas.toDataURL("image/jpeg"));
-				break;
-			case "webp":
-				download(canvas.toDataURL("image/webp"));
-				break;
+			case 'png':
+				download(canvas.toDataURL())
+				break
+			case 'jpg':
+				download(canvas.toDataURL('image/jpeg'))
+				break
+			case 'webp':
+				download(canvas.toDataURL('image/webp'))
+				break
 			default:
-				download(canvas.toDataURL());
-				break;
+				download(canvas.toDataURL())
+				break
 		}
-	});
+	})
 }
 
 const lrcLines = computed(() =>
@@ -153,103 +153,103 @@ const lrcLines = computed(() =>
 		return {
 			value: line.id,
 			label:
-				typeof line.data === "string"
-					? line.data || "<Empty>"
-					: line.data.map(({ line }) => line).join(""),
-		};
+				typeof line.data === 'string'
+					? line.data || '<Empty>'
+					: line.data.map(({ line }) => line).join(''),
+		}
 	}),
-);
+)
 
 function getLrcLineString(index: number) {
-	const line = Lyrics.lines[index];
-	if (!line) return "";
-	return typeof line.data === "string"
+	const line = Lyrics.lines[index]
+	if (!line) return ''
+	return typeof line.data === 'string'
 		? line.data
-		: line.data.map(({ line }) => line).join("");
+		: line.data.map(({ line }) => line).join('')
 }
 
 const getPreviousLine = () => {
-	if (lyrics.line === undefined) return;
+	if (lyrics.line === undefined) return
 
-	const index = lyrics.line - 1;
-	if (index < 0) return;
-	return getLRCLineValue(index);
-};
+	const index = lyrics.line - 1
+	if (index < 0) return
+	return getLRCLineValue(index)
+}
 
 const getNextLine = () => {
-	if (lyrics.line === undefined) return;
+	if (lyrics.line === undefined) return
 
-	const index = lyrics.line + 1;
-	if (index >= lrcLines.value.length) return;
-	return getLRCLineValue(index);
-};
+	const index = lyrics.line + 1
+	if (index >= lrcLines.value.length) return
+	return getLRCLineValue(index)
+}
 
 const lyricText = computed(() => {
-	const id = lyrics.line;
+	const id = lyrics.line
 	if (id !== undefined) {
-		const lineData = Lyrics.lines[id].data;
+		const lineData = Lyrics.lines[id].data
 
 		switch (typeof lineData) {
-			case "string":
-				return lineData;
-			case "object":
-				return lineData.map(({ line }) => line).join("");
+			case 'string':
+				return lineData
+			case 'object':
+				return lineData.map(({ line }) => line).join('')
 			default:
-				return lyrics.text;
+				return lyrics.text
 		}
 	}
-	return lyrics.text;
-});
+	return lyrics.text
+})
 
 const imageStyles: ObjectValue[] = [
-	{ value: "none", label: "Rounded" },
-	{ value: "circle", label: "Wavy Circle" },
-	{ value: "clover", label: "Clover" },
-];
+	{ value: 'none', label: 'Rounded' },
+	{ value: 'circle', label: 'Wavy Circle' },
+	{ value: 'clover', label: 'Clover' },
+]
 
-const fonts = ["JetBrains Mono", "Roboto Flex", "Arial", "Times New Roman"];
+const fonts = ['JetBrains Mono', 'Roboto Flex', 'Arial', 'Times New Roman']
 
-const lrcWeight = [200, 300, 400, 500, 600, 700, 800];
+const lrcWeight = [200, 300, 400, 500, 600, 700, 800]
 
 async function uploadImage() {
-	const file = await openFilePickerAsync({ accept: "image/*" });
+	const file = await openFilePickerAsync({ accept: 'image/*' })
 
-	if (!file) return;
-	URL.revokeObjectURL(image.data);
-	image.data = URL.createObjectURL(file);
+	if (!file) return
+	URL.revokeObjectURL(image.data)
+	image.data = URL.createObjectURL(file)
 }
 
 function useEditorMeta() {
-	const details = Player.details;
-	audioInfo.title = details.title;
-	audioInfo.artist = details.artist || "";
-	image.data = Player.picture?.data || "";
+	const details = Player.details
+	audioInfo.title = details.title
+	audioInfo.artist = details.artist || ''
+	image.data = Player.picture?.data || ''
 }
 
 function toApp() {
-	history.pushState(null, "", "/");
+	history.pushState(null, '', '/')
 }
 
 async function getColor() {
 	const imgString: string =
-		typeof image.data === "string"
+		typeof image.data === 'string'
 			? image.data
-			: URL.createObjectURL(image.data);
+			: URL.createObjectURL(image.data)
 
-	const avgColor = await fastAvgColor(imgString);
+	const avgColor = await fastAvgColor(imgString)
 
-	if (imgString.startsWith("blob:") && Player.picture?.data !== imgString) {
-		URL.revokeObjectURL(imgString);
+	if (imgString.startsWith('blob:') && Player.picture?.data !== imgString) {
+		URL.revokeObjectURL(imgString)
 	}
 
-	box.color = avgColor;
+	box.color = avgColor
 }
 
-watch(image, getColor);
+watch(image, getColor)
 
 onMounted(() => {
-	getColor();
-});
+	getColor()
+})
 </script>
 
 <template>

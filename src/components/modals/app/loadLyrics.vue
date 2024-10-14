@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  const Player = window.app.player;
+const Player = window.app.player
 
-  defineProps<{
-    lrc?: string;
-  }>();
+defineProps<{
+	lrc?: string
+}>()
 
-  let lyric = Player.metadata?.common.lyrics?.join('\n') || '';
+const lyric = Player.metadata?.common.lyrics?.join('\n') || ''
 </script>
 
 <template>

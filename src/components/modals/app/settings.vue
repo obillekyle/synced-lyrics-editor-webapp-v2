@@ -1,289 +1,289 @@
 <script setup lang="ts">
-import type { ModalProps, MaybeFunction } from "@vue-material/core";
-import type { UtilityFunction } from "@vue-material/core/utils/component-manager";
+import type { MaybeFunction, ModalProps } from '@vue-material/core'
+import type { UtilityFunction } from '@vue-material/core/utils/component-manager'
 
-import { computed, onMounted, onUnmounted, reactive } from "vue";
-import { Icon } from "@iconify/vue";
+import { Icon } from '@iconify/vue'
+import { computed, onMounted, onUnmounted, reactive } from 'vue'
 
+import { useConfig } from '@/hooks/use-config'
+import { useLang } from '@/hooks/use-lang'
 import {
 	$,
-	TextInput,
-	Switch,
-	evaluate,
 	IconButton,
+	Switch,
+	TextInput,
+	evaluate,
 	rippleEffect,
-} from "@vue-material/core";
-import { useConfig } from "@/hooks/use-config";
-import { useLang } from "@/hooks/use-lang";
+} from '@vue-material/core'
 
-import _presets from "../presets";
-import I18nString from "../../i18n-string.vue";
+import I18nString from '../../i18n-string.vue'
+import _presets from '../presets'
 
 interface Props {
-	utils: UtilityFunction<ModalProps>;
+	utils: UtilityFunction<ModalProps>
 }
 
-const lang = useLang("en");
-const config = useConfig();
+const lang = useLang('en')
+const config = useConfig()
 
-defineProps<Props>();
+defineProps<Props>()
 
 const options = reactive({
 	sidebar: false,
-	search: "",
-	active: "general",
-});
+	search: '',
+	active: 'general',
+})
 
-type Stringish = MaybeFunction<string>;
-type Booleanish = MaybeFunction<boolean>;
+type Stringish = MaybeFunction<string>
+type Booleanish = MaybeFunction<boolean>
 
 const langs: Record<string, string> = {
-	en: "English",
-	zh: "简体中文",
-	ja: "日本語",
-	ko: "한국어",
-	ph: "Filipino",
-	hi: "हिंदी",
-	id: "Indonesian",
-	ur: "اردو",
-};
+	en: 'English',
+	zh: '简体中文',
+	ja: '日本語',
+	ko: '한국어',
+	ph: 'Filipino',
+	hi: 'हिंदी',
+	id: 'Indonesian',
+	ur: 'اردو',
+}
 
 type SettingEntry =
 	| {
-			type: "switch";
-			name: Stringish;
-			icon?: Stringish;
-			desc?: Stringish;
-			disabled?: Booleanish;
-			value: () => boolean | undefined;
-			onChange?: (value: boolean) => void;
+			type: 'switch'
+			name: Stringish
+			icon?: Stringish
+			desc?: Stringish
+			disabled?: Booleanish
+			value: () => boolean | undefined
+			onChange?: (value: boolean) => void
 	  }
 	| {
-			type: "info";
-			name: Stringish;
-			icon?: Stringish;
-			desc?: Stringish;
+			type: 'info'
+			name: Stringish
+			icon?: Stringish
+			desc?: Stringish
 	  }
 	| {
-			type: "divider";
-			name?: Stringish;
-			sticky?: Booleanish;
+			type: 'divider'
+			name?: Stringish
+			sticky?: Booleanish
 	  }
 	| {
-			type: "button";
-			name: Stringish;
-			icon?: Stringish;
-			desc?: Stringish;
-			disabled?: Booleanish;
-			onClick?: () => void;
-	  };
+			type: 'button'
+			name: Stringish
+			icon?: Stringish
+			desc?: Stringish
+			disabled?: Booleanish
+			onClick?: () => void
+	  }
 
 type SettingEntries = {
 	[key: string]: {
-		name: Stringish;
-		desc?: Stringish;
-		icon?: Stringish;
-		disabled?: Booleanish;
-		items: SettingEntry[];
-	};
-};
+		name: Stringish
+		desc?: Stringish
+		icon?: Stringish
+		disabled?: Booleanish
+		items: SettingEntry[]
+	}
+}
 const entries = computed<SettingEntries>(() => {
 	return {
 		general: {
-			name: "SETTINGS_GENERAL",
+			name: 'SETTINGS_GENERAL',
 			items: [
 				{
-					type: "switch",
+					type: 'switch',
 					name:
-						config.preferences.theme === "dark" ? "Dark Mode" : "Light Mode",
+						config.preferences.theme === 'dark' ? 'Dark Mode' : 'Light Mode',
 					icon:
-						config.preferences.theme === "dark"
-							? "material-symbols:dark-mode-outline"
-							: "material-symbols:light-mode-outline",
-					desc: `Switch to ${config.preferences.theme === "dark" ? "light" : "dark"} mode`,
-					value: config.preferences.theme === "dark",
+						config.preferences.theme === 'dark'
+							? 'material-symbols:dark-mode-outline'
+							: 'material-symbols:light-mode-outline',
+					desc: `Switch to ${config.preferences.theme === 'dark' ? 'light' : 'dark'} mode`,
+					value: config.preferences.theme === 'dark',
 					onChange: (v) => {
-						config.preferences.theme = v ? "dark" : "light";
+						config.preferences.theme = v ? 'dark' : 'light'
 					},
 				},
 				{
-					type: "divider",
-					name: "Navigation",
+					type: 'divider',
+					name: 'Navigation',
 				},
 				{
-					type: "switch",
-					name: "Show Home Button",
-					icon: "material-symbols:home-outline",
-					desc: "Show the home button at the navigation",
+					type: 'switch',
+					name: 'Show Home Button',
+					icon: 'material-symbols:home-outline',
+					desc: 'Show the home button at the navigation',
 					value: config.navigation.showHome,
 					onChange: (v) => {
-						config.navigation.showHome = v;
+						config.navigation.showHome = v
 					},
 				},
 				{
-					type: "switch",
-					name: "Center Navigation Buttons",
-					icon: "material-symbols:vertical-align-center",
-					desc: "Center the navigation buttons",
+					type: 'switch',
+					name: 'Center Navigation Buttons',
+					icon: 'material-symbols:vertical-align-center',
+					desc: 'Center the navigation buttons',
 					value: config.navigation.centered,
 					onChange: (v) => {
-						config.navigation.centered = v;
+						config.navigation.centered = v
 					},
 				},
 				{
-					type: "divider",
-					name: "Keyboard",
+					type: 'divider',
+					name: 'Keyboard',
 				},
 				{
-					type: "switch",
-					name: "Show Keybind Guide",
-					icon: "material-symbols:keyboard-outline",
-					desc: "Show the dynamic keybind guide on the bottom left of the screen",
+					type: 'switch',
+					name: 'Show Keybind Guide',
+					icon: 'material-symbols:keyboard-outline',
+					desc: 'Show the dynamic keybind guide on the bottom left of the screen',
 					value: config.preferences.showKeyBinds,
 					onChange: (v) => {
-						config.preferences.showKeyBinds = v;
+						config.preferences.showKeyBinds = v
 					},
 				},
 				{
-					type: "button",
-					name: "View Key Bindings",
-					icon: "material-symbols:open-in-new",
-					desc: "View all keybindings",
+					type: 'button',
+					name: 'View Key Bindings',
+					icon: 'material-symbols:open-in-new',
+					desc: 'View all keybindings',
 					onClick: () => _presets.showKeyBinds(),
 				},
 			],
 		},
 		lang: {
-			name: "SETTINGS_LANG",
+			name: 'SETTINGS_LANG',
 			items: [
 				{
-					type: "info",
-					name: "We only provide translations of these languages",
-					icon: "material-symbols:info-outline",
+					type: 'info',
+					name: 'We only provide translations of these languages',
+					icon: 'material-symbols:info-outline',
 					desc: `If you think we are missing or have an incorrect 
             translation, please create an issue on GitHub`,
 				},
 				{
-					type: "divider",
-					name: "Current language",
+					type: 'divider',
+					name: 'Current language',
 				},
 				{
-					type: "button",
-					name: () => langs[lang.lang] || "English",
-					icon: "material-symbols:check",
+					type: 'button',
+					name: () => langs[lang.lang] || 'English',
+					icon: 'material-symbols:check',
 				},
 				{
-					type: "divider",
-					name: "Available languages",
+					type: 'divider',
+					name: 'Available languages',
 				},
 				...(Object.keys(langs).map((key) => ({
-					type: "button",
+					type: 'button',
 					name: langs[key],
 					icon:
 						key === lang.lang
-							? "material-symbols:check"
+							? 'material-symbols:check'
 							: `circle-flags:${key}`,
 					onClick: () => lang.set(key),
 				})) as SettingEntry[]),
 			],
 		},
 		misc: {
-			name: "SETTINGS_MISC",
+			name: 'SETTINGS_MISC',
 			items: [
 				{
-					type: "switch",
-					name: "Show Changelog",
-					icon: "material-symbols:book-2-outline",
+					type: 'switch',
+					name: 'Show Changelog',
+					icon: 'material-symbols:book-2-outline',
 					desc: config.showChangeLog
-						? "Changelog is shown every time the app loads"
-						: "Changelog is shown only once the app updates",
+						? 'Changelog is shown every time the app loads'
+						: 'Changelog is shown only once the app updates',
 					value: config.showChangeLog,
 					onChange: (v) => {
-						config.showChangeLog = v;
+						config.showChangeLog = v
 					},
 				},
 				{
-					type: "divider",
-					name: "Development",
+					type: 'divider',
+					name: 'Development',
 				},
 				{
-					type: "switch",
-					name: "Hide development tag",
-					icon: "material-symbols:text-rotation-angleup",
+					type: 'switch',
+					name: 'Hide development tag',
+					icon: 'material-symbols:text-rotation-angleup',
 					desc: config.showBuildType
-						? "Tags like alpha or beta are hidden"
-						: "Tags like alpha or beta are shown",
+						? 'Tags like alpha or beta are hidden'
+						: 'Tags like alpha or beta are shown',
 
 					value: config.showBuildType,
 					onChange: (v) => {
-						config.showBuildType = v;
+						config.showBuildType = v
 					},
 				},
 				{
-					type: "switch",
-					name: "Debug Mode",
-					icon: "material-symbols:bug-report-outline",
+					type: 'switch',
+					name: 'Debug Mode',
+					icon: 'material-symbols:bug-report-outline',
 					desc: config.debug
-						? "Debug mode is enabled"
-						: "Debug mode is disabled",
+						? 'Debug mode is enabled'
+						: 'Debug mode is disabled',
 					value: config.debug,
 					onChange: (v) => config.debug,
 				},
 				{
-					type: "divider",
-					name: "Experimental",
+					type: 'divider',
+					name: 'Experimental',
 				},
 				{
-					type: "switch",
-					name: "Enable Code Editor",
-					icon: "material-symbols:code",
+					type: 'switch',
+					name: 'Enable Code Editor',
+					icon: 'material-symbols:code',
 					value: config.preferences.useMonaco,
-					desc: config.preferences.useMonaco ? "Enabled" : "Disabled",
+					desc: config.preferences.useMonaco ? 'Enabled' : 'Disabled',
 					onChange: (v) => {
-						config.preferences.useMonaco = v;
+						config.preferences.useMonaco = v
 					},
 				},
 				{
-					type: "divider",
-					name: "App info",
+					type: 'divider',
+					name: 'App info',
 				},
 				{
-					type: "info",
-					name: "Version",
+					type: 'info',
+					name: 'Version',
 					desc: () => `${window.app.version_string} (${window.app.version})`,
 				},
 				{
-					type: "info",
-					name: "Author",
-					desc: "Kyle (@obillekyle)",
+					type: 'info',
+					name: 'Author',
+					desc: 'Kyle (@obillekyle)',
 				},
 				{
-					type: "button",
-					name: "View source",
-					icon: "material-symbols:open-in-new",
-					desc: "synced-lyrics-editor-webapp-v2",
+					type: 'button',
+					name: 'View source',
+					icon: 'material-symbols:open-in-new',
+					desc: 'synced-lyrics-editor-webapp-v2',
 					onClick: () =>
 						window.open(
-							"https://github.com/obillekyle/synced-lyrics-editor-webapp-v2",
-							"_blank",
+							'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+							'_blank',
 						),
 				},
 			],
 		},
-	} as SettingEntries;
-});
+	} as SettingEntries
+})
 
 const result = computed(() => {
 	return options.search
 		? Object.values(entries.value)
 				.flatMap((entry) => entry.items)
 				.filter((item) => {
-					if (item.type === "divider") return;
-					const name = evaluate(item.name);
-					return name?.toLowerCase().includes(options.search.toLowerCase());
+					if (item.type === 'divider') return
+					const name = evaluate(item.name)
+					return name?.toLowerCase().includes(options.search.toLowerCase())
 				})
-		: entries.value[options.active].items;
-});
+		: entries.value[options.active].items
+})
 </script>
 
 <template>

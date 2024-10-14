@@ -1,46 +1,45 @@
 <script setup lang="ts">
-import type MusicService from "@/api/service";
+import type MusicService from '@/api/service'
+import type { Screens } from '@/app/main'
 
-import { onMounted, onUnmounted, ref, shallowReactive } from "vue";
-import { Icon } from "@iconify/vue";
+import { Icon } from '@iconify/vue'
+import { onMounted, onUnmounted, ref, shallowReactive } from 'vue'
 
 import {
 	getKeybinds,
 	keyHandlers as handlers,
 	processKey,
-} from "./keybinds/keys";
+} from './keybinds/keys'
 
+import { useConfig } from '@/hooks/use-config'
+import { useLang } from '@/hooks/use-lang'
+import { useScreen } from '@/hooks/use-screen'
+import { useSession } from '@/hooks/use-session'
 import {
-	Divider,
-	IconButton,
-	Scroller,
-	Floater,
-	throttler,
-	getUnique,
 	CircularProgress,
-	useModal,
+	Divider,
+	Floater,
+	IconButton,
 	MODAL,
+	Scroller,
 	hasFormFocused,
-} from "@vue-material/core";
-import { useScreen } from "@/hooks/use-screen";
-import { useConfig } from "@/hooks/use-config";
-import { useSession } from "@/hooks/use-session";
-import { useLang } from "@/hooks/use-lang";
+	throttler,
+	useModal,
+} from '@vue-material/core'
 
-import I18nString from "./i18n-string.vue";
-import floatingKeybind from "./keybinds/main.vue";
-import _presets from "./modals/presets";
-import Seeker from "./seeker.vue";
+import I18nString from './i18n-string.vue'
+import floatingKeybind from './keybinds/main.vue'
+import _presets from './modals/presets'
+import Seeker from './seeker.vue'
 
-const screen = useScreen();
-const config = useConfig();
-const session = useSession();
-const modal = useModal();
-const lang = useLang("en");
+const screen = useScreen()
+const config = useConfig()
+const session = useSession()
+const modal = useModal()
+const lang = useLang('en')
 
-const Player = window.app.player;
-const Screen = window.app.screen;
-const Keybinds = getKeybinds();
+const Player = window.app.player
+const Keybinds = getKeybinds()
 
 const player = shallowReactive({
 	loading: Player.ready,
@@ -49,13 +48,13 @@ const player = shallowReactive({
 	metadata: Player.details,
 	picture: Player.picture,
 	time: 0,
-});
+})
 
-const panelShown = ref(false);
+const panelShown = ref(false)
 
 const playPause = (state?: boolean) => {
-	player.playing = state ?? !Player.instance.paused;
-};
+	player.playing = state ?? !Player.instance.paused
+}
 
 function onMusicUpdate(this: MusicService): void {
 	Object.assign(player, {
@@ -65,102 +64,106 @@ function onMusicUpdate(this: MusicService): void {
 		metadata: this.details,
 		picture: this.picture,
 		time: this.currentTime,
-	});
+	})
 }
 
 function handleTimeUpdate(this: MusicService) {
 	throttler(
 		() => {
-			if (!this.ready) return;
-			player.time = this.currentTime;
+			if (!this.ready) return
+			player.time = this.currentTime
 		},
 		{
-			key: "app-player",
+			key: 'app-player',
 			wait: 500,
 			endCall: true,
 		},
-	);
+	)
 }
 
 function formatTime(time: number) {
-	if (!Number.isFinite(time)) return "-:--";
-	const mins = String(Math.floor(time / 60));
-	const secs = String(Math.floor(time % 60)).padStart(2, "0");
+	if (!Number.isFinite(time)) return '-:--'
+	const mins = String(Math.floor(time / 60))
+	const secs = String(Math.floor(time % 60)).padStart(2, '0')
 
-	return `${mins}:${secs}`;
+	return `${mins}:${secs}`
 }
 
 function handleKeyUp(e: KeyboardEvent) {
-	if (hasFormFocused()) return;
-	if (["edit", "timing"].includes(screen.value)) return;
-	processKey(Keybinds.player.playPause, e, () => Player.playPause());
+	if (hasFormFocused()) return
+	if (['edit', 'timing'].includes(screen.value)) return
+	processKey(Keybinds.player.playPause, e, () => Player.playPause())
 }
 
 function setLoop(loop?: boolean) {
-	loop ??= !Player.instance.loop;
-	Player.instance.loop = loop;
-	player.loop = loop;
+	loop ??= !Player.instance.loop
+	Player.instance.loop = loop
+	player.loop = loop
+}
+
+function setScreen(value: Screens) {
+	screen.value = value
 }
 
 function handleKeyDown(e: KeyboardEvent) {
-	if (screen.value !== "edit") {
-		processKey(Keybinds.uploadLRC, e, handlers.uploadLRC);
-		processKey(Keybinds.uploadAudio, e, handlers.uploadAudio);
-		processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
+	if (screen.value !== 'edit') {
+		processKey(Keybinds.uploadLRC, e, handlers.uploadLRC)
+		processKey(Keybinds.uploadAudio, e, handlers.uploadAudio)
+		processKey(Keybinds.downloadLRC, e, handlers.downloadLRC)
 	}
 
-	if (Screen.value !== "timing" && !hasFormFocused()) {
-		processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
-		processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
+	if (screen.value !== 'timing' && !hasFormFocused()) {
+		processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward)
+		processKey(Keybinds.player.seekForward, e, handlers.player.seekForward)
 	}
 
-	processKey(Keybinds.tabHome, e, () => Screen.set("home"));
-	processKey(Keybinds.tabEdit, e, () => Screen.set("edit"));
-	processKey(Keybinds.tabTiming, e, () => Screen.set("timing"));
-	processKey(Keybinds.tabLyrics, e, () => Screen.set("lyric"));
-	processKey(Keybinds.showKeybinds, e, handlers.showKeybinds);
+	processKey(Keybinds.tabHome, e, () => setScreen('home'))
+	processKey(Keybinds.tabEdit, e, () => setScreen('edit'))
+	processKey(Keybinds.tabTiming, e, () => setScreen('timing'))
+	processKey(Keybinds.tabLyrics, e, () => setScreen('lyric'))
+	processKey(Keybinds.showKeybinds, e, handlers.showKeybinds)
 
-	processKey(Keybinds.settings, e, () => _presets.openSettings());
+	processKey(Keybinds.settings, e, () => _presets.openSettings())
 }
 
 function playerError() {
-	player.loading = false;
-	modal.open("not-audio-file", {
-		icon: "material-symbols:error-outline",
-		title: "Not an audio file",
-		content: "Please select an audio file",
-		actions: MODAL.PRESET_ACTION_CLOSE("OK"),
+	player.loading = false
+	modal.open('not-audio-file', {
+		icon: 'material-symbols:error-outline',
+		title: 'Not an audio file',
+		content: 'Please select an audio file',
+		actions: MODAL.PRESET_ACTION_CLOSE('OK'),
 		focusLock: true,
-	});
+	})
 }
 
 function playerLoading() {
-	player.loading = true;
+	player.loading = true
 }
 
 onMounted(() => {
-	onMusicUpdate.call(Player);
+	onMusicUpdate.call(Player)
 
-	Player.addEventListener("playpause", playPause);
-	Player.addEventListener("timeupdate", handleTimeUpdate);
-	Player.addEventListener("musicupdated", onMusicUpdate);
-	Player.addEventListener("error", playerError);
-	Player.addEventListener("loading", playerLoading);
+	Player.addEventListener('playpause', playPause)
+	Player.addEventListener('timeupdate', handleTimeUpdate)
+	Player.addEventListener('musicupdated', onMusicUpdate)
+	Player.addEventListener('error', playerError)
+	Player.addEventListener('loading', playerLoading)
 
-	window.addEventListener("keyup", handleKeyUp);
-	window.addEventListener("keydown", handleKeyDown);
-});
+	window.addEventListener('keyup', handleKeyUp)
+	window.addEventListener('keydown', handleKeyDown)
+})
 
 onUnmounted(() => {
-	Player.removeEventListener("playpause", playPause);
-	Player.removeEventListener("timeupdate", handleTimeUpdate);
-	Player.removeEventListener("musicupdated", onMusicUpdate);
-	Player.removeEventListener("error", playerError);
-	Player.removeEventListener("loading", playerLoading);
+	Player.removeEventListener('playpause', playPause)
+	Player.removeEventListener('timeupdate', handleTimeUpdate)
+	Player.removeEventListener('musicupdated', onMusicUpdate)
+	Player.removeEventListener('error', playerError)
+	Player.removeEventListener('loading', playerLoading)
 
-	window.removeEventListener("keyup", handleKeyUp);
-	window.removeEventListener("keydown", handleKeyDown);
-});
+	window.removeEventListener('keyup', handleKeyUp)
+	window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>

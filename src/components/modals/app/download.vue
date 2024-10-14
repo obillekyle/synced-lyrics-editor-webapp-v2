@@ -1,54 +1,54 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
-import I18nString from "../../i18n-string.vue";
+import I18nString from '../../i18n-string.vue'
 
-const Player = window.app.player;
-const presets = ref([true, true, true]);
-const fileName = ref(getPreset(presets.value));
-const activeMode = ref<0 | 1>(0);
+const Player = window.app.player
+const presets = ref([true, true, true])
+const fileName = ref(getPreset(presets.value))
+const activeMode = ref<0 | 1>(0)
 
 function getPreset(preset: boolean[]) {
-	const details = Player.details;
+	const details = Player.details
 
-	let text = "";
-	const [artist, title, ext] = preset;
-	text += artist ? details.artist || "" : "";
-	text += artist && title ? " - " : "";
-	text += title ? details.title || "" : "";
-	text += ext ? ".lrc" : "";
+	let text = ''
+	const [artist, title, ext] = preset
+	text += artist ? details.artist || '' : ''
+	text += artist && title ? ' - ' : ''
+	text += title ? details.title || '' : ''
+	text += ext ? '.lrc' : ''
 
-	return text;
+	return text
 }
 
 function changeMode(mode: 0 | 1) {
-	activeMode.value = mode;
+	activeMode.value = mode
 
 	if (mode === 0) {
-		fileName.value = getPreset(presets.value);
+		fileName.value = getPreset(presets.value)
 	}
 }
 
 function togglePreset(index: number, value?: boolean) {
 	if (activeMode.value === 1) {
-		const details = Player.details;
+		const details = Player.details
 
 		switch (index) {
 			case 0:
-				fileName.value += details.artist || "";
-				break;
+				fileName.value += details.artist || ''
+				break
 			case 1:
-				fileName.value += details.title || "";
-				break;
+				fileName.value += details.title || ''
+				break
 			case 2:
-				fileName.value += ".lrc";
-				break;
+				fileName.value += '.lrc'
+				break
 		}
-		return;
+		return
 	}
 
-	presets.value[index] = value !== undefined ? value : !presets.value[index];
-	fileName.value = getPreset(presets.value);
+	presets.value[index] = value !== undefined ? value : !presets.value[index]
+	fileName.value = getPreset(presets.value)
 }
 </script>
 

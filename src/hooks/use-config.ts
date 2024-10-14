@@ -1,30 +1,30 @@
-import { toProxy } from "@vue-material/core";
-import { useShared } from "./use-shared";
+import { toProxy } from '@vue-material/core'
+import { useShared } from './use-shared'
 
 type Config = {
-	version: number;
+	version: number
 	preferences: {
-		showLrcWarn: boolean;
-		showKeyBinds: boolean;
-		theme: "light" | "dark";
-		useMonaco: boolean;
+		showLrcWarn: boolean
+		showKeyBinds: boolean
+		theme: 'light' | 'dark'
+		useMonaco: boolean
 		colorScheme: {
-			primary?: string;
-			secondary?: string;
-			tertiary?: string;
-		};
-		lang: string;
-	};
+			primary?: string
+			secondary?: string
+			tertiary?: string
+		}
+		lang: string
+	}
 	navigation: {
-		showHome: boolean;
-		centered: boolean;
-		showLabels: boolean;
-	};
-	debug: boolean;
-	lastVersion?: string;
-	showChangeLog: boolean;
-	showBuildType: boolean;
-};
+		showHome: boolean
+		centered: boolean
+		showLabels: boolean
+	}
+	debug: boolean
+	lastVersion?: string
+	showChangeLog: boolean
+	showBuildType: boolean
+}
 
 const defaultConfig: Config = {
 	version: 1,
@@ -32,9 +32,9 @@ const defaultConfig: Config = {
 		useMonaco: false,
 		showLrcWarn: true,
 		showKeyBinds: true,
-		theme: "light",
+		theme: 'light',
 		colorScheme: {},
-		lang: "en",
+		lang: 'en',
 	},
 	navigation: {
 		showHome: true,
@@ -45,6 +45,6 @@ const defaultConfig: Config = {
 	lastVersion: undefined,
 	showChangeLog: false,
 	showBuildType: false,
-};
+}
 
-export const useConfig = () => toProxy(useShared("app-config", defaultConfig));
+export const useConfig = () => toProxy(useShared('app-config', defaultConfig))
