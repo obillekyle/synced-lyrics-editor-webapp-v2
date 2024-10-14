@@ -22,6 +22,7 @@
 		"dayjs": "1.11.13",
 		"marked": "14.1.2",
 		"music-metadata-browser": "2.5.11",
+		"html2canvas-pro": "1.5.8",
 		"process": "0.11.10",
 		"vue": "^3.5.11"
 	},

@@ -14,18 +14,14 @@ import {
 	TextInput,
 	ThemeProvider,
 	WavyDivider,
-	addPX,
 	as,
 	fastAvgColor,
-	getCSSValue,
-	openFilePicker,
 	openFilePickerAsync,
 	rippleEffect,
-	throttler,
 } from '@vue-material/core'
 
 import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
-import h2c from 'html2canvas'
+import h2c from 'html2canvas-pro'
 import FontSelect from './font-select.vue'
 
 const audioInfo = reactive({
