@@ -42,5 +42,5 @@
 		"vite-plugin-pwa": "^0.20.5",
 		"vue-tsc": "^2.1.6"
 	},
-	"trustedDependencies": ["@biomejs/biome"]
+	"trustedDependencies": ["@biomejs/biome", "sharp"]
 }
