@@ -6,7 +6,6 @@ import { loadIcons } from '@iconify/vue/dist/iconify.js'
 import process from 'process'
 import Clipboard from './api/clipboard'
 import { AppIcons } from './app/icons'
-import { type Screens, defaultColor } from './app/main'
 
 const appVer = Number(import.meta.env.VITE_VERSION_CODE ?? 0)
 const appVerString = import.meta.env.VITE_VERSION ?? 'unknown'
