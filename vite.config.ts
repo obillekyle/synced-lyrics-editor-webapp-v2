@@ -1,7 +1,6 @@
 import { URL, fileURLToPath } from 'node:url'
 
 import path from 'node:path'
-import { minimal2023Preset } from '@vite-pwa/assets-generator/config'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -31,12 +30,6 @@ export default defineConfig({
 		VitePWA({
 			registerType: 'autoUpdate',
 			includeAssets: ['**/*.{svg,png,jpg,gif,webp,ico,woff2,json,md}'],
-			pwaAssets: {
-				overrideManifestIcons: true,
-				preset: minimal2023Preset,
-				htmlPreset: '2023',
-				includeHtmlHeadLinks: true,
-			},
 			workbox: {
 				cleanupOutdatedCaches: false,
 			},

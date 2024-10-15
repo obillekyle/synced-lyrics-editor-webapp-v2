@@ -9,7 +9,6 @@ interface I18nProps extends /* @vue-ignore */ BoxProps {
 	entry: string
 	fallback?: string
 	args?: unknown[]
-	apply?: string[]
 }
 
 const value = ref<string>()
@@ -18,7 +17,7 @@ const lang = useLang('en')
 </script>
 
 <template>
-  <Text class="i18n-string">
+  <Text class="i18n-string" as="span">
     <slot v-if="!value">
       {{ lang.get(props.entry, ...props.args || []) || props.fallback }}
     </slot>

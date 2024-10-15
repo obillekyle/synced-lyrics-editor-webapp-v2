@@ -30,13 +30,7 @@ onUnmounted(() => {
 
 <style lang="scss">
   .edit-screen {
-    inset: 0 0 0 0;
-    position: absolute;
-    display: grid;
-    overflow: hidden;
-    height: inherit;
-    grid-template-columns: auto 1fr;
-    background: var(--primary-60-10);
+    background: var(--surface-container);
 
     .mobile-editor {
       position: absolute;
@@ -47,10 +41,8 @@ onUnmounted(() => {
       font-family:
         JetBrains Mono,
         monospace;
-      inset: 0 0 0 0;
+      inset: var(--header-size) 0 var(--header-size) 0;
       border: none;
-      width: 100%;
-      height: 100%;
     }
   }
 </style>

@@ -71,7 +71,7 @@ const screenIndex = computed({
       <AppLogo />
     </Navigation.Content>
 
-    <Navigation.Container :center="config.navigation.centered" v-model="screenIndex">
+    <Navigation.Container :center="config.navigation.centered">
       <template v-for="(item, key) in screens">
         <Navigation.Item
           v-if="item.visible ?? true"
@@ -85,29 +85,21 @@ const screenIndex = computed({
       <Navigation.Entry
         id="nav-item-settings"
         icon="material-symbols:settings-outline"
-        :onclick="_presets.openSettings"
+        @click="_presets.openSettings"
       >
         <I18nString entry="SETTINGS" />
       </Navigation.Entry>
     </Navigation.Container>
 
-    <Navigation.Content :style="{ paddingBottom: 'var(--md)' }">
+    <Navigation.Content>
       <Floater :text="config.preferences.lang.toUpperCase()" offset="4">
         <IconButton
           icon="material-symbols:settings-outline"
           class="settings"
           title="Settings"
-          :onclick="_presets.openSettings"
+          @click="_presets.openSettings"
         />
       </Floater>
     </Navigation.Content>
   </Navigation>
 </template>
-
-<style scoped>
-  @media screen and (min-width: 600px) {
-    #nav-item-settings {
-      display: none;
-    }
-  }
-</style>

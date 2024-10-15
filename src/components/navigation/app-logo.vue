@@ -4,7 +4,7 @@ import _presets from '../modals/presets'
 
 <template>
   <div class="app-logo">
-    <div class="app-title" :onclick="_presets.changelog">
+    <div class="app-title" @click="_presets.changelog">
       Synced Lyrics Editor
     </div>
   </div>

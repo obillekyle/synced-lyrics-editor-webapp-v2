@@ -9,6 +9,7 @@ import SvgBg from './svg-bg.vue'
 import { useScreen } from '@/hooks/use-screen'
 import {
 	Button,
+	Paper,
 	SquareImage,
 	WavyDivider,
 	rippleEffect,
@@ -63,13 +64,13 @@ function toLCMaker() {
 <template>
   <div class="home">
     <div class="logo-container">
-      <div class="primary-container">
+      <Paper p="#xl" class="primary-container">
         <h1>Synced Lyrics Editor</h1>
         <p>
           Create your own synced lyrics for the music you love right from your
           browser. A sound file is required
-        </p>
-      </div>
+        </p>        
+      </Paper>
       <div class="logo-wrapper">
         <SvgBg />
         <SquareImage
@@ -86,7 +87,7 @@ function toLCMaker() {
       <div class="section-card-container">
         <div
           class="card"
-          @click="() => keyHandlers.uploadAudio()"
+          @click="keyHandlers.uploadAudio()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -100,7 +101,7 @@ function toLCMaker() {
 
         <div
           class="card"
-          @click="() => _presets.uploadNewLrc()"
+          @click="_presets.uploadNewLrc()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -287,7 +288,6 @@ function toLCMaker() {
     width: 100%;
     max-width: 1024px;
     margin-inline: auto;
-    padding: var(--lg);
 
     .logo-container {
       display: grid;
@@ -304,21 +304,24 @@ function toLCMaker() {
         display: flex;
         flex-direction: column;
         gap: var(--sm);
-        padding: var(--size-sm);
-        background-color: var(--primary-10);
+
         h1 {
           font-size: clamp(2rem, 5vw, 5rem);
           font-weight: 500;
+          margin: 0;
         }
 
         p {
           font-size: clamp(1rem, 4vw, 1.5rem);
           color: var(--mono-90);
+          margin: 0;
+
+
         }
       }
 
       .logo-wrapper {
-        background: var(--primary-40);
+        background: var(--primary);
         border-radius: 16px;
         min-height: 300px;
         display: grid;
@@ -344,17 +347,17 @@ function toLCMaker() {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       grid-auto-flow: row;
-      color: var(--primary-10);
+      color: var(--on-primary);
       border-radius: var(--md);
-      background-color: var(--primary-70);
+      background-color: var(--primary);
 
       .banner-content {
         padding: var(--xl);
         display: flex;
         flex-direction: column;
-        gap: var(--xl);
+        gap: var(--sm);
         .title {
-          font-size: var(--size-md);
+          font-size: var(--component-sm);
           font-weight: 700;
           text-wrap: nowrap;
           @media screen and (max-width: 600px) {
@@ -366,10 +369,17 @@ function toLCMaker() {
           text-wrap: balance;
         }
       }
+
+      .md-button {
+        color: var(--inverse-surface);
+        background: var(--inverse-on-surface);
+      }
+
+
       .banner-image {
         padding: var(--xl);
         padding-bottom: var(--sm);
-        border: 1px solid var(--primary-20);
+        border: 1px solid var(--outline-variant);
         border-bottom: none;
 
         height: fit-content;
@@ -380,8 +390,8 @@ function toLCMaker() {
         margin-inline: var(--sm);
         align-self: flex-end;
 
-        background: var(--primary-10);
-        color: var(--mono-100);
+        background: var(--surface-container-low);
+        color: var(--on-surface-variant);
 
         .image-header {
           display: flex;
@@ -492,17 +502,18 @@ function toLCMaker() {
           grid-template-columns: 64px 1fr;
           grid-template-rows: 64px;
           grid-template-areas: 'icon info';
-          grid-gap: var(--lg);
+          gap: var(--sm);
           align-items: center;
-          background: var(--primary-10);
-          padding: var(--lg);
-          border-radius: var(--lg);
+          background: var(--surface-container);
+          padding: var(--md);
+          gap: var(--lg);
+          border-radius: var(--md);
           .icon {
             grid-area: icon;
             display: grid;
             place-items: center;
-            background: var(--primary-30);
-            border-radius: var(--md);
+            background: var(--surface-container-highest);
+            border-radius: var(--xs);
             width: 64px;
             aspect-ratio: 1;
           }
@@ -511,17 +522,18 @@ function toLCMaker() {
             grid-area: info;
             display: flex;
             flex-direction: column;
-            gap: var(--xs);
           }
 
           h2 {
             font-size: 1.5rem;
             font-weight: 500;
+            margin: 0;
           }
 
           p {
             font-size: 1rem;
             color: var(--mono-80);
+            margin: 0;
           }
         }
       }

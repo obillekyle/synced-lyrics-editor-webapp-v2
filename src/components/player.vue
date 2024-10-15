@@ -70,7 +70,7 @@ function onMusicUpdate(this: MusicService): void {
 function handleTimeUpdate(this: MusicService) {
 	throttler(
 		() => {
-			if (!this.ready) return
+			if (!Player.ready) return
 			player.time = this.currentTime
 		},
 		{
@@ -145,10 +145,10 @@ onMounted(() => {
 	onMusicUpdate.call(Player)
 
 	Player.addEventListener('playpause', playPause)
-	Player.addEventListener('timeupdate', handleTimeUpdate)
-	Player.addEventListener('musicupdated', onMusicUpdate)
+	Player.addEventListener('update', onMusicUpdate)
 	Player.addEventListener('error', playerError)
 	Player.addEventListener('loading', playerLoading)
+	Player.instance.addEventListener('timeupdate', handleTimeUpdate)
 
 	window.addEventListener('keyup', handleKeyUp)
 	window.addEventListener('keydown', handleKeyDown)
@@ -156,10 +156,10 @@ onMounted(() => {
 
 onUnmounted(() => {
 	Player.removeEventListener('playpause', playPause)
-	Player.removeEventListener('timeupdate', handleTimeUpdate)
-	Player.removeEventListener('musicupdated', onMusicUpdate)
+	Player.removeEventListener('update', onMusicUpdate)
 	Player.removeEventListener('error', playerError)
 	Player.removeEventListener('loading', playerLoading)
+	Player.instance.removeEventListener('timeupdate', handleTimeUpdate)
 
 	window.removeEventListener('keyup', handleKeyUp)
 	window.removeEventListener('keydown', handleKeyDown)
@@ -174,7 +174,7 @@ onUnmounted(() => {
 
       <div class="controls">
         <IconButton
-        @click="Player.currentTime -= 5"
+          @click="Player.currentTime -= 5"
           :disabled="!Player.ready"
           :title="lang.get('PLAYER_BACKWARD')"
           class="seek-backward"
@@ -191,14 +191,14 @@ onUnmounted(() => {
           v-else
           :data-playing="player.playing ? 'true' : 'false'"
           :disabled="!Player.ready"
-          :onclick="() => Player.playPause()"
+          @click="Player.playPause()"
           class="play-button"
           :size="36"
           :icon="`material-symbols:${player.playing ? 'pause' : 'play-arrow'}`"
           :title="lang.get('PLAYER_PLAY') + ' / ' + lang.get('PLAYER_PAUSE')"
         />
         <IconButton
-        @click="Player.currentTime += 5"
+          @click="Player.currentTime += 5"
           :disabled="!Player.ready"
           :title="lang.get('PLAYER_FORWARD')"
           class="seek-forward"
@@ -224,17 +224,18 @@ onUnmounted(() => {
           <template v-else>
             <div class="title">
               <I18nString
-                :element="Scroller"
+                :as="Scroller"
                 entry="PLAYER_NO_AUDIO"
                 v-if="!player.metadata?.title"
               />
-              <Scroller v-else>
+                
+                <Scroller v-else>
                 {{ player.metadata.title }}
               </Scroller>
             </div>
             <span class="artist">
               <I18nString
-                :element="Scroller"
+                :as="Scroller"
                 entry="PLAYER_NO_ARTIST"
                 v-if="!player.metadata.artist"
               />
@@ -264,7 +265,7 @@ onUnmounted(() => {
           icon="material-symbols:close"
         />
 
-        <Floater text="AUDIO" pos="bottom">
+        <Floater text="AUDIO" pos="bottom" color="$on-surface">
           <IconButton
             :disabled="player.loading"
             @click="handlers.uploadAudio"
@@ -306,7 +307,7 @@ onUnmounted(() => {
 
         <div class="controls">
           <IconButton
-            :onclick="() => Player.reset()"
+            @click="() => Player.reset()"
             :disabled="!Player.ready"
             id="reset-audio-2"
             title="Change Audio"
@@ -317,7 +318,7 @@ onUnmounted(() => {
 
           <IconButton
             :disabled="!Player.ready"
-            :onclick="Player.currentTime -= 5"
+            @click="Player.currentTime -= 5"
             class="seek-backward"
             title="Seek Backward"
             icon="material-symbols:fast-rewind"
@@ -371,12 +372,13 @@ onUnmounted(() => {
 
 <style lang="scss">
   .app-player {
-    position: absolute;
+    position: fixed;
     inset: auto 0 0 0;
     z-index: 10;
 
     border-top: 1px solid #7777;
-    background-color: var(--app-player-color);
+    background-color: var(--surface-container-low);
+    left: var(--navbar-size);
 
     .main-panel {
       display: grid;
@@ -384,13 +386,14 @@ onUnmounted(() => {
       align-content: center;
       padding-left: var(--sm);
 
-      height: var(--app-player-height);
+      height: var(--size-md);
 
       grid-template-columns: auto auto minmax(0px, 1fr) auto;
       grid-template-areas: 'controls time music-info actions';
       overflow: hidden;
       .controls {
         grid-area: controls;
+        align-items: center;
         display: flex;
       }
 
@@ -401,9 +404,10 @@ onUnmounted(() => {
 
       .actions {
         display: flex;
+        align-items: center;
         flex-wrap: nowrap;
         grid-area: actions;
-        background-color: var(--app-player-color);
+        background-color: var(--surface-container-low);
 
         #sub-panel-toggle {
           display: none;
@@ -427,10 +431,12 @@ onUnmounted(() => {
           object-fit: contain;
           background: var(--mono-20);
           border-radius: var(--xxs);
-          width: var(--size-md);
+          width: var(--component-lg);
         }
 
         .details {
+          padding-left: var(--sm);
+
           .title {
             font-weight: 500;
             font-size: var(--font-md);
@@ -462,9 +468,11 @@ onUnmounted(() => {
 
   @media screen and (max-width: 600px) {
     .app-player {
-      --app-player-height: 5rem;
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
+
+      left: 0;
+      bottom: var(--navbar-size);
 
       #repeat:not([active='true']),
       #repeat2:not([active='true']) {
@@ -476,7 +484,6 @@ onUnmounted(() => {
         grid-template-areas: 'music-info time controls  actions';
         padding-left: var(--md);
         overflow: hidden;
-
         .actions {
           #sub-panel-toggle {
             display: block;

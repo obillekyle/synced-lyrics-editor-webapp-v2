@@ -1,15 +1,20 @@
 import { useConfig } from '@/hooks/use-config'
 import { useLang } from '@/hooks/use-lang'
-import { $, Button, MODAL, openFilePicker, useModal } from '@vue-material/core'
-import { h } from 'vue'
-import keyBindsGuide from '../keybinds/guide.vue'
+import {
+	$,
+	Button,
+	MODAL,
+	ModalManager,
+	openFilePicker,
+} from '@vue-material/core'
+import { defineAsyncComponent, h } from 'vue'
 import changelogScreen from './app/changelogScreen.vue'
 import downloadScreen from './app/download.vue'
 import loadLyrics from './app/loadLyrics.vue'
 import Settings from './app/settings.vue'
 
 function download() {
-	const modals = useModal()
+	const modals = ModalManager
 	const lang = useLang('en')
 	const player = window.app.player
 	const lyrics = window.app.lyric
@@ -50,7 +55,7 @@ function download() {
 }
 
 function changelog() {
-	const modals = useModal()
+	const modals = ModalManager
 	const lang = useLang('en')
 	const config = useConfig()
 
@@ -74,7 +79,7 @@ function changelog() {
 function useAudioLRC() {
 	const player = window.app.player
 	const lyrics = window.app.lyric
-	const modals = useModal()
+	const modals = ModalManager
 	const lang = useLang('en')
 
 	const lyric = player.metadata?.common.lyrics?.join('\n') || ''
@@ -103,7 +108,7 @@ function useAudioLRC() {
 
 function useQueryLRC(lrc: string) {
 	const lyrics = window.app.lyric
-	const modals = useModal()
+	const modals = ModalManager
 	const lang = useLang('en')
 
 	modals.open('use-query-lrc', {
@@ -146,7 +151,7 @@ function openLRCPicker() {
 }
 
 function uploadNewLrc() {
-	const modals = useModal()
+	const modals = ModalManager
 	const config = useConfig()
 	const lang = useLang('en')
 	const lyrics = window.app.lyric
@@ -187,20 +192,23 @@ function uploadNewLrc() {
 }
 
 function showKeyBinds() {
-	const modals = useModal()
+	const modals = ModalManager
 	const lang = useLang('en')
 
 	modals.open('key_binds', {
 		icon: 'material-symbols:keyboard-outline',
 		title: 'Key Binds',
-		content: keyBindsGuide,
+		content: defineAsyncComponent(() => import('../keybinds/guide.vue')),
 		actions: MODAL.PRESET_ACTION_CLOSE(lang.get('OK') ?? 'OK'),
 	})
 }
 
 function openSettings() {
-	useModal().open('settings', {
+	const modal = ModalManager
+	modal.open('settings', {
+		title: 'Settings',
 		content: Settings,
+		actions: MODAL.PRESET_ACTION_CLOSE('Save'),
 		fullScreen: true,
 		focusLock: true,
 	})

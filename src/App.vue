@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 
 import AppTag from './components/app-tag.vue'
 import AppHeader from './components/header.vue'
 import I18nString from './components/i18n-string.vue'
-import _presets from './components/modals/presets'
 import NavigationBar from './components/navigation/navigation-bar.vue'
 import AppPlayer from './components/player.vue'
 import LyricCard from './components/screens/lyric-card.vue'
 import LrcScreen from './components/screens/main.vue'
 
-import { $, Layout, LinearProgress, SquareImage } from '@vue-material/core'
+import {
+	$,
+	Layout,
+	LinearProgress,
+	OverlayProvider,
+	SquareImage,
+} from '@vue-material/core'
 import { useAppData } from './hooks/use-app-data'
 import { useConfig } from './hooks/use-config'
 import { useLang } from './hooks/use-lang'
@@ -25,11 +30,10 @@ const appData = useAppData()
 const location = useLocation()
 const lang = useLang('en')
 
-const ready = ref(false)
 const page = computed(() => location.pathname.split('/')[1])
 
 function setMetaDescription(value: string) {
-	const metaDesc = $('meta[name="description"]')?.setAttribute('content', value)
+	$('meta[name="description"]')?.setAttribute('content', value)
 }
 
 watch(page, (page) => {
@@ -48,6 +52,10 @@ watch(page, (page) => {
 			break
 	}
 })
+
+watch(config, (config) => {
+	console.log(config.preferences.theme)
+})
 </script>
 
 <template>
@@ -60,25 +68,26 @@ watch(page, (page) => {
 
   <Layout :options="{
     theme: config.preferences.theme,
-    colors: config.preferences.colorScheme,
+    fontFamily: 'Roboto Flex, sans-serif',
+    colors: { primary: 'green', ...config.preferences.colorScheme } ,
   }">
     <template #navbar>
       <NavigationBar />
     </template>
-
     <template #header>
       <AppHeader />
     </template>
-
-    <template v-if="ready">
-
-      <LyricCard v-if="page === 'lyric-card'" />
-      <template v-else>
-        <I18nString entry="ALPHA" :element="AppTag" v-if="!config.preferences" />
-        <LrcScreen />
-        <AppPlayer />
+    
+    <OverlayProvider>
+      <template v-if="lang.ready">
+        <LyricCard v-if="page === 'lyric-card'" />
+        <template v-else>
+          <I18nString entry="ALPHA" :element="AppTag" v-if="!config.preferences" />
+          <LrcScreen />
+          <AppPlayer />
+        </template>
       </template>
-    </template>
+    </OverlayProvider> 
   </Layout>
 
 </template>

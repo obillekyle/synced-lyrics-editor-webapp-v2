@@ -13,6 +13,7 @@ import {
 } from '@vue-material/core'
 import I18nString from './i18n-string.vue'
 import presets from './modals/presets'
+import { useConfig } from '@/hooks/use-config'
 
 const screenNames: Record<Screens, string> = {
 	home: 'APP_HOME',
@@ -24,12 +25,17 @@ const screenNames: Record<Screens, string> = {
 
 const screen = useScreen()
 const session = useSession()
+const config = useConfig()
+
+const uploadNewLrc = () => {
+	presets.uploadNewLrc()
+}
 </script>
 
 <template>
-  <TopAppBar :data-screen="screen">
-    <I18nString :entry="screenNames[screen]" element="h3" />
-    <div class="actions">
+  <TopAppBar :headline="screen === 'home' ? 'Synced Lyrics Editor' : undefined">
+    <I18nString v-if="screen !== 'home'" :entry="screenNames[screen]" element="h3" />
+    <template #actions>
       <template v-if="screen === 'lyric'">
         <I18nString entry="TRANSLATE" fallback="Translate" />
         <Switch v-model="session.preview.translate" title="Translate" />
@@ -47,7 +53,7 @@ const session = useSession()
 
       <Floater text="LRC" pos="bottom">
         <IconButton
-          :onclick="presets.uploadNewLrc"
+          @click="presets.uploadNewLrc"
           class="icon-button"
           title="Open LRC file"
           icon="material-symbols:upload-file-outline-sharp"
@@ -58,11 +64,10 @@ const session = useSession()
         title="Export"
         icon="material-symbols:download"
         right-icon="mdi:export"
-        r="#xs"
         @click="presets.download"
       >
         <I18nString entry="EXPORT" />
       </Button>
-    </div>
+    </template>
   </TopAppBar>
 </template>

@@ -1,38 +1,41 @@
 <script setup lang="ts">
 import type { MaybeFunction, ModalProps } from '@vue-material/core'
-import type { UtilityFunction } from '@vue-material/core/utils/component-manager'
-
-import { Icon } from '@iconify/vue'
-import { computed, onMounted, onUnmounted, reactive } from 'vue'
+import {
+	ComponentManager,
+	type UtilityFunction,
+} from '@vue-material/core/utils/component-manager'
 
 import { useConfig } from '@/hooks/use-config'
 import { useLang } from '@/hooks/use-lang'
+import { Icon } from '@iconify/vue'
 import {
 	$,
+	Divider,
 	IconButton,
+	ScrollContainer,
 	Switch,
 	TextInput,
 	evaluate,
 	rippleEffect,
 } from '@vue-material/core'
+import { computed, h, inject, reactive, ref, watch } from 'vue'
 
 import I18nString from '../../i18n-string.vue'
 import _presets from '../presets'
 
-interface Props {
-	utils: UtilityFunction<ModalProps>
-}
-
 const lang = useLang('en')
 const config = useConfig()
-
-defineProps<Props>()
 
 const options = reactive({
 	sidebar: false,
 	search: '',
 	active: 'general',
 })
+
+const utils = inject(
+	'modal-utils',
+	ref<UtilityFunction<ModalProps>>(ComponentManager.DEFAULT_UTILITY),
+)
 
 type Stringish = MaybeFunction<string>
 type Booleanish = MaybeFunction<boolean>
@@ -273,6 +276,19 @@ const entries = computed<SettingEntries>(() => {
 	} as SettingEntries
 })
 
+const BackIcon = h(IconButton, {
+	icon: 'material-symbols:arrow-back',
+	onClick: () => {
+		options.sidebar = false
+	},
+})
+
+watch(options, (newOptions) => {
+	utils.value.modify({
+		subAction: newOptions.sidebar ? BackIcon : undefined,
+	})
+})
+
 const result = computed(() => {
 	return options.search
 		? Object.values(entries.value)
@@ -288,164 +304,125 @@ const result = computed(() => {
 
 <template>
   <div class="settings-wrapper" :shown="options.sidebar" >
-    <header>
-      <IconButton
-        v-if="options.sidebar"
-        icon="material-symbols:arrow-back"
-        class="back"
-        @click="options.sidebar = false"
-        title="Back"
-      />
-      <I18nString element="div" class="title" entry="SETTINGS" />
-      <icon-button
-        icon="material-symbols:close"
-        @click="utils.close()"
-        title="Close"
-      />
-    </header>
-
-    <div class="settings-panel">
-      <div class="scroll-wrapper">
-        <div class="entry search">
-          <TextInput
-            type="text"
-            placeholder="Search..."
-            v-model="options.search"
-            height="md"
-            span
-          />
-        </div>
+    <ScrollContainer class="settings-panel">
+      <div class="entry search">
+        <TextInput
+          type="text"
+          placeholder="Search..."
+          v-model="options.search"
+          height="md"
+          span
+        />
+      </div>
+      <div
+        class="entry"
+        :key="name"
+        @pointerdown="rippleEffect"
+        tabindex="0"
+        :class="{ active: name == options.active }"
+        v-for="(item, name) in entries"
+        @click="Object.assign(options, { 
+          sidebar: true,
+          active: name,
+          search: ''
+        })"
+      >
+        <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+        <I18nString
+          v-if="item.name"
+          element="div"
+          class="name"
+          :entry="evaluate(item.name)"
+        />
+        <I18nString
+          v-if="item.desc"
+          element="div"
+          class="desc"
+          :entry="evaluate(item.desc)"
+        />
+      </div>
+    </ScrollContainer>
+    <ScrollContainer class="settings-screen" :style="{ '--hl': options.search }">
+      <template v-for="(item, index) in result">
         <div
-          class="entry"
-          :key="name"
+          tabindex="0"
+          class="entry switch"
+          :key="'switch-' + index"
           @pointerdown="rippleEffect"
-          :class="{ active: name == options.active }"
-          v-for="(item, name) in entries"
-          @click="Object.assign(options, { 
-            sidebar: true,
-            active: name,
-            search: ''
-          })"
+          v-if="item.type == 'switch'"
+          @click="({ currentTarget }) => $('input', currentTarget)?.click()"
         >
           <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-          <I18nString
-            v-if="item.name"
-            element="div"
-            class="name"
-            :entry="evaluate(item.name)"
-          />
-          <I18nString
-            v-if="item.desc"
-            element="div"
-            class="desc"
-            :entry="evaluate(item.desc)"
+          <div class="name">{{ evaluate(item.name) }}</div>
+          <div class="desc">{{ evaluate(item.desc) }}</div>
+
+          <Switch
+            :defaultChecked="evaluate(item.value)"
+            :disabled="evaluate(item.disabled)"
+            @change="item.onChange"
           />
         </div>
-      </div>
-    </div>
-    <div class="constraint">
-      <div class="settings-screen" :style="{ '--hl': options.search }">
-        <div class="scroll-wrapper">
-          <template v-for="(item, index) in result">
-            <div
-              tabindex="0"
-              class="entry switch"
-              :key="'switch-' + index"
-              @pointerdown="rippleEffect"
-              v-if="item.type == 'switch'"
-              @click="({ currentTarget }) => $('input', currentTarget)?.click()"
-            >
-              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-              <div class="name">{{ evaluate(item.name) }}</div>
-              <div class="desc">{{ evaluate(item.desc) }}</div>
 
-              <Switch
-                :defaultChecked="evaluate(item.value)"
-                :disabled="evaluate(item.disabled)"
-                :change="item.onChange"
-              />
-            </div>
-
-            <div
-              tabindex="0"
-              class="entry info"
-              @pointerdown="rippleEffect"
-              v-else-if="item.type == 'info'"
-              :key="'info-' + index"
-            >
-              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-              <div class="name">{{ evaluate(item.name) }}</div>
-              <div class="desc">{{ evaluate(item.desc) }}</div>
-            </div>
-
-            <div
-              tabindex="0"
-              class="entry button"
-              :key="'button-' + index"
-              @pointerdown="rippleEffect"
-              v-else-if="item.type == 'button'"
-              @click="() => item.disabled || evaluate(item.onClick)"
-            >
-              <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
-              <div class="name">{{ evaluate(item.name) }}</div>
-              <div class="desc">{{ evaluate(item.desc) }}</div>
-            </div>
-
-            <div
-              class="entry-divider"
-              v-else-if="item.type == 'divider'"
-              :key="'divider-' + index"
-              :class="{ sticky: evaluate(item.sticky) ?? true }"
-            >
-              <div class="name">{{ evaluate(item.name) }}</div>
-            </div>
-          </template>
+        <div
+          tabindex="0"
+          class="entry info"
+          @pointerdown="rippleEffect"
+          v-else-if="item.type == 'info'"
+          :key="'info-' + index"
+        >
+          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+          <div class="name">{{ evaluate(item.name) }}</div>
+          <div class="desc">{{ evaluate(item.desc) }}</div>
         </div>
-      </div>
-    </div>
+
+        <div
+          tabindex="0"
+          class="entry button"
+          :key="'button-' + index"
+          @pointerdown="rippleEffect"
+          v-else-if="item.type == 'button'"
+          @click="() => item.disabled || evaluate(item.onClick)"
+        >
+          <icon :icon="evaluate(item.icon)" :width="24" v-if="item.icon" />
+          <div class="name">{{ evaluate(item.name) }}</div>
+          <div class="desc">{{ evaluate(item.desc) }}</div>
+        </div>
+
+        <Divider 
+          class="entry-divider"
+          v-else-if="item.type == 'divider'"
+          :key="'divider-' + index"
+          :label="evaluate(item.name)"
+        />
+      </template>
+    </ScrollContainer>
   </div>
 </template>
 
 <style lang="scss">
+  #md-modal-settings {
+    .md-modal-wrapper {
+      width: 960px;
+      max-width: calc(100% - var(--md));
+      height: clamp(0px, 768px, 100%);
+    }
+
+    .md-modal-content {
+      padding: 0;
+      height: 100%;
+      max-height: 100dvh;
+    }
+  }
+
   .settings-wrapper {
-    position: relative;
+    position: absolute;
     inset: 0 0 0 0;
-    height: 100%;
     overflow: hidden;
     display: grid;
+    max-height: 100%;
     grid-template-columns: 250px 1fr;
-    grid-template-rows: var(--app-header-height) calc(
-        100% - var(--app-header-height)
-      );
-    height: 100%;
     grid-template-areas:
-      'header header'
       'panel screen';
-
-    header {
-      padding-left: var(--xl);
-      padding-right: var(--md);
-      grid-area: header;
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: var(--app-header-height);
-      background: var(--background-secondary);
-      display: flex;
-      align-items: center;
-      z-index: 10;
-
-      .back {
-        display: none;
-      }
-
-      .title {
-        font-weight: 600;
-        font-size: var(--font-lg);
-        margin-right: auto;
-      }
-    }
 
     .settings-panel {
       grid-area: panel;
@@ -454,25 +431,20 @@ const result = computed(() => {
       top: var(--app-header-height);
 
       .active {
-        background-color: var(--primary-60-10);
+        background-color: var(--surface-container-highest);
       }
     }
 
-    .scroll-wrapper {
-      overflow: auto;
-      height: 100%;
-      position: relative;
-    }
-
-    .constraint {
-      grid-area: screen;
+    .md-scroll-wrapper {
+      padding: 0;
     }
 
     .entry {
       display: grid;
       overflow: hidden;
       position: relative;
-      padding: var(--xl);
+      align-content: center;
+      padding: var(--sm) var(--xl);
       &.button {
         cursor: pointer;
       }
@@ -507,40 +479,26 @@ const result = computed(() => {
         white-space: wrap;
       }
 
-      .switch-wrapper {
+      .md-switch {
         margin-left: var(--sm);
         grid-area: switch;
+        align-self: center;
         pointer-events: none;
       }
     }
 
     .entry-divider {
-      align-items: center;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      grid-template-areas: 'name line';
-      gap: var(--sm);
-      text-transform: uppercase;
-      font-size: var(--font-sm);
-      font-weight: 600;
-      padding: var(--sm);
-      &.sticky {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background: var(--background-secondary);
-      }
-      &::after {
-        content: '';
-        display: block;
-        height: 1px;
-        grid-area: line;
-        background-color: var(--primary-60-20);
-      }
+      padding-inline: var(--sm);
     }
   }
 
   @media screen and (max-width: 600px) {
+    #md-modal-settings {
+      .md-modal-wrapper {
+        height: 100%;
+      }
+    }
+
     .settings-wrapper {
       position: 'relative';
       grid-template-columns: 1fr auto;
@@ -552,8 +510,7 @@ const result = computed(() => {
       }
       .settings-screen {
         position: absolute;
-        top: var(--app-header-height);
-        background: var(--background-secondary);
+        background: var(--surface-container-high);
         width: 100dvw;
         left: 100dvw;
         bottom: 0;

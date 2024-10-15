@@ -3,7 +3,9 @@ import type { LRCLine } from '@/api/parser'
 import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
 
 import { List } from '@vue-material/core'
-import { onBeforeUnmount, ref } from 'vue'
+import type { ListItemType } from '@vue-material/core/List/types.js'
+import { h, onBeforeUnmount, ref } from 'vue'
+import SortItem from './sort-item.vue'
 
 const Lyrics = window.app.lyric
 const raw = Lyrics.getRaw()
@@ -18,9 +20,7 @@ const lrc = ref<ObjectValue[]>(
 onBeforeUnmount(() => {
 	Lyrics.import({
 		tags: raw.tags,
-		lines: [...lrc.value]
-			.sort((a, b) => a.label - b.label)
-			.map<LRCLine>((line) => raw.lines[line.label]),
+		lines: [...lrc.value].map<LRCLine>((line) => raw.lines[line.label]),
 	})
 })
 </script>
@@ -31,8 +31,10 @@ onBeforeUnmount(() => {
     <List
       v-model="lrc"
       swipe="dismiss"
+      sortable
+      :list-comp="SortItem"
     >
-      <template #default="{ label }">
+    <template #default="{ label }">
         {{ raw.lines[label].data }}
       </template>
     </List>

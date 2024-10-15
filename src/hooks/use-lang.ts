@@ -30,7 +30,10 @@ type UseLang = {
 }
 
 export function useLang(defaultLang: string): ShallowReactive<UseLang> {
-	const Lang = inject<ShallowReactive<UseLang>>('app-lang')
+	const Lang = inject<ShallowReactive<UseLang> | undefined>(
+		'app-lang',
+		undefined,
+	)
 
 	if (Lang) return Lang
 
@@ -38,10 +41,14 @@ export function useLang(defaultLang: string): ShallowReactive<UseLang> {
 	const store = shallowRef<Map<string, string>>(new Map())
 	const lang = ref(defaultLang)
 
-	watch(lang, async () => {
-		store.value = await fetchLanguage(lang.value)
-		ready.value = true
-	})
+	watch(
+		lang,
+		async () => {
+			store.value = await fetchLanguage(lang.value)
+			ready.value = true
+		},
+		{ immediate: true },
+	)
 
 	const provided = toProxy(
 		computed(() => ({

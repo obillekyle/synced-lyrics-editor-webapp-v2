@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type MusicService from '@/api/service'
 import animatedScroll from 'animated-scroll-to'
-import { type Ref, inject, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+import { onMounted, onUnmounted, ref, shallowRef } from 'vue'
 import playingIndicator from '../playing-indicator.vue'
 
 import { useLang } from '@/hooks/use-lang'
@@ -12,6 +12,7 @@ import {
 	getTranslatedText,
 	rippleEffect,
 	throttler,
+	useWindowSize,
 } from '@vue-material/core'
 
 const Player = window.app.player
@@ -24,6 +25,7 @@ const previewPane = ref<HTMLElement | null>(null)
 const currentIndex = ref(-1)
 const session = useSession()
 const lang = useLang('en')
+const wRect = useWindowSize()
 
 const lrcChange = () => {
 	bypass.value = true
@@ -42,14 +44,16 @@ function handleCurrentIndex(this: MusicService) {
 
 			if (element) {
 				currentIndex.value = index
-				// biome-ignore lint/style/noNonNullAssertion: <explanation>
-				const main = $('main')!
 
 				const previous = previewPane.value?.querySelector('.active')
 				previous?.classList.remove('active')
 				element?.classList.add('active')
 
-				const rect = main.getBoundingClientRect()
+				const main = $('.md-layout .md-scroll')
+
+				if (!main) return
+
+				const rect = main?.getBoundingClientRect()
 				const halfElement = element.clientHeight / 1.75
 				const offset = rect.height / 2 - halfElement
 
@@ -92,14 +96,14 @@ function setTime(time: number) {
 onMounted(() => {
 	lrcChange()
 	Lyrics.addEventListener('parsed', lrcChange)
-	Player.addEventListener('timeupdate', handleCurrentIndex)
-	Player.addEventListener('musicupdated', resetIndex)
+	Player.addEventListener('update', resetIndex)
+	Player.instance.addEventListener('timeupdate', handleCurrentIndex)
 })
 
 onUnmounted(() => {
 	Lyrics.removeEventListener('parsed', lrcChange)
-	Player.removeEventListener('timeupdate', handleCurrentIndex)
-	Player.removeEventListener('musicupdated', resetIndex)
+	Player.removeEventListener('update', resetIndex)
+	Player.instance.removeEventListener('timeupdate', handleCurrentIndex)
 })
 </script>
 
@@ -135,7 +139,7 @@ onUnmounted(() => {
 <style lang="scss">
   .preview-screen {
     padding-block: calc((85dvh - 112px) / 2);
-    color: var(--primary-90-20);
+    color: var(--surface-container);
 
     &:empty::after {
       content: 'No lyric available';
@@ -172,12 +176,12 @@ onUnmounted(() => {
 
         &:has(.translated) span {
           font-size: 24px;
-          color: var(--mono-50);
+          color: var(--outline);
         }
       }
 
       &.active .data {
-        color: var(--primary-90);
+        color: var(--primary);
         scale: 1;
       }
 

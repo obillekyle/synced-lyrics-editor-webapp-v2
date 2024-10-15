@@ -17,25 +17,3 @@ const screen = useScreen()
   </div>
 </template>
 
-<style lang="scss">
-  .app-main-content {
-    display: grid;
-    align-items: center;
-    height: 100%;
-    > * {
-      transform: translateY(48px);
-      animation: slide-up 0.3s var(--timing-standard) forwards;
-    }
-
-    @keyframes slide-up {
-      100% {
-        transform: translateY(0);
-      }
-    }
-
-    &:has(.edit-screen, .debug-screen) {
-      padding-block: 0;
-      padding: var(--md);
-    }
-  }
-</style>

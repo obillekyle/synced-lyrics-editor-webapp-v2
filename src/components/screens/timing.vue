@@ -49,7 +49,7 @@ const setFocus = (value: number) => {
 
 	editor.focus = value
 	// biome-ignore lint/style/noNonNullAssertion: <explanation>
-	const main = $('main')!
+	const main = $('.md-theme-provider')!
 
 	const rect = main.getBoundingClientRect()
 	const halfElement = focused.clientHeight / 2
@@ -179,7 +179,7 @@ watch(
 
 		const textbox = $<HTMLInputElement>('.data', element)
 
-		if (textbox) {
+		if (textbox?.value) {
 			textbox.focus()
 			textbox.setSelectionRange(textbox.value.length, textbox.value.length)
 		}

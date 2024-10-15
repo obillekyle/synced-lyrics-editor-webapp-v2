@@ -55,7 +55,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 		const player = this._instance
 
 		const onSeek = () => {
-			this.currentTime = player.currentTime
+			this.emit('seek', player.currentTime)
 		}
 
 		const playPause = () => {
@@ -166,7 +166,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 	}
 
 	set currentTime(time: number) {
-		const newTime = clamp(time, 0, this._instance.duration)
+		const newTime = clamp(time, 0, this._instance.duration || 0)
 		this._instance.currentTime = newTime
 
 		this.emit('seek', newTime)
