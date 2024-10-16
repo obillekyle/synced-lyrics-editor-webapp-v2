@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AppOverlays } from './components/overlays/use-overlays'
 
-import { computed, shallowRef, watch, onMounted } from 'vue'
+import { computed, onMounted, shallowRef, watch } from 'vue'
 
 import AppTag from './components/app-tag.vue'
 import AppHeader from './components/header.vue'
@@ -83,9 +83,9 @@ onMounted(() => {
       <OverlayProvider>
         <Transition name="splash-loader">
           <div class="splash-loader" v-if="!lang.ready">
-            <div class="splash-loader-wrapper">
+            <div class="splash-loader-wrapper" >
+              <img alt="App Logo" src="/logo.svg" width="128" height="128" />
               <LinearProgress  />
-              <SquareImage alt="App Logo" src="/logo.svg" width="96" height="96" />
             </div>
           </div>
         </Transition>
@@ -109,15 +109,24 @@ onMounted(() => {
     place-items: center;
     position: fixed;
     inset: 0;
-    z-index: 10;
+    z-index: 100;
+
+    img {
+      margin-inline: auto;
+    }
 
     &-wrapper {
-      padding: var(--xl);
-      width: min(600px, 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: var(--component-md);
+      width: min(150px, 100%);
     }
 
     &-leave-active {
       transition: opacity 0.3s ease;
+      transition-delay: 1000ms;
     }
 
     &-leave-to {
