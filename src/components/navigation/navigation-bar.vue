@@ -7,9 +7,9 @@ import { AppScreens } from '@/app/main'
 import { useConfig } from '@/hooks/use-config'
 import { useScreen } from '@/hooks/use-screen'
 import { Floater, IconButton, Navigation } from '@vue-material/core'
+import { useOverlays } from '../overlays/use-overlays'
 
 import I18nString from '../i18n-string.vue'
-import _presets from '../modals/presets'
 import AppLogo from './app-logo.vue'
 
 type NavigationItem = {
@@ -22,6 +22,7 @@ type NavigationItem = {
 
 const screen = useScreen()
 const config = useConfig()
+const overlay = useOverlays()
 const screens = computed<Record<Screens, NavigationItem>>(() => ({
 	home: {
 		icon: 'material-symbols:home-outline',
@@ -85,7 +86,7 @@ const screenIndex = computed({
       <Navigation.Entry
         id="nav-item-settings"
         icon="material-symbols:settings-outline"
-        @click="_presets.openSettings"
+        @click="overlay.openSettings"
       >
         <I18nString entry="SETTINGS" />
       </Navigation.Entry>
@@ -97,7 +98,7 @@ const screenIndex = computed({
           icon="material-symbols:settings-outline"
           class="settings"
           title="Settings"
-          @click="_presets.openSettings"
+          @click="overlay.openSettings"
         />
       </Floater>
     </Navigation.Content>

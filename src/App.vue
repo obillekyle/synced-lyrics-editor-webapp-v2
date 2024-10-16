@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import type { AppOverlays } from './components/overlays/use-overlays'
+
+import { computed, shallowRef, watch, onMounted } from 'vue'
 
 import AppTag from './components/app-tag.vue'
 import AppHeader from './components/header.vue'
 import I18nString from './components/i18n-string.vue'
 import NavigationBar from './components/navigation/navigation-bar.vue'
+import AppOverlayProvider from './components/overlays/provider.vue'
 import AppPlayer from './components/player.vue'
 import LyricCard from './components/screens/lyric-card.vue'
 import LrcScreen from './components/screens/main.vue'
@@ -16,6 +19,8 @@ import {
 	OverlayProvider,
 	SquareImage,
 } from '@vue-material/core'
+
+import { useOverlays } from './components/overlays/use-overlays'
 import { useAppData } from './hooks/use-app-data'
 import { useConfig } from './hooks/use-config'
 import { useLang } from './hooks/use-lang'
@@ -29,6 +34,9 @@ const session = useSession()
 const appData = useAppData()
 const location = useLocation()
 const lang = useLang('en')
+
+const o = shallowRef({} as AppOverlays)
+const overlays = useOverlays(o.value)
 
 const page = computed(() => location.pathname.split('/')[1])
 
@@ -53,117 +61,67 @@ watch(page, (page) => {
 	}
 })
 
-watch(config, (config) => {
-	console.log(config.preferences.theme)
+onMounted(() => {
+	window.app.presets = overlays
 })
 </script>
 
 <template>
-  <Transition mode="out-in" name="fade">
-    <div class="loader" v-if="lang.ready === false" ref="loaderRef">
-      <SquareImage alt="App Logo" src="/logo.svg" width="96" height="96" />
-      <LinearProgress  />
-    </div>
-  </Transition>
-
-  <Layout :options="{
-    theme: config.preferences.theme,
-    fontFamily: 'Roboto Flex, sans-serif',
-    colors: { primary: 'green', ...config.preferences.colorScheme } ,
-  }">
-    <template #navbar>
-      <NavigationBar />
-    </template>
-    <template #header>
-      <AppHeader />
-    </template>
-    
-    <OverlayProvider>
-      <template v-if="lang.ready">
-        <LyricCard v-if="page === 'lyric-card'" />
-        <template v-else>
-          <I18nString entry="ALPHA" :element="AppTag" v-if="!config.preferences" />
-          <LrcScreen />
-          <AppPlayer />
-        </template>
+  <AppOverlayProvider>
+    <Layout :options="{
+      theme: config.preferences.theme,
+      fontFamily: 'Roboto Flex, sans-serif',
+      colors: { primary: 'green', ...config.preferences.colorScheme } ,
+    }">
+      <template #navbar>
+        <NavigationBar />
       </template>
-    </OverlayProvider> 
-  </Layout>
-
+      <template #header>
+        <AppHeader />
+      </template>
+    
+      <OverlayProvider>
+        <Transition name="splash-loader">
+          <div class="splash-loader" v-if="!lang.ready">
+            <div class="splash-loader-wrapper">
+              <LinearProgress  />
+              <SquareImage alt="App Logo" src="/logo.svg" width="96" height="96" />
+            </div>
+          </div>
+        </Transition>
+        <template v-if="lang.ready">
+          <LyricCard v-if="page === 'lyric-card'" />
+          <template v-else>
+            <I18nString entry="ALPHA" :as="AppTag" v-if="!config.preferences" />
+            <LrcScreen />
+            <AppPlayer />
+          </template>
+        </template>
+      </OverlayProvider>
+    </Layout>
+  </AppOverlayProvider>
 </template>
 
-<style lang="scss" scoped>
-  .loader {
-    color: white;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100dvh;
-    width: 100dvw;
-    gap: var(--xl);
+<style lang="scss">
+  .splash-loader {
+    background: var(--surface-container-low);
+    display: grid;
+    place-items: center;
     position: fixed;
     inset: 0;
-    z-index: 1000;
-    transition: opacity 0.4s;
-    .progress {
-      width: clamp(0px, 96px, 500px);
+    z-index: 10;
+
+    &-wrapper {
+      padding: var(--xl);
+      width: min(600px, 100%);
     }
-    &.ready {
+
+    &-leave-active {
+      transition: opacity 0.3s ease;
+    }
+
+    &-leave-to {
       opacity: 0;
-      pointer-events: none;
-    }
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .loader {
-      background: #222;
-    }
-  }
-
-  main {
-    position: relative;
-    display: block;
-    height: calc(100dvh - var(--app-header-height) - var(--app-player-height));
-    width: calc(100dvw - var(--app-navbar-size));
-    transform: translate(0, 0);
-    overflow: overlay;
-
-    &:has(.preview-screen) {
-      mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        black 56px,
-        black calc(100% - 56px),
-        transparent 100%
-      );
-    }
-  }
-
-  .content-wrapper {
-    position: fixed;
-    contain: content;
-    inset: 0 0 0 var(--app-navbar-size);
-    overflow: hidden;
-  }
-
-  @media screen and (max-width: 600px) {
-    main {
-      width: 100vw;
-      height: calc(
-        100dvh - var(--app-header-height) - var(--app-player-height) - var(
-            --app-navbar-size
-          )
-      );
-
-      &::-webkit-scrollbar {
-        width: 0px;
-        height: 0px;
-      }
-    }
-    .content-wrapper {
-      inset: 0 0 var(--app-navbar-size) 0;
     }
   }
 </style>

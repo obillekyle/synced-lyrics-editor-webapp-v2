@@ -29,14 +29,15 @@ import {
 
 import I18nString from './i18n-string.vue'
 import floatingKeybind from './keybinds/main.vue'
-import _presets from './modals/presets'
 import Seeker from './seeker.vue'
+import { useOverlays } from './overlays/use-overlays'
 
+const lang = useLang('en')
+const modals = useModal()
 const screen = useScreen()
 const config = useConfig()
 const session = useSession()
-const modal = useModal()
-const lang = useLang('en')
+const overlay = useOverlays()
 
 const Player = window.app.player
 const Keybinds = getKeybinds()
@@ -105,11 +106,13 @@ function setScreen(value: Screens) {
 	screen.value = value
 }
 
+const uploadAudio = () => handlers.uploadAudio(overlay.useAudioLRC)
+
 function handleKeyDown(e: KeyboardEvent) {
 	if (screen.value !== 'edit') {
-		processKey(Keybinds.uploadLRC, e, handlers.uploadLRC)
-		processKey(Keybinds.uploadAudio, e, handlers.uploadAudio)
-		processKey(Keybinds.downloadLRC, e, handlers.downloadLRC)
+		processKey(Keybinds.uploadLRC, e, overlay.uploadNewLrc)
+		processKey(Keybinds.downloadLRC, e, overlay.download)
+		processKey(Keybinds.uploadAudio, e, uploadAudio)
 	}
 
 	if (screen.value !== 'timing' && !hasFormFocused()) {
@@ -121,14 +124,14 @@ function handleKeyDown(e: KeyboardEvent) {
 	processKey(Keybinds.tabEdit, e, () => setScreen('edit'))
 	processKey(Keybinds.tabTiming, e, () => setScreen('timing'))
 	processKey(Keybinds.tabLyrics, e, () => setScreen('lyric'))
-	processKey(Keybinds.showKeybinds, e, handlers.showKeybinds)
 
-	processKey(Keybinds.settings, e, () => _presets.openSettings())
+	processKey(Keybinds.showKeybinds, e, overlay.showKeyBinds)
+	processKey(Keybinds.settings, e, overlay.openSettings)
 }
 
 function playerError() {
 	player.loading = false
-	modal.open('not-audio-file', {
+	modals.open('not-audio-file', {
 		icon: 'material-symbols:error-outline',
 		title: 'Not an audio file',
 		content: 'Please select an audio file',
@@ -268,7 +271,7 @@ onUnmounted(() => {
         <Floater text="AUDIO" pos="bottom" color="$on-surface">
           <IconButton
             :disabled="player.loading"
-            @click="handlers.uploadAudio"
+            @click="uploadAudio"
             id="upload-music"
             title="Change Audio"
             icon="material-symbols:upload"
@@ -361,7 +364,7 @@ onUnmounted(() => {
         </div>
 
         <Divider direction="x" size="100%" margin="sm" />
-        <div class="sub-button" @click="handlers.uploadAudio">
+        <div class="sub-button" @click="uploadAudio">
           <Icon icon="material-symbols:upload-sharp" :width="24" />
           <span>Upload Audio</span>
         </div>

@@ -48,8 +48,9 @@ const setFocus = (value: number) => {
 	}
 
 	editor.focus = value
-	// biome-ignore lint/style/noNonNullAssertion: <explanation>
-	const main = $('.md-theme-provider')!
+	const main = $('.md-theme-provider .md-scroll')
+
+	if (!main) return
 
 	const rect = main.getBoundingClientRect()
 	const halfElement = focused.clientHeight / 2
@@ -305,23 +306,6 @@ onUnmounted(() => {
     margin-inline: auto;
     position: relative;
     max-width: 768px;
-    .list:empty::after {
-      content: 'There are no lines';
-      text-align: center;
-      display: block;
-      padding-block: var(--md);
-      font-size: var(--font-xl);
-      color: var(--mono-70);
-    }
-
-    .guide {
-      top: 0;
-      z-index: 10;
-      position: sticky;
-      background: var(--background-body);
-      text-align: center;
-      padding: var(--xl);
-    }
   }
 
   .timing-screen {
@@ -358,8 +342,8 @@ onUnmounted(() => {
       column-gap: var(--sm);
       padding-inline: var(--sm);
 
-      background: var(--background-body);
-      box-shadow: 0 2px 12px var(--background-body);
+      background: var(--surface);
+      box-shadow: 0 2px 12px var(--surface);
       animation: fade-in 0.2s forwards;
 
       @keyframes fade-in {
@@ -399,7 +383,7 @@ onUnmounted(() => {
       .time {
         font-size: var(--font-sm);
         align-self: center;
-        color: var(--primary-80);
+        color: var(--primary);
       }
 
       .timing-buttons {
@@ -428,13 +412,8 @@ onUnmounted(() => {
         }
       }
 
-      &:is(:first-child):is(:last-child) {
-        border-radius: var(--sm);
-        border: 1px solid var(--primary-80-10) !important;
-      }
-
       &:not(.active) + .lrc-line {
-        border-top: 1px solid var(--primary-80-10);
+        border-top: 1px solid var(--outline-variant);
       }
 
       textarea.data {
@@ -461,7 +440,7 @@ onUnmounted(() => {
       }
 
       &:is(:first-child:last-child) {
-        border: 1px solid var(--color-10);
+        border: 1px solid var(--outline-variant);
       }
 
       &.active {
@@ -478,7 +457,7 @@ onUnmounted(() => {
         }
 
         &::before {
-          background-color: var(--primary-90-10);
+          background-color: var(--surface-container-highest);
           transition: none;
         }
 
@@ -488,9 +467,6 @@ onUnmounted(() => {
           outline: none;
           align-self: self-start;
           border-radius: calc(var(--sm) / 2);
-          &:focus-visible {
-            box-shadow: 0 0 0 2px var(--primary-60-20);
-          }
         }
       }
 

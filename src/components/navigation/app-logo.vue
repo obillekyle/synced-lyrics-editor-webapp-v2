@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import _presets from '../modals/presets'
+import { useOverlays } from '../overlays/use-overlays'
+const overlay = useOverlays()
 </script>
 
 <template>
   <div class="app-logo">
-    <div class="app-title" @click="_presets.changelog">
+    <div class="app-title" @click="overlay.changelog">
       Synced Lyrics Editor
     </div>
   </div>

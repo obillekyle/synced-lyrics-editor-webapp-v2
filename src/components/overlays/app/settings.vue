@@ -19,12 +19,13 @@ import {
 	rippleEffect,
 } from '@vue-material/core'
 import { computed, h, inject, reactive, ref, watch } from 'vue'
+import { useOverlays } from '../use-overlays'
 
 import I18nString from '../../i18n-string.vue'
-import _presets from '../presets'
 
 const lang = useLang('en')
 const config = useConfig()
+const overlays = useOverlays()
 
 const options = reactive({
 	sidebar: false,
@@ -152,7 +153,7 @@ const entries = computed<SettingEntries>(() => {
 					name: 'View Key Bindings',
 					icon: 'material-symbols:open-in-new',
 					desc: 'View all keybindings',
-					onClick: () => _presets.showKeyBinds(),
+					onClick: overlays.showKeyBinds,
 				},
 			],
 		},

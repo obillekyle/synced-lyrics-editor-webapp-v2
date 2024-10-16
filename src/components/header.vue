@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Screens } from '@/app/main'
 
+import { useConfig } from '@/hooks/use-config'
 import { useScreen } from '@/hooks/use-screen'
 import { useSession } from '@/hooks/use-session'
 import {
@@ -12,8 +13,7 @@ import {
 	TopAppBar,
 } from '@vue-material/core'
 import I18nString from './i18n-string.vue'
-import presets from './modals/presets'
-import { useConfig } from '@/hooks/use-config'
+import { useOverlays } from './overlays/use-overlays'
 
 const screenNames: Record<Screens, string> = {
 	home: 'APP_HOME',
@@ -26,15 +26,12 @@ const screenNames: Record<Screens, string> = {
 const screen = useScreen()
 const session = useSession()
 const config = useConfig()
-
-const uploadNewLrc = () => {
-	presets.uploadNewLrc()
-}
+const overlays = useOverlays()
 </script>
 
 <template>
   <TopAppBar :headline="screen === 'home' ? 'Synced Lyrics Editor' : undefined">
-    <I18nString v-if="screen !== 'home'" :entry="screenNames[screen]" element="h3" />
+    <I18nString class="app-title" v-if="screen !== 'home'" :entry="screenNames[screen]" element="h3" />
     <template #actions>
       <template v-if="screen === 'lyric'">
         <I18nString entry="TRANSLATE" fallback="Translate" />
@@ -53,7 +50,7 @@ const uploadNewLrc = () => {
 
       <Floater text="LRC" pos="bottom">
         <IconButton
-          @click="presets.uploadNewLrc"
+          @click="overlays.uploadNewLrc"
           class="icon-button"
           title="Open LRC file"
           icon="material-symbols:upload-file-outline-sharp"
@@ -64,10 +61,17 @@ const uploadNewLrc = () => {
         title="Export"
         icon="material-symbols:download"
         right-icon="mdi:export"
-        @click="presets.download"
+        @click="overlays.download"
       >
         <I18nString entry="EXPORT" />
       </Button>
     </template>
   </TopAppBar>
 </template>
+
+<style scoped>
+.app-title {
+  font-size: var(--font-lg);
+  margin-left: var(--xl);
+}
+</style>

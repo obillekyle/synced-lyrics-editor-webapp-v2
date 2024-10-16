@@ -1,12 +1,7 @@
 p
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-import { keyHandlers } from '../keybinds/keys'
-
-import _presets from '../modals/presets'
-import SvgBg from './svg-bg.vue'
-
 import { useScreen } from '@/hooks/use-screen'
+import { Icon } from '@iconify/vue'
 import {
 	Button,
 	Paper,
@@ -14,8 +9,13 @@ import {
 	WavyDivider,
 	rippleEffect,
 } from '@vue-material/core'
+import { keyHandlers } from '../keybinds/keys'
+import { useOverlays } from '../overlays/use-overlays'
+
+import SvgBg from './svg-bg.vue'
 
 const screen = useScreen()
+const overlays = useOverlays()
 const version = window.app.version_string
 const pwa = window.app.pwa
 
@@ -87,7 +87,7 @@ function toLCMaker() {
       <div class="section-card-container">
         <div
           class="card"
-          @click="keyHandlers.uploadAudio()"
+          @click="keyHandlers.uploadAudio(overlays.useAudioLRC)"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -101,7 +101,7 @@ function toLCMaker() {
 
         <div
           class="card"
-          @click="_presets.uploadNewLrc()"
+          @click="overlays.uploadNewLrc"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -129,7 +129,7 @@ function toLCMaker() {
 
         <div
           class="card"
-          @click="() => _presets.showKeyBinds()"
+          @click="overlays.showKeyBinds"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -180,7 +180,7 @@ function toLCMaker() {
       <div class="section-card-container">
         <div
           class="card"
-          @click="() => _presets.changelog()"
+          @click="overlays.changelog()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -194,7 +194,7 @@ function toLCMaker() {
 
         <div
           class="card"
-          @click="() => _presets.openSettings()"
+          @click="overlays.openSettings()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">

@@ -1,7 +1,6 @@
 import { $, evaluate, openFilePicker } from '@vue-material/core'
 
 import { useScreen } from '@/hooks/use-screen'
-import _presets from '../modals/presets'
 
 type ActiveKeys = {
 	ctrl: boolean
@@ -433,11 +432,7 @@ export const keyHandlers = {
 		},
 	},
 
-	uploadLRC: _presets.uploadNewLrc,
-	downloadLRC: _presets.download,
-	showKeybinds: _presets.showKeyBinds,
-
-	uploadAudio: () => {
+	uploadAudio: (modal: () => void) => {
 		openFilePicker(
 			(file) => {
 				if (!file) return
@@ -447,7 +442,7 @@ export const keyHandlers = {
 					'load',
 					() => {
 						const lrc = Player.metadata?.common.lyrics?.join('\n')
-						if (lrc?.trim().length) _presets.useAudioLRC()
+						if (lrc?.trim().length) modal()
 					},
 					{
 						once: true,
