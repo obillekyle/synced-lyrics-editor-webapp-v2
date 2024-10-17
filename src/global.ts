@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer'
-import LRCParser from '@/api/parser'
+import LRCParser from '@/api/parser2'
 import MusicService from '@/api/service'
 import { loadIcons } from '@iconify/vue/dist/iconify.js'
 import process from 'process'

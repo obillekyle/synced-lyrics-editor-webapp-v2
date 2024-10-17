@@ -12,13 +12,7 @@ import AppPlayer from './components/player.vue'
 import LyricCard from './components/screens/lyric-card.vue'
 import LrcScreen from './components/screens/main.vue'
 
-import {
-	$,
-	Layout,
-	LinearProgress,
-	OverlayProvider,
-	SquareImage,
-} from '@vue-material/core'
+import { $, Layout, LinearProgress, OverlayProvider } from '@vue-material/core'
 
 import { useOverlays } from './components/overlays/use-overlays'
 import { useAppData } from './hooks/use-app-data'

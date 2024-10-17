@@ -23,14 +23,33 @@ const Keybinds = getKeybinds()
 const editor = reactive({
 	focus: -1,
 	editing: false,
+	value: '',
+})
+
+const lyrics = reactive({
+	lines: Lyrics.lines,
+	tags: Lyrics.tags,
 })
 
 const [focused, setFocusedRef] = customRef<HTMLElement>()
-const lines = ref<LRCLine[]>([])
-const tags = ref<LRCTags>({})
 
 const toggleEdit: (value?: boolean) => void = (value) => {
-	editor.editing = value ?? !editor.editing
+	value ??= !editor.editing
+	const id = Lyrics.getIdFromIndex(editor.focus)
+
+	if (!id) return
+
+	if (value) {
+		if (!id) return
+		editor.value = lyrics.lines[id].data
+		editor.editing = true
+		return
+	}
+
+	Lyrics.update(id, { data: editor.value })
+
+	editor.editing = false
+	editor.value = ''
 }
 
 const session = useSession()
@@ -43,7 +62,7 @@ const setFocus = (value: number) => {
 	editor.editing = false
 
 	if (!focused) {
-		editor.focus = value >= lines.value.length ? -1 : value
+		editor.focus = value >= Lyrics.length ? -1 : value
 		return
 	}
 
@@ -66,27 +85,40 @@ const setFocus = (value: number) => {
 
 const setTimeFromMusicCurrent = (e?: MouseEvent) => {
 	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
 
+	if (!id) return
 	if (index === -1) return
-	if (!lines.value[index]) return
+	if (!lyrics.lines[index]) return
 	if (!Player.ready) return
 
-	const newIndex = index + 1 === lines.value.length ? index : index + 1
+	const newIndex = index + 1 === Lyrics.length ? index : index + 1
+	const newId = Lyrics.getIdFromIndex(newIndex)
 	const currentTime = Player.currentTime * 1000
+
+	if (!newId) return
 
 	e?.stopPropagation?.()
 	setFocus(newIndex)
 
-	if (lines.value[newIndex].time !== currentTime) {
-		Lyrics.updateLine(index, { time: currentTime })
+	if (lyrics.lines[newId].time !== currentTime) {
+		Lyrics.update(id, { time: currentTime })
 	}
+}
+
+function updateLyrics() {
+	const data = Lyrics.getRaw()
+
+	lyrics.lines = data.lines
+	lyrics.tags = data.tags
 }
 
 const adjustTime = (value: number) => {
 	const index = editor.focus
-	const lrcLine = lines.value[index]
+	const id = Lyrics.getIdFromIndex(index)
+	const lrcLine = lyrics.lines[index]
 
-	if (index === -1) return
+	if (!id) return
 	if (!lrcLine) return
 
 	const time = lrcLine.time + value
@@ -95,65 +127,53 @@ const adjustTime = (value: number) => {
 		Player.currentTime = clamp(time / 1000, 0, Player.instance.duration)
 	}
 
-	Lyrics.updateLine(index, {
+	Lyrics.update(id, {
 		time: time < 0 ? 0 : time,
-	})
-}
-
-function saveValue(index: number) {
-	const element = $<HTMLInputElement>('data')
-	const value = element?.value ?? ''
-	toggleEdit()
-
-	Lyrics.updateLine(index, {
-		data: value.replace(/\n/g, ''),
-		type: 'single',
 	})
 }
 
 function handleKeyDown(e: KeyboardEvent) {
 	const index = editor.focus
-	const lyrics = lines.value
+	const lyrics = Lyrics.lines
 
 	if (e.ctrlKey || e.metaKey || hasFormFocused()) return
 	document.activeElement instanceof HTMLElement && document.activeElement.blur()
 
-	processKey(Keybinds.timing.adjustTimeBackward, e, () => {
-		adjustTime(-100)
-	})
-	processKey(Keybinds.timing.adjustTimeForward, e, () => {
-		adjustTime(100)
-	})
+	processKey(Keybinds.timing.adjustTimeBackward, e, () => adjustTime(-100))
+	processKey(Keybinds.timing.adjustTimeForward, e, () => adjustTime(100))
 
 	processKey(Keybinds.timing.arrowDownFocus, e, () => {
-		setFocus(index + 1 >= lyrics.length ? index : index + 1)
+		setFocus(index + 1 >= Lyrics.length ? index : index + 1)
 	})
 	processKey(Keybinds.timing.arrowUpFocus, e, () => {
-		setFocus(index === 0 ? 0 : (index < 0 ? lyrics.length : index) - 1)
+		setFocus(index === 0 ? 0 : (index < 0 ? Lyrics.length : index) - 1)
 	})
 }
 
-function addNewLineFromFocus(reverse = false) {
+function addNewLineFromFocus(before = false) {
 	const index = editor.focus
-	const newItem = Lyrics.EMPTYLINE
-	Lyrics.addLine(newItem, reverse ? index - 1 : index)
+	const id = Lyrics.getIdFromIndex(index)
+
+	if (!id) return
+
+	before ? Lyrics.addBefore(id) : Lyrics.addAfter(id)
 }
 
 function handleKeyUp(e: KeyboardEvent) {
 	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
 
 	if (e.ctrlKey) return
 	if (editor.editing) {
 		switch (e.key) {
 			case 'Enter':
-				$('#app')?.focus()
-				saveValue(index)
+				toggleEdit()
 				break
 		}
 		return
 	}
 
-	if (index === -1) {
+	if (index === -1 || !id) {
 		processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine)
 		processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine)
 		return
@@ -165,7 +185,7 @@ function handleKeyUp(e: KeyboardEvent) {
 	})
 
 	processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit())
-	processKey(Keybinds.timing.deleteLine, e, () => Lyrics.removeLine(index))
+	processKey(Keybinds.timing.deleteLine, e, () => Lyrics.remove(id))
 	processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1))
 	processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus())
 	processKey(Keybinds.timing.addNewLineReverse, e, () =>
@@ -188,28 +208,21 @@ watch(
 	{ flush: 'post' },
 )
 
-function handleLyricsParse() {
-	lines.value = Lyrics.lines
-	tags.value = Lyrics.tags
-}
-
 onMounted(() => {
-	handleLyricsParse()
-
-	Lyrics.addEventListener('parsed', handleLyricsParse)
-	Lyrics.addEventListener('line-added', handleLyricsParse)
-	Lyrics.addEventListener('line-removed', handleLyricsParse)
-	Lyrics.addEventListener('line-updated', handleLyricsParse)
+	Lyrics.addEventListener('parsed', updateLyrics)
+	Lyrics.addEventListener('line-added', updateLyrics)
+	Lyrics.addEventListener('line-removed', updateLyrics)
+	Lyrics.addEventListener('line-updated', updateLyrics)
 
 	window.addEventListener('keydown', handleKeyDown)
 	window.addEventListener('keyup', handleKeyUp)
 })
 
 onUnmounted(() => {
-	Lyrics.removeEventListener('parsed', handleLyricsParse)
-	Lyrics.removeEventListener('line-added', handleLyricsParse)
-	Lyrics.removeEventListener('line-removed', handleLyricsParse)
-	Lyrics.removeEventListener('line-updated', handleLyricsParse)
+	Lyrics.removeEventListener('parsed', updateLyrics)
+	Lyrics.removeEventListener('line-added', updateLyrics)
+	Lyrics.removeEventListener('line-removed', updateLyrics)
+	Lyrics.removeEventListener('line-updated', updateLyrics)
 
 	window.removeEventListener('keydown', handleKeyDown)
 	window.removeEventListener('keyup', handleKeyUp)
@@ -222,7 +235,7 @@ onUnmounted(() => {
   </div>
 
   <div
-    @click=" !lines.length && Lyrics.addLine(Lyrics.EMPTYLINE)"
+    @click="Lyrics.length && Lyrics.add()"
     class="timing-screen"
     ref="timingPane"
     v-else
@@ -237,37 +250,32 @@ onUnmounted(() => {
       }"
       :ref="(el, refs) => editor.focus === index && setFocusedRef(el, refs)"
       @click="targetsSelf($event, () => setFocus(index))"
-      v-for="({ id, time, data }, index) in lines"
+      v-for="({ time, data }, id, index) in lyrics.lines"
     >
-      <div class="time" @click="() => (Player.currentTime = time / 1000)">
+      <div class="time" @click="Player.currentTime = time / 1000">
         {{ Lyrics.timeToString(time) }}
       </div>
       <div v-if="editor.focus === index" class="add-line-buttons">
         <IconButton
           icon="mdi:table-row-plus-before"
           title="Add new line before"
-          @click="() => addNewLineFromFocus(true)"
+          @click="addNewLineFromFocus(true)"
         />
         <IconButton
           icon="mdi:table-row-plus-after"
           title="Add new line after"
-          @click="() => addNewLineFromFocus()"
+          @click="addNewLineFromFocus()"
         />
       </div>
 
       <textarea
         class="data"
         v-if="editor.focus === index && editor.editing"
-        :defaultValue=" typeof data == 'string' ? data : data.join('')"
+        v-model="editor.value"
       />
 
-      <div class="data" v-else @dblclick="() => toggleEdit()">
-        <template v-if="typeof data == 'string'">
-          {{ data }}
-        </template>
-        <div :key="index" v-else v-for="({ line }, index) in data">
-          {{ line }}
-        </div>
+      <div class="data" v-else @dblclick="toggleEdit()">
+        {{ data }}
       </div>
 
       <div class="timing-buttons" v-if="editor.focus == index">
