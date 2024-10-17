@@ -32,7 +32,7 @@ export type LRCData = {
 export type LRCEvents = {
 	parsed: undefined
 	'tag-added': [key: string, value: string]
-	'tag-update': [key: string, value: string, oldValue: string]
+	'tag-updated': [key: string, value: string, oldValue: string]
 	'tag-removed': [key: string, value: string]
 
 	'line-updated': [index: number, data: LRCLine]
