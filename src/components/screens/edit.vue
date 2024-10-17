@@ -1,75 +1,48 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue';
-  import ContentEditable from '../elements/CodeEditor/main.vue';
-  import { lrcTextFormatter } from '@/app/formatter';
-  import { isMobile } from '@/api/util';
-  const Lyrics = window.app.lyric;
-  const Options = window.app.options;
+import { onMounted, onUnmounted, ref } from 'vue'
+const Lyrics = window.app.lyric
 
-  const mobile = isMobile();
-  const value = ref(Lyrics.stringify());
-  const codeEditor = Options.get('experimentalCodeEditor', false);
+const value = ref(Lyrics.stringify())
+const setValue = () => {
+	value.value = Lyrics.stringify()
+}
 
-  const setValue = () => {
-    value.value = Lyrics.stringify();
-  };
+onMounted(() => {
+	Lyrics.addEventListener('parsed', setValue)
+})
 
-  onMounted(() => {
-    Lyrics.addEventListener('parsed', setValue);
-  });
-
-  onUnmounted(() => {
-    Lyrics.removeEventListener('parsed', setValue);
-    Lyrics.parse(value.value);
-  });
+onUnmounted(() => {
+	Lyrics.removeEventListener('parsed', setValue)
+	Lyrics.parse(value.value)
+})
 </script>
 
 <template>
   <div class="edit-screen">
-    <template v-if="codeEditor">
-      <textarea
-        aria-label="Edit Lyrics"
-        placeholder="Paste your lyrics here..."
-        class="mobile-editor"
-        v-if="mobile"
-        v-model="value"
-      />
-      <ContentEditable v-else v-model="value" :formatter="lrcTextFormatter" />
-    </template>
-    <template v-else>
-      <textarea
-        aria-label="Edit Lyrics"
-        placeholder="Paste your lyrics here..."
-        class="mobile-editor"
-        v-model="value"
-      />
-    </template>
+    <textarea
+      aria-label="Edit Lyrics"
+      placeholder="Paste your lyrics here..."
+      class="mobile-editor"
+      v-model="value"
+    />
   </div>
 </template>
 
 <style lang="scss">
   .edit-screen {
-    inset: 0 0 0 0;
-    position: absolute;
-    display: grid;
-    overflow: hidden;
-    height: inherit;
-    grid-template-columns: auto 1fr;
-    background: var(--color-600-10);
+    background: var(--surface-container);
 
     .mobile-editor {
       position: absolute;
       resize: none;
       padding: var(--md);
-      background-color: var(--color-50);
+      background-color: var(--primary-5);
       font: inherit;
       font-family:
         JetBrains Mono,
         monospace;
-      inset: 0 0 0 0;
+      inset: var(--header-size) 0 var(--header-size) 0;
       border: none;
-      width: 100%;
-      height: 100%;
     }
   }
 </style>

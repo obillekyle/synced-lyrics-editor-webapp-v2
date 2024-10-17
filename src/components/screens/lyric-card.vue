@@ -1,251 +1,256 @@
 <script setup lang="ts">
-  import { ref, type HTMLAttributes, watch, onMounted, computed, h } from 'vue';
-  import {
-    addPX,
-    getCSSValue,
-    openFilePicker,
-    openFilePickerAsync,
-    rippleEffect,
-    throttler,
-  } from '@/api/util';
-  import SquareImage from '../elements/square-image.vue';
-  import ColorThief from 'color-thief-ts';
-  import Styles from '../styles.vue';
-  import Colors from '@/api/colors';
-  import Color from 'color';
-  import type { SelectItem } from '../elements/Select/select.vue';
-  import Button from '../elements/Button/button.vue';
-  import Select from '../elements/Select/select.vue';
-  import TextInput from '../elements/Input/text-input.vue';
-  import WavyDivider from '../elements/Divider/wavy-divider.vue';
-  import Divider from '../elements/Divider/divider.vue';
-  import ButtonGroup from '../elements/Button/button-group.vue';
-  import Scroller from '../elements/Text/scroller.vue';
-  import Switch from '../elements/Switches/switch.vue';
-  import Slider from '../elements/Slider/slider.vue';
-  import IconButton from '../elements/Button/icon-button.vue';
-  import CircularProgress from '../elements/Progress/circular-progress.vue';
-  import { Icon } from '@iconify/vue/dist/iconify.js';
-  import FontSelect from './font-select.vue';
-  import h2c from 'html2canvas';
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 
-  const title = ref('Hold my hand');
-  const artist = ref('Random Artist');
-  const currentTime = ref(0);
-  const duration = ref(0);
-  const lyricLine = ref<number[]>([]);
-  const lyric = ref('');
-  const lrcEffect = ref(false);
-  const font = ref('Roboto Flex');
-  const lyricsBalance = ref(false);
-  const lyricsAlign = ref(0);
-  const borderRadius = ref(12);
-  const image = ref<File | Blob | string>('/assets/gemini-generated-image.jpg');
-  const colorObj = new Colors();
-  const colorThief = new ColorThief();
-  const downloadType = ref([0]);
-  const downloadSize = ref([0]);
-  const imgStyle = ref([0]);
-  const imgSize = ref([1]);
-  const imgRadius = ref(6);
-  const padding = ref(16);
-  const color = ref('');
-  const lyricsSize = ref(30);
-  const lyricsWeight = ref(500);
-  const loading = ref(false);
+import {
+	Button,
+	CircularProgress,
+	Divider,
+	IconButton,
+	Scroller,
+	Select,
+	Slider,
+	SquareImage,
+	Switch,
+	TextInput,
+	ThemeProvider,
+	WavyDivider,
+	as,
+	fastAvgColor,
+	openFilePickerAsync,
+	rippleEffect,
+} from '@vue-material/core'
 
-  const downloadTypes: SelectItem[] = [
-    { name: 'PNG', id: 'png' },
-    { name: 'JPG', id: 'jpg' },
-    { name: 'WEBP', id: 'webp' },
-  ];
+import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
+import h2c from 'html2canvas-pro'
+import FontSelect from './font-select.vue'
 
-  const lyricsAligns = [
-    { label: 'left', value: 0 },
-    { label: 'center', value: 1 },
-    { label: 'right', value: 2 },
-  ];
+const audioInfo = reactive({
+	title: 'Hold my hand',
+	artist: 'Random Artist',
+	currentTime: 0,
+	duration: 0,
+})
 
-  const downloadSizes: SelectItem[] = [
-    { name: 'Original', id: 1 },
-    { name: 'x2', id: 2 },
-    { name: 'x4', id: 4 },
-  ];
+const lyrics = reactive({
+	line: undefined as number | undefined,
+	text: '',
+	effect: false,
+	align: 0,
+	balance: false,
+})
 
-  const imgSizes = [
-    { id: 48, name: '48px' },
-    { id: 64, name: '64px' },
-    { id: 80, name: '80px' },
-    { id: 96, name: '96px' },
-    { id: 128, name: '128px' },
-  ];
+const font = reactive({
+	family: 'Roboto Flex',
+	size: 30,
+	weight: 500,
+})
 
-  const toggleEffect = () => {
-    lrcEffect.value = !lrcEffect.value;
-  };
+const downloadOptions = reactive({
+	type: 'png',
+	size: 1,
+})
 
-  const content = ref<HTMLElement | null>(null);
+const image = reactive({
+	radius: 12,
+	width: 48,
+	frame: 'default',
+	data: '/assets/gemini-generated-image.jpg',
+})
 
-  const Player = window.app.player;
-  const Lyrics = window.app.lyric;
+const box = reactive({
+	radius: 12,
+	padding: 16,
+	color: '',
+})
 
-  async function getColor() {
-    const imgString: string =
-      typeof image.value === 'string'
-        ? image.value
-        : URL.createObjectURL(image.value);
+const loading = ref(false)
 
-    const avgColor = await colorThief.getColorAsync(imgString);
-    color.value = Color(avgColor).hex();
+const downloadTypes: ObjectValue[] = [
+	{ label: 'PNG', value: 'png' },
+	{ label: 'JPG', value: 'jpg' },
+	{ label: 'WEBP', value: 'webp' },
+]
 
-    if (imgString.startsWith('blob:') && Player.picture?.data !== imgString) {
-      URL.revokeObjectURL(imgString);
-    }
-  }
+const lyricsAligns = [
+	{ label: 'left', value: 0 },
+	{ label: 'center', value: 1 },
+	{ label: 'right', value: 2 },
+]
 
-  function download(url: string) {
-    const link = document.createElement('a');
-    link.download = `${artist.value} - ${title.value} [Lyrics Card].${downloadTypes[downloadType.value[0]].id}`;
-    link.href = url;
-    link.click();
-    loading.value = false;
-  }
+const downloadSizes: ObjectValue[] = [
+	{ label: 'Original', value: 1 },
+	{ label: 'x2', value: 2 },
+	{ label: 'x4', value: 4 },
+]
 
-  function getLRCLineValue(id: number) {
-    const line = Lyrics.lines[id];
-    if (!line) return;
-    return typeof line.data == 'string'
-      ? line.data
-      : line.data.map(({ line }) => line).join('');
-  }
+const imgSizes = [
+	{ value: 48, label: '48px' },
+	{ value: 64, label: '64px' },
+	{ value: 80, label: '80px' },
+	{ value: 96, label: '96px' },
+	{ value: 128, label: '128px' },
+]
 
-  function downloadImage() {
-    loading.value = true;
-    const img = content.value;
-    if (!img) return;
+const toggleEffect = () => {
+	lyrics.effect = !lyrics.effect
+}
 
-    setTimeout(async () => {
-      const scale = downloadSizes[downloadSize.value[0]].id;
-      const canvas = await h2c(img, {
-        scale: Number(scale),
-        backgroundColor: 'transparent',
-      });
-      switch (downloadType.value[0]) {
-        case 0:
-          download(canvas.toDataURL());
-          break;
-        case 1:
-          download(canvas.toDataURL('image/jpeg'));
-          break;
-        case 2:
-          download(canvas.toDataURL('image/webp'));
-          break;
-      }
-    });
-  }
+const content = ref<HTMLElement | null>(null)
 
-  const lrcLines = computed(() =>
-    Lyrics.getRaw().lines.map((line) => {
-      return {
-        id: line.id,
-        name:
-          typeof line.data == 'string'
-            ? line.data || '<Empty>'
-            : line.data.map(({ line }) => line).join(''),
-      };
-    })
-  );
+const Player = window.app.player
+const Lyrics = window.app.lyric
 
-  function getLrcLineString(index: number) {
-    const line = Lyrics.lines[index];
-    if (!line) return '';
-    return typeof line.data == 'string'
-      ? line.data
-      : line.data.map(({ line }) => line).join('');
-  }
+function download(url: string) {
+	const link = document.createElement('a')
+	link.download = `${audioInfo.artist} - ${audioInfo.title} [Lyrics Card].${downloadOptions.type}`
+	link.href = url
+	link.click()
+	loading.value = false
+}
 
-  const getPreviousLine = () => {
-    const index = lyricLine.value[0] - 1;
-    if (index < 0) return;
-    return getLRCLineValue(index);
-  };
+function getLRCLineValue(id: number) {
+	const line = Lyrics.lines[id]
+	if (!line) return
+	return typeof line.data === 'string'
+		? line.data
+		: line.data.map(({ line }) => line).join('')
+}
 
-  const getNextLine = () => {
-    const index = lyricLine.value[0] + 1;
-    if (index >= lrcLines.value.length) return;
-    return getLRCLineValue(index);
-  };
+function downloadImage() {
+	loading.value = true
+	const img = content.value
+	if (!img) return
 
-  const lyricText = computed(() => {
-    const id = lyricLine.value[0];
-    if (id !== undefined) {
-      const lineData = Lyrics.lines[lyricLine.value[0]].data;
+	setTimeout(async () => {
+		const scale = downloadOptions.size
+		const canvas = await h2c(img, {
+			scale: Number(scale),
+			backgroundColor: 'transparent',
+		})
+		switch (downloadOptions.type) {
+			case 'png':
+				download(canvas.toDataURL())
+				break
+			case 'jpg':
+				download(canvas.toDataURL('image/jpeg'))
+				break
+			case 'webp':
+				download(canvas.toDataURL('image/webp'))
+				break
+			default:
+				download(canvas.toDataURL())
+				break
+		}
+	})
+}
 
-      switch (typeof lineData) {
-        case 'string':
-          return lineData;
-        case 'object':
-          return lineData.map(({ line }) => line).join('');
-        default:
-          return lyric.value;
-      }
-    }
-    return lyric.value;
-  });
+const lrcLines = computed(() =>
+	Lyrics.getRaw().lines.map((line) => {
+		return {
+			value: line.id,
+			label:
+				typeof line.data === 'string'
+					? line.data || '<Empty>'
+					: line.data.map(({ line }) => line).join(''),
+		}
+	}),
+)
 
-  const imageStyles: any[] = [
-    { id: 'default', name: 'Rounded' },
-    { id: 'circle', name: 'Wavy Circle' },
-    { id: 'scalloped-square', name: 'Scalloped Square' },
-  ];
+function getLrcLineString(index: number) {
+	const line = Lyrics.lines[index]
+	if (!line) return ''
+	return typeof line.data === 'string'
+		? line.data
+		: line.data.map(({ line }) => line).join('')
+}
 
-  const fonts = ['JetBrains Mono', 'Roboto Flex', 'Arial', 'Times New Roman'];
+const getPreviousLine = () => {
+	if (lyrics.line === undefined) return
 
-  const lrcWeight = [200, 300, 400, 500, 600, 700, 800];
+	const index = lyrics.line - 1
+	if (index < 0) return
+	return getLRCLineValue(index)
+}
 
-  async function uploadImage() {
-    const file = await openFilePickerAsync({ accept: 'image/*' });
+const getNextLine = () => {
+	if (lyrics.line === undefined) return
 
-    if (!file) return;
-    image.value = file;
-  }
+	const index = lyrics.line + 1
+	if (index >= lrcLines.value.length) return
+	return getLRCLineValue(index)
+}
 
-  function useEditorMeta() {
-    const details = Player.getDetails();
-    title.value = details.title;
-    artist.value = details.artist || '';
-    image.value = Player.picture?.data || '';
-  }
+const lyricText = computed(() => {
+	const id = lyrics.line
+	if (id !== undefined) {
+		const lineData = Lyrics.lines[id].data
 
-  function setColor() {
-    throttler(
-      () => {
-        colorObj.set(Color(color.value));
-      },
-      {
-        key: 'lrc-card-color',
-        blockTime: 100,
-        endCall: true,
-      }
-    );
-  }
+		switch (typeof lineData) {
+			case 'string':
+				return lineData
+			case 'object':
+				return lineData.map(({ line }) => line).join('')
+			default:
+				return lyrics.text
+		}
+	}
+	return lyrics.text
+})
 
-  function toApp() {
-    history.pushState(null, '', '/');
-  }
+const imageStyles: ObjectValue[] = [
+	{ value: 'none', label: 'Rounded' },
+	{ value: 'circle', label: 'Wavy Circle' },
+	{ value: 'clover', label: 'Clover' },
+]
 
-  watch(color, setColor);
-  watch(image, getColor);
-  onMounted(() => {
-    getColor();
-  });
+const fonts = ['JetBrains Mono', 'Roboto Flex', 'Arial', 'Times New Roman']
+
+const lrcWeight = [200, 300, 400, 500, 600, 700, 800]
+
+async function uploadImage() {
+	const file = await openFilePickerAsync({ accept: 'image/*' })
+
+	if (!file) return
+	URL.revokeObjectURL(image.data)
+	image.data = URL.createObjectURL(file)
+}
+
+function useEditorMeta() {
+	const details = Player.details
+	audioInfo.title = details.title
+	audioInfo.artist = details.artist || ''
+	image.data = Player.picture?.data || ''
+}
+
+function toApp() {
+	history.pushState(null, '', '/')
+}
+
+async function getColor() {
+	const imgString: string =
+		typeof image.data === 'string'
+			? image.data
+			: URL.createObjectURL(image.data)
+
+	const avgColor = await fastAvgColor(imgString)
+
+	if (imgString.startsWith('blob:') && Player.picture?.data !== imgString) {
+		URL.revokeObjectURL(imgString)
+	}
+
+	box.color = avgColor
+}
+
+watch(image, getColor)
+
+onMounted(() => {
+	getColor()
+})
 </script>
 
 <template>
   <div class="app-wrapper">
     <div class="lyric-card-editor">
-      <Styles :-colors="colorObj" tag=".lyric-card" />
-
       <div class="section-wrapper">
         <div class="section main">
           <div class="flex align-center lyric-card-editor-header">
@@ -254,50 +259,56 @@
               @click="toApp"
               :disabled="loading"
               label="SLEv2"
-              variant="subtle"
+              variant="tonal"
               radius="sm"
             />
             <h1>Lyric Card Editor</h1>
           </div>
 
           <div class="preview-card" ref="content">
-            <div
+            <ThemeProvider
               class="lyric-card"
               :style="{
-                '--radius': getCSSValue(borderRadius),
-                '--padding': getCSSValue(padding),
-                '--lrcSize': addPX(lyricsSize),
-                '--lrcWeight': lyricsWeight,
-                '--lrcAlign': lyricsAligns[lyricsAlign].label,
-                '--lrcBalance': lyricsBalance ? 'balance' : 'initial',
+                $radius: box.radius,
+                $padding: box.padding,
+                $lrcSize: font.size,
+                $lrcWeight: font.weight,
+                $lrcAlign: lyricsAligns[lyrics.align].label,
+                $lrcBalance: lyrics.balance ? 'balance' : 'initial',
                 fontFamily: font,
               }"
             >
               <div class="lyric-card-header">
                 <SquareImage
-                  :src="image"
-                  :size="imgSizes[imgSize[0]].id"
-                  :radius="imgRadius"
-                  :frame="imageStyles[imgStyle[0]].id"
+                  :src="image.data"
+                  :size="image.width"
+                  :r="image.radius"
+                  :frame="as(image.frame)"
                 />
                 <div class="lyric-details">
-                  <h1 class="lyric-title">{{ title }}</h1>
-                  <h2 class="lyric-artist">{{ artist }}</h2>
+                  <h1 class="lyric-title">{{ audioInfo.title }}</h1>
+                  <h2 class="lyric-artist">{{ audioInfo.artist }}</h2>
                 </div>
               </div>
 
               <div class="lyric-card-body">
-                <p class="prev-lrc" v-if="lyricLine.length && lrcEffect">
+                <p 
+                  class="prev-lrc" 
+                  v-if="lyrics.line !== undefined && lyrics.effect"
+                >
                   {{ getPreviousLine() }}
                 </p>
                 <p class="lyric-text">
                   {{ lyricText }}
                 </p>
-                <p class="next-lrc" v-if="lyricLine.length && lrcEffect">
+                <p 
+                  class="next-lrc" 
+                  v-if="lyrics.line !== undefined && lyrics.effect"
+                >
                   {{ getNextLine() }}
                 </p>
               </div>
-            </div>
+            </ThemeProvider>
           </div>
           <WavyDivider />
         </div>
@@ -308,7 +319,7 @@
               <div class="name">Color</div>
               <Scroller class="desc">Set the theme color</Scroller>
               <div class="other">
-                <input type="color" v-model="color" />
+                <input type="color" v-model="box.color" />
               </div>
             </div>
 
@@ -317,7 +328,7 @@
                 icon="material-symbols:crop-landscape-outline"
                 title="Card Padding"
               />
-              <Slider v-model="padding" :min="0" :max="64" />
+              <Slider v-model="box.padding" :min="0" :max="64" />
             </div>
 
             <div class="flex">
@@ -325,30 +336,35 @@
                 icon="material-symbols:border-style-rounded"
                 title="Border Radius"
               />
-              <Slider v-model="borderRadius" :min="0" :max="100" />
+              <Slider v-model="box.radius" :min="0" :max="100" />
             </div>
 
             <Select
               required
               :items="fonts"
               :option-comp="FontSelect"
-              :value="[fonts.indexOf(font)]"
-              :change="(v) => (font = fonts[v[0]])"
-            />
-
+              :value="[fonts.indexOf(font.family)]"
+              @change="([v]) => (font.family = String(v ?? 'Roboto Flex'))"
+            >
+              <template v-slot="{ label, value }">
+                <div :style="`font-family: ${label}`">
+                  {{ label }}
+                </div>
+              </template>
+            </Select>
             <Divider label="Download Options" />
             <Select
               required
-              :value="downloadSize"
               :items="downloadSizes"
-              :change="(v) => (downloadSize = v)"
+              :value="[downloadOptions.size]"
+              @change="([v]) => (downloadOptions.size = Number(v))"
             />
             <div class="actions flex">
               <Select
                 required
-                :value="downloadType"
                 :items="downloadTypes"
-                :change="(v) => (downloadType = v)"
+                :value="[downloadOptions.type]"
+                @change="([v]) => (downloadOptions.type = String(v))"
               />
               <CircularProgress v-if="loading" :diameter="32" :stroke="4" />
               <Button
@@ -364,18 +380,18 @@
         <div class="scroll-wrapper editor">
           <div class="section">
             <Divider label="Song Details" />
-            <TextInput v-model="title" placeholder="Title" span />
-            <TextInput v-model="artist" placeholder="Artist" span />
+            <TextInput v-model="audioInfo.title" placeholder="Title" span />
+            <TextInput v-model="audioInfo.artist" placeholder="Artist" span />
             <ButtonGroup>
               <Button
                 label="Use Editor Meta"
                 @click="useEditorMeta"
-                variant="outline"
+                variant="outlined"
               />
               <Button
                 label="Upload Audio File"
                 disabled
-                variant="outline"
+                variant="outlined"
                 title="Not available at the moment"
               />
             </ButtonGroup>
@@ -383,24 +399,24 @@
             <Divider label="Lyrics" />
 
             <TextInput
-              v-if="lyricLine.length"
-              :placeholder="getLRCLineValue(lyricLine[0]) || '<Empty>'"
-              @click="lyricLine = []"
+              v-if="lyrics.line !== undefined"
+              :placeholder="getLRCLineValue(lyrics.line) || '<Empty>'"
+              @click="lyrics.line = undefined"
               right-icon="material-symbols:close"
               disabled
               span
             />
             <TextInput
               v-else
-              v-model="lyric"
+              v-model="lyrics.text"
               placeholder="Paste your lyrics here..."
               span
             />
             <div class="flex">
               <Select
                 :items="lrcLines"
-                :value="lyricLine"
-                :change="(v) => (lyricLine = v)"
+                :value="lyrics.line ? [lyrics.line] : []"
+                @change="([v]) => (lyrics.line = Number(v))"
                 placeholder="Select from the lyrics editor"
               />
             </div>
@@ -409,26 +425,26 @@
               class="special"
               @pointerdown="rippleEffect"
               @click="toggleEffect"
-              v-if="lyricLine.length"
+              v-if="lyrics.line !== undefined"
             >
               <div class="name">Lyrics Effect</div>
               <Scroller class="desc">
                 Use previous and next lines from the editor
               </Scroller>
               <div class="switch">
-                <Switch v-model="lrcEffect" />
+                <Switch v-model="lyrics.effect" />
               </div>
             </div>
 
             <div
               class="special"
               @pointerdown="rippleEffect"
-              @click="lyricsBalance = !lyricsBalance"
+              @click="lyrics.balance = !lyrics.balance"
             >
               <div class="name">Balance Lyrics</div>
               <Scroller class="desc">Wrap the text evenly</Scroller>
               <div class="switch">
-                <Switch v-model="lyricsBalance" />
+                <Switch v-model="lyrics.balance" />
               </div>
             </div>
 
@@ -437,7 +453,7 @@
                 icon="material-symbols:text-fields"
                 title="Font Size"
               />
-              <Slider v-model="lyricsSize" :min="12" :max="64" />
+              <Slider v-model="font.size" :min="12" :max="64" />
             </div>
 
             <div class="flex">
@@ -445,7 +461,7 @@
                 icon="mdi:format-text-variant-outline"
                 title="Font Weight"
               />
-              <Slider v-model="lyricsWeight" :values="lrcWeight" />
+              <Slider v-model="font.weight" :values="lrcWeight" />
             </div>
 
             <div class="flex">
@@ -453,24 +469,15 @@
                 icon="mdi:align-horizontal-distribute"
                 title="Align"
               />
-              <Slider v-model="lyricsAlign" :values="lyricsAligns" show-label />
+              <Slider v-model="lyrics.align" :values="lyricsAligns" show-label />
             </div>
 
             <Divider label="Song Image" />
             <div class="flex">
               <TextInput
-                v-model="image"
+                v-model="image.data"
                 placeholder="Image URL"
-                v-if="typeof image === 'string'"
                 span
-              />
-              <TextInput
-                v-else
-                disabled
-                :placeholder="(image as File).name"
-                span
-                right-icon="material-symbols:close"
-                @click="image = ''"
               />
               <Button
                 @click="uploadImage"
@@ -482,20 +489,20 @@
             <Select
               required
               :items="imgSizes"
-              :value="imgSize"
-              :change="(v) => (imgSize = v)"
+              :value="[image.width]"
+              @change="([v]) => (image.width = Number(v))"
             />
             <Select
               required
               :items="imageStyles"
-              :value="imgStyle"
-              :change="(v) => (imgStyle = v)"
+              :value="[image.frame]"
+              @change="([v]) => (image.frame = String(v))"
             />
             <Slider
-              v-if="imgStyle[0] === 0"
-              v-model="imgRadius"
+              v-if="image.frame === 'none'"
+              v-model="image.radius"
               :min="0"
-              :max="imgSizes[imgSize[0]].id / 2"
+              :max="image.width / 2"
               :step="1"
             />
           </div>
@@ -580,7 +587,7 @@
       }
 
       .divider-label {
-        background-color: var(--color-50);
+        background-color: var(--primary-5);
       }
 
       .special {
@@ -616,7 +623,7 @@
         .desc {
           grid-area: desc;
           align-self: start;
-          color: var(--mono-600);
+          color: var(--mono-60);
         }
       }
 
@@ -630,12 +637,12 @@
       .lyric-card {
         width: 100%;
         grid-gap: var(--md);
-        background: var(--color-100);
+        background: var(--primary-10);
         border-radius: var(--radius);
         overflow: hidden;
         padding: var(--padding);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0);
-        border: 1px solid var(--color-200);
+        border: 1px solid var(--primary-20);
 
         .lyric-text {
           line-height: 1.25;
@@ -713,7 +720,7 @@
         .lyric-artist {
           font-size: var(--font-lg);
           font-weight: 400;
-          color: var(--mono-700);
+          color: var(--mono-70);
           width: 0;
         }
       }
@@ -745,8 +752,8 @@
       padding-top: var(--md);
       background: linear-gradient(
         to bottom,
-        var(--color-50) 0%,
-        var(--color-50) 90%,
+        var(--primary-5) 0%,
+        var(--primary-5) 90%,
         transparent 100%
       );
     }

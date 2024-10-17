@@ -1,10 +1,11 @@
 <script setup lang="ts">
-  import _presets from '../modals/_presets';
+import { useOverlays } from '../overlays/use-overlays'
+const overlay = useOverlays()
 </script>
 
 <template>
   <div class="app-logo">
-    <div class="app-title" :onclick="_presets.changelog">
+    <div class="app-title" @click="overlay.changelog">
       Synced Lyrics Editor
     </div>
   </div>
@@ -14,7 +15,7 @@
   .app-logo {
     display: flex;
     grid-area: logo;
-    border-left: 4px solid var(--color-500, red);
+    border-left: 4px solid var(--primary-50, red);
     transition: border-color 3s;
     padding-inline-start: 4px;
     width: 64px;

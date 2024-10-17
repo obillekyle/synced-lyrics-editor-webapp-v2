@@ -1,181 +1,190 @@
 <script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue';
+import type MusicService from '@/api/service'
+import type { Screens } from '@/app/main'
 
-  import type MusicService from '@/api/service';
-  import { throttler, isInputFocused, getUnique } from '@/api/util';
-  import { i18n } from '@/app/i18n';
-  import { Icon } from '@iconify/vue';
+import { Icon } from '@iconify/vue'
+import { onMounted, onUnmounted, ref, shallowReactive } from 'vue'
 
-  import Divider from './elements/Divider/divider.vue';
-  import I18nString from './elements/Text/i18n-string.vue';
-  import {
-    getKeybinds,
-    keyHandlers as handlers,
-    processKey,
-  } from './keybinds/keys';
-  import floatingKeybind from './keybinds/main.vue';
-  import _presets from './modals/_presets';
-  import Seeker from './seeker.vue';
-  import MdProgress from './elements/Progress/circular-progress.vue';
-  import IconButton from './elements/Button/icon-button.vue';
-  import Scroller from './elements/Text/scroller.vue';
-  import Floater from './elements/Text/floater.vue';
-  import CircularProgress from './elements/Progress/circular-progress.vue';
+import {
+	getKeybinds,
+	keyHandlers as handlers,
+	processKey,
+} from './keybinds/keys'
 
-  const Player = window.app.player;
-  const Screen = window.app.screen;
-  const Keybinds = getKeybinds();
-  const Option = window.app.options;
-  const Modals = window.app.modals;
+import { useConfig } from '@/hooks/use-config'
+import { useLang } from '@/hooks/use-lang'
+import { useScreen } from '@/hooks/use-screen'
+import { useSession } from '@/hooks/use-session'
+import {
+	CircularProgress,
+	Divider,
+	Floater,
+	IconButton,
+	MODAL,
+	Scroller,
+	hasFormFocused,
+	throttler,
+	useModal,
+} from '@vue-material/core'
 
-  const time = ref(0);
-  const shown = ref(false);
-  const loading = ref(true);
-  const audioLoop = ref(false);
-  const id = getUnique('player');
-  const playing = ref(!Player.paused);
-  const picture = ref(Player.picture);
-  const metadata = ref(Player.getDetails());
-  const showKeyBinds = ref(Option.get('showKeyBinds', false));
+import I18nString from './i18n-string.vue'
+import floatingKeybind from './keybinds/main.vue'
+import Seeker from './seeker.vue'
+import { useOverlays } from './overlays/use-overlays'
 
-  const playPause = () => (playing.value = !Player.paused);
-  function onMusicUpdate(this: MusicService): void {
-    playing.value = false;
-    metadata.value = Player.getDetails();
-    picture.value = Player.picture;
-    loading.value = false;
-  }
+const lang = useLang('en')
+const modals = useModal()
+const screen = useScreen()
+const config = useConfig()
+const session = useSession()
+const overlay = useOverlays()
 
-  function handleTimeUpdate(this: MusicService) {
-    throttler(
-      () => {
-        if (!isFinite(this.duration)) return;
-        time.value = this.currentTime;
-      },
-      {
-        key: id,
-        blockTime: 1000,
-        endCall: true,
-      }
-    );
-  }
+const Player = window.app.player
+const Keybinds = getKeybinds()
 
-  function formatTime(time: number) {
-    if (!isFinite(time)) return '-:--';
-    const mins = Math.floor(time / 60).toString();
-    const secs = Math.floor(time % 60).toString();
+const player = shallowReactive({
+	loading: Player.ready,
+	loop: Player.instance.loop,
+	playing: !Player.instance.paused,
+	metadata: Player.details,
+	picture: Player.picture,
+	time: 0,
+})
 
-    const minutes = mins.padStart(2, '0');
-    const seconds = secs.padStart(2, '0');
+const panelShown = ref(false)
 
-    return `${minutes}:${seconds}`;
-  }
+const playPause = (state?: boolean) => {
+	player.playing = state ?? !Player.instance.paused
+}
 
-  function handleKeyUp(e: KeyboardEvent) {
-    if (Screen.current == 'edit' || Screen.current == 'timing') return;
+function onMusicUpdate(this: MusicService): void {
+	Object.assign(player, {
+		loading: false,
+		loop: this.instance.loop,
+		playing: !this.instance.paused,
+		metadata: this.details,
+		picture: this.picture,
+		time: this.currentTime,
+	})
+}
 
-    if (isInputFocused()) return;
-    processKey(Keybinds.player.playPause, e, () => Player.playPause());
-  }
+function handleTimeUpdate(this: MusicService) {
+	throttler(
+		() => {
+			if (!Player.ready) return
+			player.time = this.currentTime
+		},
+		{
+			key: 'app-player',
+			wait: 500,
+			endCall: true,
+		},
+	)
+}
 
-  function setLoop(loop?: boolean) {
-    if (typeof loop != 'boolean') loop = undefined;
-    Player.loop = loop ?? !Player.loop;
-    audioLoop.value = Player.loop;
-  }
+function formatTime(time: number) {
+	if (!Number.isFinite(time)) return '-:--'
+	const mins = String(Math.floor(time / 60))
+	const secs = String(Math.floor(time % 60)).padStart(2, '0')
 
-  function handleKeyDown(e: KeyboardEvent) {
-    if (Screen.current != 'edit') {
-      processKey(Keybinds.uploadLRC, e, handlers.uploadLRC);
-      processKey(Keybinds.uploadAudio, e, handlers.uploadAudio);
-      processKey(Keybinds.downloadLRC, e, handlers.downloadLRC);
-    }
+	return `${mins}:${secs}`
+}
 
-    if (Screen.current != 'timing' && !isInputFocused()) {
-      processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward);
-      processKey(Keybinds.player.seekForward, e, handlers.player.seekForward);
-    }
+function handleKeyUp(e: KeyboardEvent) {
+	if (hasFormFocused()) return
+	if (['edit', 'timing'].includes(screen.value)) return
+	processKey(Keybinds.player.playPause, e, () => Player.playPause())
+}
 
-    processKey(Keybinds.tabHome, e, () => Screen.set('home'));
-    processKey(Keybinds.tabEdit, e, () => Screen.set('edit'));
-    processKey(Keybinds.tabTiming, e, () => Screen.set('timing'));
-    processKey(Keybinds.tabLyrics, e, () => Screen.set('lyric'));
-    processKey(Keybinds.showKeybinds, e, handlers.showKeybinds);
+function setLoop(loop?: boolean) {
+	loop ??= !Player.instance.loop
+	Player.instance.loop = loop
+	player.loop = loop
+}
 
-    processKey(Keybinds.settings, e, () => _presets.openSettings());
-  }
+function setScreen(value: Screens) {
+	screen.value = value
+}
 
-  function updateShown() {
-    showKeyBinds.value = Option.get('showKeyBinds', false);
-  }
+const uploadAudio = () => handlers.uploadAudio(overlay.useAudioLRC)
 
-  function playerError() {
-    loading.value = false;
-    Modals.open({
-      icon: 'material-symbols:error-outline',
-      id: 'not-audio-file',
-      title: 'Not an audio file',
-      content: 'Please select an audio file',
-      actions: [
-        {
-          text: 'OK',
-          onClick: ({ close }) => close(),
-        },
-      ],
-    });
-  }
+function handleKeyDown(e: KeyboardEvent) {
+	if (screen.value !== 'edit') {
+		processKey(Keybinds.uploadLRC, e, overlay.uploadNewLrc)
+		processKey(Keybinds.downloadLRC, e, overlay.download)
+		processKey(Keybinds.uploadAudio, e, uploadAudio)
+	}
 
-  function playerLoading() {
-    loading.value = true;
-  }
+	if (screen.value !== 'timing' && !hasFormFocused()) {
+		processKey(Keybinds.player.seekBackward, e, handlers.player.seekBackward)
+		processKey(Keybinds.player.seekForward, e, handlers.player.seekForward)
+	}
 
-  onMounted(() => {
-    onMusicUpdate.call(Player);
-    updateShown();
-    playing.value = !Player.paused;
+	processKey(Keybinds.tabHome, e, () => setScreen('home'))
+	processKey(Keybinds.tabEdit, e, () => setScreen('edit'))
+	processKey(Keybinds.tabTiming, e, () => setScreen('timing'))
+	processKey(Keybinds.tabLyrics, e, () => setScreen('lyric'))
 
-    Player.addEventListener('play', playPause);
-    Player.addEventListener('pause', playPause);
-    Player.addEventListener('timeupdate', handleTimeUpdate);
-    Player.addEventListener('musicupdated', onMusicUpdate);
-    Player.addEventListener('error', playerError);
-    Player.addEventListener('loading', playerLoading);
+	processKey(Keybinds.showKeybinds, e, overlay.showKeyBinds)
+	processKey(Keybinds.settings, e, overlay.openSettings)
+}
 
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('keydown', handleKeyDown);
-    Option.addEventListener('event', updateShown);
-  });
+function playerError() {
+	player.loading = false
+	modals.open('not-audio-file', {
+		icon: 'material-symbols:error-outline',
+		title: 'Not an audio file',
+		content: 'Please select an audio file',
+		actions: MODAL.PRESET_ACTION_CLOSE('OK'),
+		focusLock: true,
+	})
+}
 
-  onUnmounted(() => {
-    Player.removeEventListener('play', playPause);
-    Player.removeEventListener('pause', playPause);
-    Player.removeEventListener('timeupdate', handleTimeUpdate);
-    Player.removeEventListener('musicupdated', onMusicUpdate);
-    Player.removeEventListener('error', playerError);
-    Player.removeEventListener('loading', playerLoading);
+function playerLoading() {
+	player.loading = true
+}
 
-    window.removeEventListener('keyup', handleKeyUp);
-    window.removeEventListener('keydown', handleKeyDown);
-    Option.removeEventListener('event', updateShown);
-  });
+onMounted(() => {
+	onMusicUpdate.call(Player)
+
+	Player.addEventListener('playpause', playPause)
+	Player.addEventListener('update', onMusicUpdate)
+	Player.addEventListener('error', playerError)
+	Player.addEventListener('loading', playerLoading)
+	Player.instance.addEventListener('timeupdate', handleTimeUpdate)
+
+	window.addEventListener('keyup', handleKeyUp)
+	window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+	Player.removeEventListener('playpause', playPause)
+	Player.removeEventListener('update', onMusicUpdate)
+	Player.removeEventListener('error', playerError)
+	Player.removeEventListener('loading', playerLoading)
+	Player.instance.removeEventListener('timeupdate', handleTimeUpdate)
+
+	window.removeEventListener('keyup', handleKeyUp)
+	window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
   <div class="app-player">
     <div class="main-panel">
       <Seeker />
-      <floating-keybind v-if="showKeyBinds" />
+      <floating-keybind v-if="config.preferences.showKeyBinds" />
 
       <div class="controls">
         <IconButton
-          :disabled="!isFinite(Player.duration)"
-          :onclick="() => Player.fastSeek(-5)"
-          :title="i18n('PLAYER_BACKWARD')"
+          @click="Player.currentTime -= 5"
+          :disabled="!Player.ready"
+          :title="lang.get('PLAYER_BACKWARD')"
           class="seek-backward"
           icon="material-symbols:fast-rewind"
         />
-        <MdProgress
-          v-if="loading"
+        <CircularProgress
+          v-if="player.loading"
           :stroke="4"
           :value="Infinity"
           :diameter="48"
@@ -183,18 +192,18 @@
         />
         <IconButton
           v-else
-          :data-playing="playing ? 'true' : 'false'"
-          :disabled="!isFinite(Player.duration)"
-          :onclick="() => Player.playPause()"
+          :data-playing="player.playing ? 'true' : 'false'"
+          :disabled="!Player.ready"
+          @click="Player.playPause()"
           class="play-button"
           :size="36"
-          :icon="`material-symbols:${playing ? 'pause' : 'play-arrow'}`"
-          :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
+          :icon="`material-symbols:${player.playing ? 'pause' : 'play-arrow'}`"
+          :title="lang.get('PLAYER_PLAY') + ' / ' + lang.get('PLAYER_PAUSE')"
         />
         <IconButton
-          :disabled="!isFinite(Player.duration)"
-          :onclick="() => Player.fastSeek(5)"
-          :title="i18n('PLAYER_FORWARD')"
+          @click="Player.currentTime += 5"
+          :disabled="!Player.ready"
+          :title="lang.get('PLAYER_FORWARD')"
           class="seek-forward"
           icon="material-symbols:fast-forward"
         />
@@ -203,38 +212,41 @@
       <div class="music-info">
         <img
           :src="
-            loading ? '/assets/dummy.svg' : picture?.data || '/assets/dummy.svg'
+            player.loading
+              ? '/assets/dummy.svg' 
+              : player.picture?.data || '/assets/dummy.svg'
           "
           alt="Album art"
         />
 
         <div class="details">
-          <template v-if="loading">
+          <template v-if="player.loading">
             <Scroller class="title">Processing Audio...</Scroller>
             <Scroller class="artist">Loading audio metadata...</Scroller>
           </template>
           <template v-else>
             <div class="title">
               <I18nString
-                :element="Scroller"
+                :as="Scroller"
                 entry="PLAYER_NO_AUDIO"
-                v-if="!metadata?.title"
+                v-if="!player.metadata?.title"
               />
-              <Scroller v-else>
-                {{ metadata.title }}
+                
+                <Scroller v-else>
+                {{ player.metadata.title }}
               </Scroller>
             </div>
             <span class="artist">
               <I18nString
-                :element="Scroller"
+                :as="Scroller"
                 entry="PLAYER_NO_ARTIST"
-                v-if="!metadata?.artist"
+                v-if="!player.metadata.artist"
               />
               <Scroller v-else>
-                <span>{{ metadata.artist }}</span>
+                <span>{{ player.metadata.artist }}</span>
                 <span class="album">
-                  {{ metadata?.album && ' • ' }}
-                  {{ metadata?.album }}
+                  {{ player.metadata.album && ' • ' }}
+                  {{ player.metadata.album }}
                 </span>
               </Scroller>
             </span>
@@ -243,23 +255,23 @@
       </div>
 
       <div class="time">
-        {{ formatTime(time) }} /
-        {{ formatTime(Player.duration) }}
+        {{ formatTime(player.time) }} /
+        {{ formatTime(player.metadata.duration) }}
       </div>
 
       <div class="actions">
         <IconButton
-          @click="() => Player.reset()"
-          :disabled="!isFinite(Player.duration)"
+          @click="Player.reset()"
+          :disabled="!Player.ready"
           id="reset-audio"
           title="Change Audio"
           icon="material-symbols:close"
         />
 
-        <Floater text="AUDIO" pos="bottom">
+        <Floater text="AUDIO" pos="bottom" color="$on-surface">
           <IconButton
-            :disabled="loading"
-            @click="handlers.uploadAudio"
+            :disabled="player.loading"
+            @click="uploadAudio"
             id="upload-music"
             title="Change Audio"
             icon="material-symbols:upload"
@@ -269,8 +281,8 @@
           id="repeat"
           title="Repeat / Loop"
           icon="material-symbols:repeat"
-          @click="() => setLoop()"
-          :active="audioLoop"
+          @click="setLoop()"
+          :selected="player.loop"
         />
         <IconButton
           id="tag-sync"
@@ -282,24 +294,24 @@
           id="sub-panel-toggle"
           title="Open Sub-Panel"
           icon="material-symbols:expand-less"
-          :onclick="() => (shown = !shown)"
+          @click="panelShown = !panelShown"
         />
       </div>
     </div>
 
-    <div class="sub-panel" :shown="shown">
+    <div class="sub-panel" :shown="panelShown">
       <div class="wrapper">
         <div class="time">
           <span class="current">
-            {{ isFinite(Player.duration) ? formatTime(time) : '-:--' }}
+            {{ formatTime(player.time) }}
           </span>
-          <span class="duration">{{ formatTime(Player.duration) }}</span>
+          <span class="duration">{{ formatTime(player.metadata.duration) }}</span>
         </div>
 
         <div class="controls">
           <IconButton
-            :onclick="() => Player.reset()"
-            :disabled="!isFinite(Player.duration)"
+            @click="() => Player.reset()"
+            :disabled="!Player.ready"
             id="reset-audio-2"
             title="Change Audio"
             icon="material-symbols:close"
@@ -308,36 +320,36 @@
           <divider direction="y" :size="24" margin="sm" />
 
           <IconButton
-            :disabled="!isFinite(Player.duration)"
-            :onclick="() => Player.fastSeek(-5)"
+            :disabled="!Player.ready"
+            @click="Player.currentTime -= 5"
             class="seek-backward"
             title="Seek Backward"
             icon="material-symbols:fast-rewind"
           />
-          <MdProgress
-            v-if="loading"
-            :stroke="4"
+          <CircularProgress
+            v-if="player.loading"
+            :stroke="4" 
             :value="Infinity"
             :diameter="48"
             class="play-button"
           />
           <IconButton
             v-else
-            :data-playing="playing ? 'true' : 'false'"
-            :disabled="!isFinite(Player.duration)"
-            :onclick="() => Player.playPause()"
+            :data-playing="player.playing"
+            :disabled="!Player.ready"
             class="play-button"
             :size="36"
-            :icon="`material-symbols:${playing ? 'pause' : 'play-arrow'}`"
-            :title="i18n('PLAYER_PLAY') + ' / ' + i18n('PLAYER_PAUSE')"
+            :icon="`material-symbols:${player.playing ? 'pause' : 'play-arrow'}`"
+            :title="lang.get('PLAYER_PLAY') + ' / ' + lang.get('PLAYER_PAUSE')"
+            @click="Player.playPause()"
           />
 
           <IconButton
-            :disabled="!isFinite(Player.duration)"
-            :onclick="() => Player.fastSeek(5)"
             id="seek-forward"
             title="Seek Forward"
             icon="material-symbols:fast-forward"
+            :disabled="!Player.ready"
+            @click="Player.currentTime += 5"
           />
 
           <divider direction="y" :size="24" margin="sm" />
@@ -346,14 +358,14 @@
             id="repeat2"
             title="Repeat / Loop"
             icon="material-symbols:repeat"
-            :onclick="() => setLoop()"
-            :active="audioLoop"
+            @click="setLoop()"
+            :selected="player.loop"
           />
         </div>
 
         <Divider direction="x" size="100%" margin="sm" />
-        <div class="sub-button" @click="handlers.uploadAudio">
-          <icon icon="material-symbols:upload-sharp" :width="24" />
+        <div class="sub-button" @click="uploadAudio">
+          <Icon icon="material-symbols:upload-sharp" :width="24" />
           <span>Upload Audio</span>
         </div>
       </div>
@@ -363,12 +375,13 @@
 
 <style lang="scss">
   .app-player {
-    position: absolute;
+    position: fixed;
     inset: auto 0 0 0;
     z-index: 10;
 
     border-top: 1px solid #7777;
-    background-color: var(--app-player-color);
+    background-color: var(--surface-container-low);
+    left: var(--navbar-size);
 
     .main-panel {
       display: grid;
@@ -376,13 +389,14 @@
       align-content: center;
       padding-left: var(--sm);
 
-      height: var(--app-player-height);
+      height: var(--size-md);
 
       grid-template-columns: auto auto minmax(0px, 1fr) auto;
       grid-template-areas: 'controls time music-info actions';
       overflow: hidden;
       .controls {
         grid-area: controls;
+        align-items: center;
         display: flex;
       }
 
@@ -393,9 +407,10 @@
 
       .actions {
         display: flex;
+        align-items: center;
         flex-wrap: nowrap;
         grid-area: actions;
-        background-color: var(--app-player-color);
+        background-color: var(--surface-container-low);
 
         #sub-panel-toggle {
           display: none;
@@ -417,12 +432,14 @@
         img {
           aspect-ratio: 1 / 1;
           object-fit: contain;
-          background: #333;
-          border-radius: 2px;
-          width: 40px;
+          background: var(--mono-20);
+          border-radius: var(--xxs);
+          width: var(--component-lg);
         }
 
         .details {
+          padding-left: var(--sm);
+
           .title {
             font-weight: 500;
             font-size: var(--font-md);
@@ -431,8 +448,7 @@
 
           .artist {
             font-size: var(--font-md);
-
-            color: darkgray;
+            color: var(--mono-50);
           }
         }
       }
@@ -442,7 +458,7 @@
         margin-left: auto;
         align-self: center;
         white-space: nowrap;
-        color: darkgray;
+        color: var(--mono-50);
         font-size: var(--font-sm);
       }
     }
@@ -455,9 +471,11 @@
 
   @media screen and (max-width: 600px) {
     .app-player {
-      --app-player-height: 5rem;
       border-top-left-radius: var(--md);
       border-top-right-radius: var(--md);
+
+      left: 0;
+      bottom: var(--navbar-size);
 
       #repeat:not([active='true']),
       #repeat2:not([active='true']) {
@@ -469,7 +487,6 @@
         grid-template-areas: 'music-info time controls  actions';
         padding-left: var(--md);
         overflow: hidden;
-
         .actions {
           #sub-panel-toggle {
             display: block;
@@ -575,7 +592,7 @@
             padding: var(--sm);
             align-items: center;
             gap: var(--sm);
-            background-color: var(--color-600-20);
+            background-color: var(--primary-60-20);
             border-radius: var(--sm);
             display: flex;
           }

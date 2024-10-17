@@ -1,78 +1,82 @@
 p
 <script setup lang="ts">
-  import { onMounted } from 'vue';
-  import Divider from '../elements/Divider/divider.vue';
-  import { Icon } from '@iconify/vue';
-  import _presets from '../modals/_presets';
-  import { keyHandlers } from '../keybinds/keys';
-  import { rippleEffect } from '@/api/util';
-  import SvgBg from './svg-bg.vue';
-  import SquareImage from '../elements/square-image.vue';
-  import WavyDivider from '../elements/Divider/wavy-divider.vue';
-  import Button from '../elements/Button/button.vue';
+import { useScreen } from '@/hooks/use-screen'
+import { Icon } from '@iconify/vue'
+import {
+	Button,
+	Paper,
+	SquareImage,
+	WavyDivider,
+	rippleEffect,
+} from '@vue-material/core'
+import { keyHandlers } from '../keybinds/keys'
+import { useOverlays } from '../overlays/use-overlays'
 
-  const Screen = window.app.screen;
-  const version = window.app.version_string;
-  const pwa = window.app.pwa;
+import SvgBg from './svg-bg.vue'
 
-  const links: { label: string; link?: string }[] = [
-    {
-      label: 'Website',
-      link: 'https://okyle.xyz',
-    },
-    {
-      label: 'Github Repo',
-      link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-    },
-    {
-      label: 'Old Synced Lyrics Maker',
-      link: 'https://lyrics-editor.okyle.xyz',
-    },
-    {
-      label: 'Inspired by Material Design v3',
-      link: 'https://m3.material.io/',
-    },
-    {
-      label: 'Report an issue',
-      link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues',
-    },
-  ];
+const screen = useScreen()
+const overlays = useOverlays()
+const version = window.app.version_string
+const pwa = window.app.pwa
 
-  function share() {
-    navigator.share({
-      title: 'Synced Lyrics Editor v2',
-      url: 'https://sle.okyle.xyz',
-    });
-  }
+const links: { label: string; link?: string }[] = [
+	{
+		label: 'Website',
+		link: 'https://okyle.xyz',
+	},
+	{
+		label: 'Github Repo',
+		link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+	},
+	{
+		label: 'Old Synced Lyrics Maker',
+		link: 'https://lyrics-editor.okyle.xyz',
+	},
+	{
+		label: 'Inspired by Material Design v3',
+		link: 'https://m3.material.io/',
+	},
+	{
+		label: 'Report an issue',
+		link: 'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2/issues',
+	},
+]
 
-  function toGithubRepo() {
-    window.open(
-      'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
-      '_blank'
-    );
-  }
+function share() {
+	navigator.share({
+		title: 'Synced Lyrics Editor v2',
+		url: 'https://sle.okyle.xyz',
+	})
+}
 
-  function toLCMaker() {
-    history.pushState(null, '', '/lyric-card');
-  }
+function toGithubRepo() {
+	window.open(
+		'https://github.com/obillekyle/synced-lyrics-editor-webapp-v2',
+		'_blank',
+	)
+}
+
+function toLCMaker() {
+	history.pushState(null, '', '/lyric-card')
+}
 </script>
 
 <template>
   <div class="home">
     <div class="logo-container">
-      <div class="primary-container">
+      <Paper p="#xl" class="primary-container">
         <h1>Synced Lyrics Editor</h1>
         <p>
           Create your own synced lyrics for the music you love right from your
           browser. A sound file is required
-        </p>
-      </div>
+        </p>        
+      </Paper>
       <div class="logo-wrapper">
         <SvgBg />
         <SquareImage
           src="/assets/logo.png"
           alt="Lyric"
-          size="200"
+          :size="200"
           frame="circle"
         />
       </div>
@@ -83,7 +87,7 @@ p
       <div class="section-card-container">
         <div
           class="card"
-          @click="() => keyHandlers.uploadAudio()"
+          @click="keyHandlers.uploadAudio(overlays.useAudioLRC)"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -97,7 +101,7 @@ p
 
         <div
           class="card"
-          @click="() => _presets.uploadNewLrc()"
+          @click="overlays.uploadNewLrc"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -111,7 +115,7 @@ p
 
         <div
           class="card"
-          @click="() => Screen.set('edit')"
+          @click="screen = 'edit'"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -125,7 +129,7 @@ p
 
         <div
           class="card"
-          @click="() => _presets.showKeyBinds()"
+          @click="overlays.showKeyBinds"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -176,7 +180,7 @@ p
       <div class="section-card-container">
         <div
           class="card"
-          @click="() => _presets.changelog()"
+          @click="overlays.changelog()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -190,7 +194,7 @@ p
 
         <div
           class="card"
-          @click="() => _presets.openSettings()"
+          @click="overlays.openSettings()"
           @pointerdown="rippleEffect"
         >
           <div class="icon">
@@ -284,7 +288,6 @@ p
     width: 100%;
     max-width: 1024px;
     margin-inline: auto;
-    padding: var(--lg);
 
     .logo-container {
       display: grid;
@@ -301,21 +304,24 @@ p
         display: flex;
         flex-direction: column;
         gap: var(--sm);
-        padding: var(--size-sm);
-        background-color: var(--color-100);
+
         h1 {
           font-size: clamp(2rem, 5vw, 5rem);
           font-weight: 500;
+          margin: 0;
         }
 
         p {
           font-size: clamp(1rem, 4vw, 1.5rem);
-          color: var(--mono-900);
+          color: var(--mono-90);
+          margin: 0;
+
+
         }
       }
 
       .logo-wrapper {
-        background: var(--color-400);
+        background: var(--primary);
         border-radius: 16px;
         min-height: 300px;
         display: grid;
@@ -341,17 +347,17 @@ p
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       grid-auto-flow: row;
-      color: var(--color-100);
+      color: var(--on-primary);
       border-radius: var(--md);
-      background-color: var(--color-700);
+      background-color: var(--primary);
 
       .banner-content {
         padding: var(--xl);
         display: flex;
         flex-direction: column;
-        gap: var(--xl);
+        gap: var(--sm);
         .title {
-          font-size: var(--size-md);
+          font-size: var(--component-sm);
           font-weight: 700;
           text-wrap: nowrap;
           @media screen and (max-width: 600px) {
@@ -363,10 +369,17 @@ p
           text-wrap: balance;
         }
       }
+
+      .md-button {
+        color: var(--inverse-surface);
+        background: var(--inverse-on-surface);
+      }
+
+
       .banner-image {
         padding: var(--xl);
         padding-bottom: var(--sm);
-        border: 1px solid var(--color-200);
+        border: 1px solid var(--outline-variant);
         border-bottom: none;
 
         height: fit-content;
@@ -377,8 +390,8 @@ p
         margin-inline: var(--sm);
         align-self: flex-end;
 
-        background: var(--color-100);
-        color: var(--mono-1000);
+        background: var(--surface-container-low);
+        color: var(--on-surface-variant);
 
         .image-header {
           display: flex;
@@ -392,7 +405,7 @@ p
           }
           .artist {
             font-size: var(--font-lg);
-            color: var(--mono-700);
+            color: var(--mono-70);
           }
         }
 
@@ -417,7 +430,7 @@ p
       .section-footer {
         font-size: 1.2rem;
         font-weight: 500;
-        color: var(--mono-600);
+        color: var(--mono-60);
         text-align: center;
       }
 
@@ -440,14 +453,14 @@ p
 
           h3 {
             font-weight: 500;
-            color: var(--mono-800);
+            color: var(--mono-80);
           }
 
           .link {
             display: flex;
             text-decoration: none;
             width: max-content;
-            color: var(--mono-600);
+            color: var(--mono-60);
             border-bottom: 2px solid transparent;
             gap: var(--sm);
             align-items: center;
@@ -457,8 +470,8 @@ p
 
             &:is([href]):hover {
               cursor: pointer;
-              color: var(--mono-900);
-              border-bottom: 2px solid var(--mono-200);
+              color: var(--mono-90);
+              border-bottom: 2px solid var(--mono-20);
             }
             .icon {
               place-items: center;
@@ -489,17 +502,18 @@ p
           grid-template-columns: 64px 1fr;
           grid-template-rows: 64px;
           grid-template-areas: 'icon info';
-          grid-gap: var(--lg);
+          gap: var(--sm);
           align-items: center;
-          background: var(--color-100);
-          padding: var(--lg);
-          border-radius: var(--lg);
+          background: var(--surface-container);
+          padding: var(--md);
+          gap: var(--lg);
+          border-radius: var(--md);
           .icon {
             grid-area: icon;
             display: grid;
             place-items: center;
-            background: var(--color-300);
-            border-radius: var(--md);
+            background: var(--surface-container-highest);
+            border-radius: var(--xs);
             width: 64px;
             aspect-ratio: 1;
           }
@@ -508,17 +522,18 @@ p
             grid-area: info;
             display: flex;
             flex-direction: column;
-            gap: var(--xs);
           }
 
           h2 {
             font-size: 1.5rem;
             font-weight: 500;
+            margin: 0;
           }
 
           p {
             font-size: 1rem;
-            color: var(--mono-800);
+            color: var(--mono-80);
+            margin: 0;
           }
         }
       }
