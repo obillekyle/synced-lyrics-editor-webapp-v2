@@ -30,6 +30,10 @@ export default defineConfig({
 		VitePWA({
 			registerType: 'autoUpdate',
 			includeAssets: ['**/*.{svg,png,jpg,gif,webp,ico,woff2,json,md}'],
+			pwaAssets: {
+				preset: 'minimal-2023',
+				image: 'public/logo.svg',
+			},
 			workbox: {
 				cleanupOutdatedCaches: false,
 			},
