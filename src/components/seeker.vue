@@ -34,7 +34,7 @@ function onMusicUpdate(this: MusicService) {
 
 function setter(x: number, set = true) {
 	if (!rect.ready || !root.value) return
-	const offset = clamp(x, 0, rect.width)
+	const offset = clamp(x - rect.left, 0, rect.width)
 	const time = (offset / rect.width) * Player.instance.duration
 
 	audio.time = time
@@ -50,7 +50,7 @@ const [dragging, dragEvent] = useDrag({
 })
 
 const seekerWidth = computed(() => {
-	return (audio.time / audio.duration || 0) * 100
+	return Player.ready ? (audio.time / (audio.duration ?? 0)) * 100 : 0
 })
 
 onMounted(() => {
