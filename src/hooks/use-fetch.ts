@@ -27,8 +27,12 @@ type FetchOptions<T> =
 			refetch: () => Promise<T>
 	  }
 
-export function useFetch<T>(url: string) {
-	const control = new AbortController()
+type FetchBodyTypes = 'json' | 'text'
+export function useFetch<T>(url: string): FetchOptions<T>
+export function useFetch(url: string, type: 'text'): FetchOptions<string>
+export function useFetch<T>(url: string, type: 'json'): FetchOptions<T>
+export function useFetch<T>(url: string, type: FetchBodyTypes = 'json') {
+	let control = new AbortController()
 	const data = shallowRef<T>()
 	const status = shallowReactive({
 		error: false,
@@ -36,9 +40,12 @@ export function useFetch<T>(url: string) {
 	})
 
 	async function refetch() {
-		control.abort()
+		status.loading && control.abort('Fetching?')
+		control = new AbortController()
+
 		status.error = false
 		status.loading = true
+
 		try {
 			const res = await fetch(url, { signal: control.signal })
 
@@ -46,9 +53,9 @@ export function useFetch<T>(url: string) {
 				status.error = true
 				return
 			}
-
-			data.value = await res.json()
+			data.value = type === 'json' ? await res.json() : await res.text()
 		} catch (error) {
+			console.error(error)
 			status.error = true
 		} finally {
 			status.loading = false
