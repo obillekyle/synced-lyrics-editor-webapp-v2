@@ -15,7 +15,7 @@ const overlay = useOverlays()
   .app-logo {
     display: flex;
     grid-area: logo;
-    border-left: 4px solid var(--primary-50, red);
+    border-left: 4px solid var(--primary, red);
     transition: border-color 3s;
     padding-inline-start: 4px;
     width: 64px;
