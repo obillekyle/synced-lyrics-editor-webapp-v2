@@ -92,7 +92,10 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 			if (match) {
 				const [, timeString, value, tag] = match
 				tag ? this.processTag(tag) : this.processLine(timeString, value)
+				continue
 			}
+
+			this.add({ data: line })
 		}
 
 		this.updateCache()
@@ -107,6 +110,11 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 		}
 
 		for (const line of Object.values(this.lines)) {
+			if (line.time < 0) {
+				final.push(line.data)
+				continue
+			}
+
 			const time = this.timeToString(line.time)
 			final.push(`[${time}] ${line.data}`)
 		}
@@ -158,7 +166,9 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 	}
 
 	updateCache() {
+		this._cachedKeys.length = 0
 		this._cachedTime.length = 0
+
 		for (const [id, line] of Object.entries(this.lines)) {
 			this._cachedKeys.push(id)
 			this._cachedTime.push(line.time)
@@ -214,6 +224,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 				}
 			}
 
+			this.lines = newLines
 			this.updateCache()
 			this.dispatchEvent('line-added', id, data)
 			return id
@@ -234,6 +245,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 				newLines[key] = value
 			}
 
+			this.lines = newLines
 			this.updateCache()
 			this.dispatchEvent('line-added', id, data)
 			return id
@@ -243,6 +255,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 	}
 
 	timeToString(time: number, timeFixed: 2 | 3 = 2) {
+		if (time < 0) return ''
 		const mins = Math.floor(time / 60000)
 		const secs = Math.floor((time / 1000) % 60)
 		const msec = Math.floor(time) % 1000
