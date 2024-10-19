@@ -100,26 +100,25 @@ onUnmounted(() => {
       align-items: center;
       gap: var(--sm);
       padding: calc(var(--sm) / 2) var(--sm);
-      background-color: var(--background-body);
+      background-color: var(--surface-container-low);
       border-radius: calc(var(--sm) / 2);
       + .item {
         margin-top: calc(var(--sm) / -2);
       }
 
       &::before {
-        inset: 0;
+        inset: 1px;
         content: '';
-        background-color: var(--primary-60-10);
         position: absolute;
         z-index: -1;
       }
 
       .key {
         padding: 2px 4px;
-        border-radius: 2px;
+        border-radius: var(--xxs);
         font-family: 'JetBrains Mono', monospace;
-        border: 1px solid var(--primary-60-30);
-        background-color: var(--primary-60-10);
+        border: 1px solid var(--outline-variant);
+        background-color: var(--surface-container);
       }
     }
   }

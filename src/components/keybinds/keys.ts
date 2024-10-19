@@ -1,4 +1,4 @@
-import { $, evaluate, openFilePicker } from '@vue-material/core'
+import { $, evaluate, hasFormFocused, openFilePicker } from '@vue-material/core'
 
 import { useScreen } from '@/hooks/use-screen'
 
@@ -101,8 +101,8 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				cond: () =>
 					screen.value === 'timing' &&
 					Player.instance.paused &&
-					Lyrics.lines.length > 0 &&
-					$('.lrc-line.active:not(.edit)'),
+					Lyrics.length > 0 &&
+					!hasFormFocused(),
 			},
 			adjustTimeBackward: {
 				key: Keybinds.timing.adjustTimeBackward,
@@ -110,8 +110,8 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				cond: () =>
 					screen.value === 'timing' &&
 					Player.instance.paused &&
-					Lyrics.lines.length > 0 &&
-					$('.lrc-line.active:not(.edit)'),
+					Lyrics.length > 0 &&
+					!hasFormFocused(),
 			},
 			arrowUpFocus: {
 				key: Keybinds.timing.arrowUpFocus,
@@ -123,7 +123,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 					if (screen.value === 'timing') {
 						const elem = $('.lrc-line.active:not(.edit)')
 						const index = Number(elem?.dataset.index || '0')
-						const count = Lyrics.lines.length
+						const count = Lyrics.length
 
 						if (!elem && count > 0) return true
 
@@ -141,7 +141,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 					if (screen.value === 'timing') {
 						const elem = $('.lrc-line.active:not(.edit)')
 						const index = Number(elem?.dataset.index || '0')
-						const count = Lyrics.lines.length
+						const count = Lyrics.length
 
 						if (!elem && count > 0) return true
 
@@ -154,13 +154,13 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				label: 'Edit current line',
 				cond: () =>
 					screen.value === 'timing' &&
-					Lyrics.lines.length > 0 &&
+					Lyrics.length > 0 &&
 					$('.lrc-line.active:not(.edit)'),
 			},
 			addNewLine: {
 				key: Keybinds.timing.addNewLine,
 				label: () => {
-					if (Lyrics.lines.length === 0) return 'Add new line'
+					if (Lyrics.length === 0) return 'Add new line'
 
 					return $('.lrc-line.active')
 						? 'Add new line after focused'
@@ -173,7 +173,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				label: 'Add new line before focused',
 				cond: () =>
 					screen.value === 'timing' &&
-					Lyrics.lines.length > 0 &&
+					Lyrics.length > 0 &&
 					$('.lrc-line.active:not(.edit)'),
 			},
 			deleteLine: {
@@ -182,7 +182,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 					$('.lrc-line.active') ? 'Delete focused line' : 'Delete last line',
 				cond: () =>
 					screen.value === 'timing' &&
-					Lyrics.lines.length > 0 &&
+					Lyrics.length > 0 &&
 					!$('.lrc-line.edit'),
 			},
 			setLineTiming: {
@@ -190,7 +190,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				label: 'Set line time',
 				cond: () =>
 					screen.value === 'timing' &&
-					Lyrics.lines.length > 0 &&
+					Lyrics.length > 0 &&
 					$('.lrc-line.active:not(.edit)'),
 			},
 			unfocusLine: {
@@ -198,7 +198,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 				label: 'Unfocus current line',
 				cond: () =>
 					screen.value === 'timing' &&
-					Lyrics.lines.length > 0 &&
+					Lyrics.length > 0 &&
 					$('.lrc-line.active:not(.edit)'),
 			},
 		},
@@ -206,9 +206,7 @@ export function KeyboardGuides(): KeyBinds<BindItems> {
 			key: Keybinds.downloadLRC,
 			label: 'Download LRC',
 			cond: () =>
-				screen.value !== 'edit' &&
-				Lyrics.lines.length > 0 &&
-				!$('.lrc-line.edit'),
+				screen.value !== 'edit' && Lyrics.length > 0 && !$('.lrc-line.edit'),
 		},
 		uploadAudio: {
 			key: Keybinds.uploadAudio,
@@ -423,12 +421,12 @@ export const keyHandlers = {
 	timing: {
 		deleteLine: () => {
 			const Lyrics = window.app.lyric
-			const count = Lyrics.lines.length
-			count > 0 && Lyrics.removeLine(count - 1)
+			const id = Lyrics.getIdFromIndex(Lyrics.length - 1)
+			id && Lyrics.remove(id)
 		},
 		addNewLine: () => {
 			const Lyrics = window.app.lyric
-			Lyrics.addLine(Lyrics.EMPTYLINE)
+			Lyrics.add()
 		},
 	},
 
