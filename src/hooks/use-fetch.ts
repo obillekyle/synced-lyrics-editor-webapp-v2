@@ -1,31 +1,45 @@
-import { toProxy } from '@vue-material/core'
-import { computed, onUnmounted, shallowReactive, shallowRef, watch } from 'vue'
+import { type MaybeFunction, evaluate, toProxy } from '@vue-material/core'
+import {
+	type Ref,
+	computed,
+	isRef,
+	onUnmounted,
+	shallowReactive,
+	shallowRef,
+	watch,
+} from 'vue'
 
 type FetchResult<T> =
 	| {
 			data: undefined
 			error: false
 			loading: true
+			progress: number
 			refetch: () => Promise<T>
 	  }
 	| {
 			data: T
 			error: false
 			loading: false
+			progress: number
 			refetch: () => Promise<T>
 	  }
 	| {
 			data: undefined
 			error: true
 			loading: false
+			progress: number
 			refetch: () => Promise<T>
 	  }
 
-type FetchInit = Omit<RequestInit, 'signal'>
+type FetchInit = {
+	withCredentials?: boolean
+	headers?: Record<string, string>
+}
 
 type UseFetch = {
 	(
-		url: string,
+		url: string | Ref<string>,
 		type: 'text' | 'url-blob',
 		init?: FetchInit,
 	): FetchResult<string>
@@ -38,59 +52,71 @@ type UseFetch = {
 }
 
 export const useFetch: UseFetch = (
-	url: string,
+	url: MaybeFunction<string> | Ref<string>,
 	type = 'json',
-	init?: Omit<RequestInit, 'signal'>,
+	init?: FetchInit,
 ) => {
-	let control = new AbortController()
+	let xhr: XMLHttpRequest
 	const data = shallowRef()
 	const status = shallowReactive({
 		error: false,
 		loading: true,
+		progress: 0,
 	})
 
-	async function refetch() {
-		status.loading && control.abort('Fetching?')
-		control = new AbortController()
+	async function request(url: string) {
+		status.loading && xhr?.abort()
 
 		status.error = false
 		status.loading = true
 
-		try {
-			const res = await fetch(url, { ...init, signal: control.signal })
+		xhr = new XMLHttpRequest()
+		xhr.open('GET', url, true)
 
-			if (!res.ok) {
-				status.error = true
-				return
-			}
+		xhr.withCredentials = init?.withCredentials ?? false
 
+		xhr.responseType =
+			type === 'url-blob' ? 'blob' : (type as XMLHttpRequestResponseType)
+
+		for (const [key, value] of Object.entries(init?.headers || {})) {
+			xhr.setRequestHeader(key, value)
+		}
+
+		xhr.onprogress = (event) => {
+			status.progress = (event.total ? event.loaded / event.total : 0) * 100
+		}
+
+		xhr.onload = () => {
 			switch (type) {
 				case 'json':
-					data.value = await res.json()
-					break
 				case 'text':
-					data.value = await res.text()
-					break
 				case 'blob':
-					data.value = await res.blob()
+					data.value = xhr.response
 					break
 				case 'url-blob':
 					data.value && URL.revokeObjectURL(data.value)
-					data.value = URL.createObjectURL(await res.blob())
+					data.value = URL.createObjectURL(xhr.response)
 					break
 				default:
-					throw new Error('Invalid useFetch data type')
+					console.error('Invalid useFetch data type')
+					status.error = true
+					break
 			}
-		} catch (error) {
-			console.error(error)
+
+			status.loading = false
+			status.progress = 100
+		}
+
+		xhr.onerror = () => {
 			status.error = true
-		} finally {
 			status.loading = false
 		}
+
+		xhr.send()
 	}
 
-	onUnmounted(() => control.abort())
-	watch(() => url, refetch, { immediate: true })
+	onUnmounted(() => xhr.abort())
+	watch(typeof url === 'string' ? () => url : url, request, { immediate: true })
 
 	return toProxy(
 		computed(
@@ -98,8 +124,9 @@ export const useFetch: UseFetch = (
 				({
 					data: data.value,
 					error: status.error,
+					progress: status.progress,
 					loading: status.loading,
-					refetch,
+					refetch: () => request(isRef(url) ? url.value : evaluate(url)),
 					// biome-ignore lint/suspicious/noExplicitAny: function returns multiple types of data
 				}) as FetchResult<any>,
 		),
