@@ -1,4 +1,6 @@
-import { inject } from 'vue'
+import { toProxy } from '@vue-material/core'
+import { watch } from 'vue'
+import { type Ref, computed, inject } from 'vue'
 
 export type AppOverlays = {
 	download: () => void
@@ -10,12 +12,18 @@ export type AppOverlays = {
 	openSettings: () => void
 }
 
-export function useOverlays(data?: AppOverlays) {
-	const overlays = inject('app-overlays', data)
+const DEFAULT_OVERLAYS: AppOverlays = {
+	download: () => {},
+	changelog: () => Promise.resolve(),
+	useAudioLRC: () => {},
+	useQueryLRC: () => {},
+	uploadNewLrc: () => {},
+	showKeyBinds: () => {},
+	openSettings: () => {},
+}
 
-	if (!overlays) {
-		throw new Error('Overlays not found')
-	}
-
-	return overlays
+export function useOverlays(data?: Ref<AppOverlays>) {
+	const overlays = inject('app-overlays', undefined)
+	const proxied = computed(() => data?.value ?? overlays ?? DEFAULT_OVERLAYS)
+	return toProxy(proxied, true)
 }

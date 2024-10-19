@@ -8,7 +8,6 @@ import {
 	useModal,
 	useSnackbar,
 	useToast,
-	toProxy,
 } from '@vue-material/core'
 import { computed, defineAsyncComponent, h, provide } from 'vue'
 import loadLyrics from './app/loadLyrics.vue'
@@ -60,7 +59,9 @@ async function changelog() {
 }
 
 function useAudioLRC() {
-	const lyric = player.metadata?.common.lyrics?.join('\n') || ''
+	const lyric = (player.metadata?.common.lyrics?.join('\n') || '').trim()
+
+	if (!lyric) return
 
 	modals.open('use-audio-lrc', {
 		icon: 'material-symbols:queue-music',
@@ -124,7 +125,7 @@ function openLRCPicker() {
 function uploadNewLrc() {
 	const warn = config.preferences.showLrcWarn
 
-	if (!warn || lyrics.lines.length === 0) {
+	if (!warn || lyrics.length === 0) {
 		openLRCPicker()
 		return
 	}
@@ -176,21 +177,18 @@ function openSettings() {
 	})
 }
 
-const overlays = toProxy(
-	computed(() => ({
-		download,
-		changelog,
-		useAudioLRC,
-		useQueryLRC,
-		uploadNewLrc,
-		showKeyBinds,
-		openSettings,
-	})),
-	true,
-)
+const overlays = {
+	download,
+	changelog,
+	useAudioLRC,
+	useQueryLRC,
+	uploadNewLrc,
+	showKeyBinds,
+	openSettings,
+}
 
+defineExpose({ ...overlays })
 provide('app-overlays', overlays)
-defineExpose({ overlays })
 </script>
 
 <template>
