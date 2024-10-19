@@ -1,26 +1,24 @@
 <script setup lang="ts">
-import type { LRCLine } from '@/api/parser'
-import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
-
 import { List } from '@vue-material/core'
-import type { ListItemType } from '@vue-material/core/List/types.js'
 import { h, onBeforeUnmount, ref } from 'vue'
 import SortItem from './sort-item.vue'
 
 const Lyrics = window.app.lyric
 const raw = Lyrics.getRaw()
 
-const lrc = ref<ObjectValue[]>(
-	raw.lines.map((line, index) => ({
-		value: line.id,
-		label: index,
+const lines = ref(
+	Object.keys(raw.lines).map((line) => ({
+		label: line,
+		value: line,
 	})),
 )
 
 onBeforeUnmount(() => {
 	Lyrics.import({
 		tags: raw.tags,
-		lines: [...lrc.value].map<LRCLine>((line) => raw.lines[line.label]),
+		lines: Object.fromEntries(
+			lines.value.map(({ value }) => [value, raw.lines[value]]),
+		),
 	})
 })
 </script>
@@ -29,7 +27,7 @@ onBeforeUnmount(() => {
   <div class="sort-screen">
     <div class="guide">Swipe left or right to remove</div>
     <List
-      v-model="lrc"
+      v-model="lines"
       swipe="dismiss"
       sortable
       :list-comp="SortItem"

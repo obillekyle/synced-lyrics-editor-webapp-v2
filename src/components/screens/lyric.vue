@@ -25,7 +25,6 @@ const previewPane = ref<HTMLElement | null>(null)
 const currentIndex = ref(-1)
 const session = useSession()
 const lang = useLang('en')
-const wRect = useWindowSize()
 
 const lrcChange = () => {
 	bypass.value = true
@@ -53,14 +52,14 @@ function handleCurrentIndex(this: MusicService) {
 
 				if (!main) return
 
-				const rect = main?.getBoundingClientRect()
+				const rect = main.getBoundingClientRect()
 				const halfElement = element.clientHeight / 1.75
 				const offset = rect.height / 2 - halfElement
 
 				await animatedScroll(element, {
 					speed: 400,
 					elementToScroll: main,
-					verticalOffset: offset * -1,
+					verticalOffset: -offset,
 				})
 			}
 		},
@@ -77,13 +76,6 @@ const resetIndex = () => {
 	bypass.value = true
 	currentIndex.value
 	handleCurrentIndex.call(Player)
-}
-
-function isError(index: number) {
-	return (
-		index > 0 &&
-		lyrics.value.lines[index - 1].time > lyrics.value.lines[index].time
-	)
 }
 
 function setTime(time: number) {
@@ -114,13 +106,9 @@ onUnmounted(() => {
       class="lrc-line"
       @click="setTime(time)"
       @pointerdown="rippleEffect"
-      :class="{ error: isError(index) }"
       v-for="({ data, time }, index) in lyrics.lines"
     >
-      <div class="data multi" v-if="typeof data == 'object'">
-        {{ data.map(({ line }) => line).join('') }}
-      </div>
-      <div class="data" v-else-if="data == '♪'">
+      <div class="data" v-if="data == '♪'">
         <playing-indicator />
       </div>
       <div class="data" v-else>

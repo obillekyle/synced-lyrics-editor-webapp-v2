@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { LRCLine, LRCTags } from '@/api/parser'
-
 import { useSession } from '@/hooks/use-session'
 import {
 	$,
@@ -40,13 +38,12 @@ const toggleEdit: (value?: boolean) => void = (value) => {
 	if (!id) return
 
 	if (value) {
-		if (!id) return
 		editor.value = lyrics.lines[id].data
 		editor.editing = true
 		return
 	}
 
-	Lyrics.update(id, { data: editor.value })
+	Lyrics.update(id, { data: editor.value.replace(/\r?\n/g, '') })
 
 	editor.editing = false
 	editor.value = ''
@@ -88,22 +85,26 @@ const setTimeFromMusicCurrent = (e?: MouseEvent) => {
 	const id = Lyrics.getIdFromIndex(index)
 
 	if (!id) return
-	if (index === -1) return
-	if (!lyrics.lines[index]) return
 	if (!Player.ready) return
 
-	const newIndex = index + 1 === Lyrics.length ? index : index + 1
-	const newId = Lyrics.getIdFromIndex(newIndex)
 	const currentTime = Player.currentTime * 1000
+	console.log(
+		id,
+		Object.keys(lyrics.lines).includes(id),
+		Object.keys(lyrics.lines),
+	)
+	if (lyrics.lines[id].time !== currentTime) {
+		console.log('update', index, id)
+		Lyrics.update(id, { time: currentTime })
+	}
+
+	const newIndex = clamp(index + 1, 0, Lyrics.length - 1)
+	const newId = Lyrics.getIdFromIndex(newIndex)
 
 	if (!newId) return
 
 	e?.stopPropagation?.()
 	setFocus(newIndex)
-
-	if (lyrics.lines[newId].time !== currentTime) {
-		Lyrics.update(id, { time: currentTime })
-	}
 }
 
 function updateLyrics() {
@@ -134,7 +135,6 @@ const adjustTime = (value: number) => {
 
 function handleKeyDown(e: KeyboardEvent) {
 	const index = editor.focus
-	const lyrics = Lyrics.lines
 
 	if (e.ctrlKey || e.metaKey || hasFormFocused()) return
 	document.activeElement instanceof HTMLElement && document.activeElement.blur()
@@ -159,6 +159,19 @@ function addNewLineFromFocus(before = false) {
 	before ? Lyrics.addBefore(id) : Lyrics.addAfter(id)
 }
 
+function addedLine(id: string) {
+	const index = Lyrics.getIndexFromId(id)
+	updateLyrics()
+	setFocus(index)
+}
+
+function removedLine(id: string) {
+	const index = Object.keys(lyrics.lines).indexOf(id)
+
+	updateLyrics()
+	if (index <= editor.focus) setFocus(editor.focus - 1)
+}
+
 function handleKeyUp(e: KeyboardEvent) {
 	const index = editor.focus
 	const id = Lyrics.getIdFromIndex(index)
@@ -168,6 +181,7 @@ function handleKeyUp(e: KeyboardEvent) {
 		switch (e.key) {
 			case 'Enter':
 				toggleEdit()
+				e.preventDefault()
 				break
 		}
 		return
@@ -210,8 +224,8 @@ watch(
 
 onMounted(() => {
 	Lyrics.addEventListener('parsed', updateLyrics)
-	Lyrics.addEventListener('line-added', updateLyrics)
-	Lyrics.addEventListener('line-removed', updateLyrics)
+	Lyrics.addEventListener('line-added', addedLine)
+	Lyrics.addEventListener('line-removed', removedLine)
 	Lyrics.addEventListener('line-updated', updateLyrics)
 
 	window.addEventListener('keydown', handleKeyDown)
@@ -220,8 +234,8 @@ onMounted(() => {
 
 onUnmounted(() => {
 	Lyrics.removeEventListener('parsed', updateLyrics)
-	Lyrics.removeEventListener('line-added', updateLyrics)
-	Lyrics.removeEventListener('line-removed', updateLyrics)
+	Lyrics.removeEventListener('line-added', addedLine)
+	Lyrics.removeEventListener('line-removed', removedLine)
 	Lyrics.removeEventListener('line-updated', updateLyrics)
 
 	window.removeEventListener('keydown', handleKeyDown)
@@ -235,7 +249,7 @@ onUnmounted(() => {
   </div>
 
   <div
-    @click="Lyrics.length && Lyrics.add()"
+    @click="!Lyrics.length && Lyrics.add()"
     class="timing-screen"
     ref="timingPane"
     v-else
@@ -443,12 +457,13 @@ onUnmounted(() => {
         grid-area: data;
         &:empty::after {
           content: '<Empty>';
-          color: var(--primary-80-40);
+          opacity: 0.5;
         }
       }
 
       &:is(:first-child:last-child) {
         border: 1px solid var(--outline-variant);
+        border-radius: var(--sm);
       }
 
       &.active {
@@ -458,7 +473,7 @@ onUnmounted(() => {
           'add-line data timing';
         position: sticky;
         z-index: 1;
-        top: var(--sm);
+        top: calc(var(--sm) + var(--header-size));
 
         > * {
           pointer-events: initial;
