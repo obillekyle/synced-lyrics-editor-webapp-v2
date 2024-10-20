@@ -12,15 +12,24 @@ import AppPlayer from './components/player.vue'
 import LyricCard from './components/screens/lyric-card.vue'
 import LrcScreen from './components/screens/main.vue'
 
-import { $, Layout, LinearProgress, OverlayProvider } from '@vue-material/core'
+import {
+	$,
+	Layout,
+	LinearProgress,
+	OverlayProvider,
+	customRef,
+} from '@vue-material/core'
 
 import { useOverlays } from './components/overlays/use-overlays'
+import LyricCard2 from './components/screens/lyric-card/index.vue'
 import { useAppData } from './hooks/use-app-data'
 import { useConfig } from './hooks/use-config'
 import { useLang } from './hooks/use-lang'
 import { useLocation } from './hooks/use-location'
 import { useScreen } from './hooks/use-screen'
 import { useSession } from './hooks/use-session'
+
+const Player = window.app.player
 
 const screen = useScreen()
 const config = useConfig()
@@ -29,8 +38,8 @@ const appData = useAppData()
 const location = useLocation()
 const lang = useLang('en')
 
-const o = shallowRef({} as AppOverlays)
-const overlays = useOverlays(o.value)
+const data = shallowRef()
+const overlays = useOverlays(data)
 
 const page = computed(() => location.pathname.split('/')[1])
 
@@ -56,13 +65,36 @@ watch(page, (page) => {
 })
 
 onMounted(() => {
-	window.app.presets = overlays
+	Player.addEventListener('update', () => overlays.useAudioLRC())
 })
 </script>
 
 <template>
-  <AppOverlayProvider>
-    <Layout :options="{
+  <AppOverlayProvider ref="data">
+    <Layout v-if="page === 'lyric-card'" :options="{
+        theme: config.preferences.theme,
+        fontFamily: 'Roboto Flex, sans-serif',
+        colors: { primary: 'green', ...config.preferences.colorScheme } ,
+      }"
+    >
+      <OverlayProvider>
+        <LyricCard />
+      </OverlayProvider>
+    </Layout>
+
+    <Layout v-else-if="page === 'lyric-card2'" :options="{
+        theme: config.preferences.theme,
+        fontFamily: 'Roboto Flex, sans-serif',
+        colors: { primary: 'green', ...config.preferences.colorScheme } ,
+      }"
+    >
+      <OverlayProvider>
+        <LyricCard2 />
+      </OverlayProvider>
+    </Layout>
+
+
+    <Layout v-else :options="{
       theme: config.preferences.theme,
       fontFamily: 'Roboto Flex, sans-serif',
       colors: { primary: 'green', ...config.preferences.colorScheme } ,
@@ -84,12 +116,9 @@ onMounted(() => {
           </div>
         </Transition>
         <template v-if="lang.ready">
-          <LyricCard v-if="page === 'lyric-card'" />
-          <template v-else>
-            <I18nString entry="ALPHA" :as="AppTag" v-if="!config.preferences" />
-            <LrcScreen />
-            <AppPlayer />
-          </template>
+          <I18nString entry="ALPHA" :as="AppTag" v-if="!config.showBuildType" />
+          <LrcScreen />
+          <AppPlayer />
         </template>
       </OverlayProvider>
     </Layout>

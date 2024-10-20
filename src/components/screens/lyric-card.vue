@@ -20,6 +20,7 @@ import {
 	rippleEffect,
 } from '@vue-material/core'
 
+import type { LRCLine } from '@/api/parser2'
 import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
 import h2c from 'html2canvas-pro'
 import FontSelect from './font-select.vue'
@@ -32,7 +33,7 @@ const audioInfo = reactive({
 })
 
 const lyrics = reactive({
-	line: undefined as number | undefined,
+	line: undefined as string | undefined,
 	text: '',
 	effect: false,
 	align: 0,
@@ -108,12 +109,10 @@ function download(url: string) {
 	loading.value = false
 }
 
-function getLRCLineValue(id: number) {
+function getLRCLineValue(id: string) {
 	const line = Lyrics.lines[id]
 	if (!line) return
-	return typeof line.data === 'string'
-		? line.data
-		: line.data.map(({ line }) => line).join('')
+	return line.data
 }
 
 function downloadImage() {
@@ -144,55 +143,48 @@ function downloadImage() {
 	})
 }
 
-const lrcLines = computed(() =>
-	Lyrics.getRaw().lines.map((line) => {
-		return {
-			value: line.id,
-			label:
-				typeof line.data === 'string'
-					? line.data || '<Empty>'
-					: line.data.map(({ line }) => line).join(''),
-		}
-	}),
-)
+const lrcLines = computed(() => {
+	const raw = Lyrics.getRaw().lines
+	const lines: ObjectValue[] = []
+
+	for (const [key, line] of Object.entries(raw)) {
+		lines.push({ label: key, value: key })
+	}
+
+	return lines
+})
 
 function getLrcLineString(index: number) {
 	const line = Lyrics.lines[index]
-	if (!line) return ''
-	return typeof line.data === 'string'
-		? line.data
-		: line.data.map(({ line }) => line).join('')
+	return line?.data || ''
 }
 
 const getPreviousLine = () => {
 	if (lyrics.line === undefined) return
 
-	const index = lyrics.line - 1
-	if (index < 0) return
-	return getLRCLineValue(index)
+	const index = Lyrics.getIndexFromId(lyrics.line) - 1
+	const prevId = Lyrics.getIdFromIndex(index)
+
+	if (prevId === undefined) return
+
+	return getLRCLineValue(prevId)
 }
 
 const getNextLine = () => {
 	if (lyrics.line === undefined) return
 
-	const index = lyrics.line + 1
-	if (index >= lrcLines.value.length) return
-	return getLRCLineValue(index)
+	const index = Lyrics.getIndexFromId(lyrics.line) + 1
+	const nextId = Lyrics.getIdFromIndex(index)
+
+	if (nextId === undefined) return
+
+	return getLRCLineValue(nextId)
 }
 
 const lyricText = computed(() => {
 	const id = lyrics.line
 	if (id !== undefined) {
-		const lineData = Lyrics.lines[id].data
-
-		switch (typeof lineData) {
-			case 'string':
-				return lineData
-			case 'object':
-				return lineData.map(({ line }) => line).join('')
-			default:
-				return lyrics.text
-		}
+		return Lyrics.lines[id]?.data ?? lyrics.text
 	}
 	return lyrics.text
 })
@@ -382,7 +374,7 @@ onMounted(() => {
             <Divider label="Song Details" />
             <TextInput v-model="audioInfo.title" placeholder="Title" span />
             <TextInput v-model="audioInfo.artist" placeholder="Artist" span />
-            <ButtonGroup>
+            <Button.Group>
               <Button
                 label="Use Editor Meta"
                 @click="useEditorMeta"
@@ -394,7 +386,7 @@ onMounted(() => {
                 variant="outlined"
                 title="Not available at the moment"
               />
-            </ButtonGroup>
+            </Button.Group>
 
             <Divider label="Lyrics" />
 
@@ -416,7 +408,7 @@ onMounted(() => {
               <Select
                 :items="lrcLines"
                 :value="lyrics.line ? [lyrics.line] : []"
-                @change="([v]) => (lyrics.line = Number(v))"
+                @change="([v]) => (lyrics.line = String(v))"
                 placeholder="Select from the lyrics editor"
               />
             </div>
@@ -514,10 +506,9 @@ onMounted(() => {
 
 <style lang="scss" scoped>
   .lyric-card-editor {
-    position: fixed;
-    inset: 0 0 0 0;
     width: clamp(0px, 100%, 1200px);
     margin-inline: auto;
+    
     height: 100%;
 
     .flex {
@@ -545,8 +536,6 @@ onMounted(() => {
 
   .section-wrapper {
     display: grid;
-    position: absolute;
-    inset: 0 0 0 0;
     grid-template-columns: repeat(2, minmax(400px, 1fr));
     grid-template-rows: auto 1fr;
     grid-template-areas:
@@ -575,7 +564,6 @@ onMounted(() => {
       display: flex;
       flex-direction: column;
       gap: var(--sm);
-      padding: var(--md);
       width: 100%;
 
       &.main {

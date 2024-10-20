@@ -7,7 +7,7 @@
 <style scoped lang="scss">
   .tag {
     height: var(--xl);
-    background-color: var(--primary-container);
+    background-color: var(--error-container);
     display: grid;
     place-items: center;
     position: fixed;
