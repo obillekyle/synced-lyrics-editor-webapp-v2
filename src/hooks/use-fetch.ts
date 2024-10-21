@@ -14,11 +14,13 @@ type FetchResult<T> =
 			data: undefined
 			error: false
 			loading: true
+			ready: false
 			progress: number
 			refetch: () => Promise<T>
 	  }
 	| {
 			data: T
+			ready: true
 			error: false
 			loading: false
 			progress: number
@@ -26,7 +28,16 @@ type FetchResult<T> =
 	  }
 	| {
 			data: undefined
+			ready: false
 			error: true
+			loading: false
+			progress: number
+			refetch: () => Promise<T>
+	  }
+	| {
+			data: undefined
+			ready: false
+			error: false
 			loading: false
 			progress: number
 			refetch: () => Promise<T>
@@ -35,6 +46,7 @@ type FetchResult<T> =
 type FetchInit = {
 	withCredentials?: boolean
 	headers?: Record<string, string>
+	init?: boolean
 }
 
 type UseFetch = {
@@ -59,16 +71,25 @@ export const useFetch: UseFetch = (
 	let xhr: XMLHttpRequest
 	const data = shallowRef()
 	const status = shallowReactive({
+		init: init?.init ?? true,
+		ready: false,
 		error: false,
 		loading: true,
-		progress: 0,
+		progress: -1,
 	})
 
 	async function request(url: string) {
 		status.loading && xhr?.abort()
 
+		if (!status.init) {
+			status.init = true
+			return
+		}
+
+		status.ready = false
 		status.error = false
 		status.loading = true
+		status.progress = -1
 
 		xhr = new XMLHttpRequest()
 		xhr.open('GET', url, true)
@@ -80,6 +101,10 @@ export const useFetch: UseFetch = (
 
 		for (const [key, value] of Object.entries(init?.headers || {})) {
 			xhr.setRequestHeader(key, value)
+		}
+
+		xhr.onloadstart = () => {
+			status.progress = 0
 		}
 
 		xhr.onprogress = (event) => {
@@ -124,6 +149,7 @@ export const useFetch: UseFetch = (
 				({
 					data: data.value,
 					error: status.error,
+					ready: status.ready,
 					progress: status.progress,
 					loading: status.loading,
 					refetch: () => request(isRef(url) ? url.value : evaluate(url)),
