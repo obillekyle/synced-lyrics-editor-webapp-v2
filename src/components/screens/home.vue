@@ -6,6 +6,7 @@ import {
 	Button,
 	Paper,
 	SquareImage,
+	Text,
 	WavyDivider,
 	rippleEffect,
 } from '@vue-material/core'
@@ -251,32 +252,30 @@ function toLCMaker() {
         <div class="links">
           <img alt="Logo" src="/favicon.svg" width="48" height="48" />
           <h3>Synced Lyrics Editor and Maker v2</h3>
-          <a class="link" href="https://github.com/obillekyle" target="_blank">
-            <span class="info">By: @obillekyle</span>
-            <div class="icon">
-              <Icon icon="material-symbols:open-in-new" :width="24" />
-            </div>
-          </a>
+          <Text 
+            as="a" 
+            class="link"
+            href="https://github.com/obillekyle"
+            target="_blank"
+          >
+            By: @obillekyle
+          </Text>
           <p class="link">
             <span class="info">Version: {{ version }}</span>
           </p>
         </div>
 
         <div class="links" @pointerdown="rippleEffect">
-          <a
+          <Text 
+            as="a" 
             class="link"
-            :key="index"
-            :href="item.link"
-            :target="item.link?.startsWith('https://') ? '_blank' : ''"
-            v-for="(item, index) in links"
+            v-for="({ link, label}, index) in links" 
+            :key="index" 
+            :href="link"
+            :target="link?.startsWith('https://') ? '_blank' : ''"
           >
-            <span class="info">
-              {{ item.label }}
-            </span>
-            <div class="icon" v-if="item.link?.startsWith('https://')">
-              <Icon icon="material-symbols:open-in-new" :width="24" />
-            </div>
-          </a>
+            {{ label }}
+          </Text>
         </div>
       </div>
     </div>
@@ -456,32 +455,22 @@ function toLCMaker() {
             color: var(--mono-80);
           }
 
+          h3, p {
+            margin: 0;
+          }
+
           .link {
-            display: flex;
-            text-decoration: none;
-            width: max-content;
-            color: var(--mono-60);
-            border-bottom: 2px solid transparent;
-            gap: var(--sm);
-            align-items: center;
-            transition:
-              border-bottom 0.2s,
-              color 0.2s;
+            position: relative;
+            font-size: var(--font-lg);
+            color: var(--outline);
+            text-decoration-thickness: 0;
+            text-decoration-color: transparent;
+            transition: all 0.15s var(--timing-standard);
 
-            &:is([href]):hover {
-              cursor: pointer;
-              color: var(--mono-90);
-              border-bottom: 2px solid var(--mono-20);
-            }
-            .icon {
-              place-items: center;
-              line-height: 0;
-            }
-
-            span {
-              font-weight: 500;
-              letter-spacing: 0.5px;
-              font-size: var(--font-lg);
+            &:hover {
+              color: var(--on-primary-container);
+              text-decoration-thickness: 2px;
+              text-decoration-color: currentColor;
             }
           }
         }
@@ -512,7 +501,8 @@ function toLCMaker() {
             grid-area: icon;
             display: grid;
             place-items: center;
-            background: var(--surface-container-highest);
+            color: var(--on-primary-container);
+            background: var(--inverse-primary);
             border-radius: var(--xs);
             width: 64px;
             aspect-ratio: 1;
