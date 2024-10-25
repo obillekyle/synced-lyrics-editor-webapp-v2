@@ -17,6 +17,7 @@ import {
 	TextInput,
 	evaluate,
 	rippleEffect,
+	useModalUtils,
 } from '@vue-material/core'
 import { computed, h, inject, reactive, ref, watch } from 'vue'
 import { useOverlays } from '../use-overlays'
@@ -26,17 +27,13 @@ import I18nString from '../../i18n-string.vue'
 const lang = useLang('en')
 const config = useConfig()
 const overlays = useOverlays()
+const utils = useModalUtils()
 
 const options = reactive({
 	sidebar: false,
 	search: '',
 	active: 'general',
 })
-
-const utils = inject(
-	'modal-utils',
-	ref<UtilityFunction<ModalProps>>(ComponentManager.DEFAULT_UTILITY),
-)
 
 type Stringish = MaybeFunction<string>
 type Booleanish = MaybeFunction<boolean>
@@ -284,10 +281,8 @@ const BackIcon = h(IconButton, {
 	},
 })
 
-watch(options, (newOptions) => {
-	utils.value.modify({
-		subAction: newOptions.sidebar ? BackIcon : undefined,
-	})
+watch(options, ({ sidebar }) => {
+	utils.modify({ subAction: sidebar ? BackIcon : undefined })
 })
 
 const result = computed(() => {

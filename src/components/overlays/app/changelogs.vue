@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useFetch } from '@/hooks/use-fetch'
-import { Button, LinearProgress } from '@vue-material/core'
+import { Button, LinearProgress, useFetch } from '@vue-material/core'
 import { parse } from 'marked'
 
 const fetch = useFetch('/changelog.md', 'text')
