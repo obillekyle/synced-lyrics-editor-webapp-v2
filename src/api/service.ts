@@ -28,6 +28,7 @@ type AudioServiceEvents = {
 class AudioService extends CustomEventHandler<AudioServiceEvents> {
 	private _instance = new Audio()
 	private cleanup = () => {}
+	private _file?: File | Blob
 	metadata?: IAudioMetadata
 	picture?: AudioImage
 	ready = false
@@ -39,6 +40,10 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 			album: this.metadata?.common.album,
 			title: this.metadata?.common.title || '',
 		}
+	}
+
+	get file() {
+		return this._file
 	}
 
 	get instance() {
@@ -148,6 +153,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 				{ once: true },
 			)
 
+			this._file = file
 			this._instance.src = URL.createObjectURL(file)
 			this._instance.load()
 		})
@@ -187,6 +193,7 @@ class AudioService extends CustomEventHandler<AudioServiceEvents> {
 		}
 
 		this.ready = false
+		this._file = undefined
 		this.metadata = undefined
 		this.emit('reset')
 		player.load()
