@@ -16,18 +16,24 @@ html {
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: gray;
+    background-color: var(--outline);
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
     background-clip: padding-box;
     border-radius: 6px;
   }
   &::-webkit-scrollbar-corner {
-    background-color: transparent;
+    background: transparent;
   }
 
   &::-webkit-scrollbar-button {
     display: block;
     height: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  * {
+    scrollbar-width: none;
   }
 }
