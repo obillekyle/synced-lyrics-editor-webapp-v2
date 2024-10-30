@@ -20,8 +20,9 @@ export type LRCData = {
 }
 
 export type LRCEvents = {
+	reset: undefined
 	parsed: undefined
-	updated: undefined
+	update: undefined
 	'tag-added': [key: string, value: string]
 	'tag-updated': [key: string, value: string, oldValue: string]
 	'tag-removed': [key: string, value: string]
@@ -83,7 +84,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 	}
 
 	parse(data: string) {
-		this.reset()
+		this.reset(false)
 		const lines = normalizeNewLines(data).split('\n')
 
 		for (const line of lines) {
@@ -99,7 +100,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 		}
 
 		this.updateCache()
-		this.dispatchEvent('parsed')
+		this.fire('parsed')
 	}
 
 	stringify(): string {
@@ -125,25 +126,31 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 	updateTag(key: string, value: string) {
 		for (const tagName in this.tags) {
 			if (tagName === key) {
-				this.dispatchEvent('tag-update', key, value, this.tags[tagName])
+				this.fire('tag-update', key, value, this.tags[tagName])
 				this.tags.value = value
 				return
 			}
 		}
 	}
 
+	private get fire() {
+		this.dispatchEvent('update')
+		return this.emit.bind(this)
+	}
+
 	addTag(key: string, value: string) {
 		if (this.tags[key]) return
 
 		this.tags[key] = value
-		this.dispatchEvent('tag-added', key, value)
+		this.fire('tag-added', key, value)
 	}
 
 	removeTag(key: string) {
 		for (const tagName in this.tags) {
 			if (tagName === key) {
-				this.dispatchEvent('tag-removed', key, this.tags[tagName])
+				const oldData = this.tags[tagName]
 				delete this.tags[key]
+				this.fire('tag-removed', key, this.tags[tagName])
 				return
 			}
 		}
@@ -153,8 +160,9 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 		this.tags = { ...data.tags }
 		this.lines = { ...data.lines }
 
+		console.log({ ...data.tags })
 		this.updateCache()
-		this.dispatchEvent('parsed')
+		this.fire('parsed')
 	}
 
 	getIdFromIndex(index: number): string | undefined {
@@ -184,7 +192,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 
 		if (oldData.time !== newData.time) this.updateCache()
 
-		this.dispatchEvent('line-updated', id, this.lines[id])
+		this.fire('line-updated', id, this.lines[id])
 	}
 
 	has(id: string) {
@@ -198,7 +206,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 		delete this.lines[id]
 
 		this.updateCache()
-		this.dispatchEvent('line-removed', id, line)
+		this.fire('line-removed', id, line)
 	}
 
 	add(line: Partial<LRCLine> = {}) {
@@ -207,7 +215,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 
 		this.lines[newId] = data
 		this.updateCache()
-		this.dispatchEvent('line-added', newId, data)
+		this.fire('line-added', newId, data)
 	}
 
 	addAfter(after: string, line: Partial<LRCLine> = {}) {
@@ -226,7 +234,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 
 			this.lines = newLines
 			this.updateCache()
-			this.dispatchEvent('line-added', id, data)
+			this.fire('line-added', id, data)
 			return id
 		}
 
@@ -247,7 +255,7 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 
 			this.lines = newLines
 			this.updateCache()
-			this.dispatchEvent('line-added', id, data)
+			this.fire('line-added', id, data)
 			return id
 		}
 
@@ -308,10 +316,12 @@ export class LRCParser extends CustomEventHandler<LRCEvents> {
 		return this.lines[id]
 	}
 
-	reset() {
+	reset(emit = true) {
 		this.tags = {}
 		this.lines = {}
 		this.updateCache()
+
+		emit && this.fire('reset')
 	}
 }
 
