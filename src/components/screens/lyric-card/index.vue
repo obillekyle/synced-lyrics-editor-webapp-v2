@@ -26,8 +26,9 @@ import {
 	useTooltip,
 } from '@vue-material/core'
 
-import type { LRCLine } from '@/api/parser2'
-import {} from '@vue-material/core/utils/other'
+import type { FrameVariants } from '@vue-material/core/Frame/variants.js'
+import { useModal } from '@vue-material/core/Modal'
+import { openFilePicker } from '@vue-material/core/utils/dom'
 import type { ObjectValue } from '@vue-material/core/utils/other/to-object-value.js'
 import h2c from 'html2canvas-pro'
 import FontSelect from '../font-select.vue'
@@ -39,6 +40,9 @@ const audioInfo = reactive({
 	currentTime: 0,
 	duration: 0,
 })
+
+const inputColor = ref<HTMLInputElement>()
+const modal = useModal()
 
 const lyrics = reactive({
 	line: undefined as string | undefined,
@@ -62,7 +66,7 @@ const downloadOptions = reactive({
 const image = reactive({
 	radius: 12,
 	width: 48,
-	frame: 'default',
+	frame: 'none' as 'none' | FrameVariants,
 	data: '/assets/gemini-generated-image.jpg',
 })
 
@@ -88,12 +92,6 @@ const downloadTypes: ObjectValue[] = [
 	{ label: 'WEBP', value: 'webp' },
 ]
 
-const lyricsAligns = [
-	{ label: 'left', value: 0 },
-	{ label: 'center', value: 1 },
-	{ label: 'right', value: 2 },
-]
-
 const downloadSizes: ObjectValue[] = [
 	{ label: 'Original', value: 1 },
 	{ label: 'x2', value: 2 },
@@ -107,10 +105,6 @@ const imgSizes = [
 	{ value: 96, label: '96px' },
 	{ value: 128, label: '128px' },
 ]
-
-const toggleEffect = () => {
-	lyrics.effect = !lyrics.effect
-}
 
 const content = ref<HTMLElement | null>(null)
 
@@ -212,14 +206,27 @@ const imageStyles: ObjectValue[] = [
 
 const fonts = ['Roboto Flex', 'JetBrains Mono', 'Arial', 'Times New Roman']
 
-const lrcWeight = [200, 300, 400, 500, 600, 700, 800]
-
 async function uploadImage() {
 	const file = await openFilePickerAsync({ accept: 'image/*' })
 
 	if (!file) return
 	URL.revokeObjectURL(image.data)
 	image.data = URL.createObjectURL(file)
+}
+
+function changeImageFile() {
+	openFilePicker((file) => {
+		if (!file || file.size === 0) {
+			return modal.open('file-picker', {
+				icon: 'material-symbols:image-not-supported-outline',
+				title: 'No file selected',
+				content: 'Please select an image file.',
+			})
+		}
+
+		URL.revokeObjectURL(image.data)
+		image.data = URL.createObjectURL(file)
+	})
 }
 
 function useEditorMeta() {
@@ -239,11 +246,7 @@ async function getColor() {
 	box.color = palette.dominant
 }
 
-watch(image, getColor)
-
-onMounted(() => {
-	getColor()
-})
+watch(image, getColor, { immediate: true })
 
 const tab = ref(0)
 const root = ref<HTMLElement>()
@@ -256,12 +259,16 @@ const tabs = [
 		value: 0,
 	},
 	{
-		label: 'Box',
+		label: 'Image',
 		value: 1,
 	},
 	{
-		label: 'Fonts',
+		label: 'Box',
 		value: 2,
+	},
+	{
+		label: 'Fonts',
+		value: 3,
 	},
 ]
 </script>
@@ -276,6 +283,8 @@ const tabs = [
       <div class="card-editor-sidebar-categories" :style="{
         '--offset': -tab * 100 + '%',
       }">
+
+        <!-- Lyrics -->
         <div class="card-editor-sidebar-category">
           <Divider label="Audio Info" />
 
@@ -309,11 +318,12 @@ const tabs = [
 
             <TextInput
               v-if="lyrics.line"
-              :placeholder="getLRCLineValue(lyrics.line) || '<Empty>'"
               @click="lyrics.line = undefined"
               variant="outlined"
               right-icon="material-symbols:close"
               left-icon="material-symbols:queue-music"
+              placeholder="Lyrics | Click to remove"
+              value="getLRCLineValue(lyrics.line) || '<Empty>'"
               disabled
               span
             />
@@ -328,6 +338,7 @@ const tabs = [
             />
           </div>
           <div 
+            v-if="lyrics.line"
             class="card-editor-sidebar-entry clickable" 
             @pointerdown="rippleEffect" 
             @click="lyrics.effect = !lyrics.effect"
@@ -339,7 +350,72 @@ const tabs = [
               </Scroller>
             </div>
 
-            <Switch v-model="lyrics.effect" />
+            <Switch v-model="lyrics.effect"/>
+          </div>
+        </div>
+
+
+        <!-- Image -->
+        <div class="card-editor-sidebar-category">
+          <Divider label="Image Data"/>
+          
+          <div class="card-editor-sidebar-group">
+            <TextInput
+              span
+              disabled
+              variant="outlined"
+              left-icon="material-symbols:image-outline"
+              placeholder="Image"
+              right-icon="material-symbols:upload"
+              :value="image.data"
+              @click="changeImageFile"
+            />
+            <Button.Group span>
+              <Button
+                variant="outlined"
+                label="Use Editor Image"
+                @click="useEditorMeta"
+              />
+              <Button
+                variant="outlined"
+                label="Remove Image"
+                @click="image.data = ''"
+              />
+            </Button.Group>
+          </div>
+
+          <Divider label="Image Settings"/>
+          
+          <div class="card-editor-sidebar-entry">
+            <Button.Icon t="Size" icon="material-symbols:photo-size-select-large-sharp"/>
+            <Slider :values="imgSizes" v-model="image.width" size="#xxl"/>
+          </div>
+
+          <div class="card-editor-sidebar-entry">
+            <Button.Icon t="Radius" icon="mdi:rounded-corner"/>
+            <Slider v-model="image.radius" size="#xxl"/>
+          </div>
+
+          <div class="card-editor-sidebar-group">
+            <Select
+              required
+              placeholder="Select a frame"
+              :value="[image.frame]"
+              :items="['none', 'circle', 'clover', 'flower', 'hexagon']"
+              @change="([v]: any) => (image.frame = v)"
+              v-slot="{ value }: any"
+            >
+              <Box.Flex px="#xs" gap="#sm" align="center">
+                <SquareImage
+                  :frame="value"
+                  :src="image.data || '/assets/gemini-generated-image.jpg'"
+                  :alt="audioInfo.title"
+                  :size="48"
+                />
+                
+                <span>{{ value[0].toUpperCase() + value.slice(1) }}</span>
+              </Box.Flex>
+            </Select>
           </div>
         </div>
 
@@ -357,7 +433,26 @@ const tabs = [
           </div>
 
           <Divider label="Theme" />
-          <Box.Flex gap="#xxs" wrap="wrap" class="card-editor-sidebar-group">
+
+          <div 
+            @pointerdown="rippleEffect"
+            @click="inputColor?.click()"
+            class="card-editor-sidebar-entry clickable"
+          >
+            <div class="card-editor-sidebar-entry-info">
+              <div class="card-editor-sidebar-entry-label">Color</div>
+              <Scroller class="card-editor-sidebar-entry-description">
+                Color Theme
+              </Scroller>
+            </div>
+            <input
+              type="color"
+              ref="inputColor"
+              v-model="box.color"
+            />
+          </div>
+            
+          <Box.Flex gap="#xxs" my="#sm" wrap="wrap" class="card-editor-sidebar-group">
             <Palette 
               :key="color" :color
               v-for="color of topColors" 
@@ -378,9 +473,9 @@ const tabs = [
           <div class="card-editor-sidebar-entry">
             <Button.Icon t="Weight" icon="material-symbols:weight-outline"/>
             <Slider 
+              size="#xxl"
               v-model="font.weight" 
               :values="[100, 200, 300, 400, 500, 600, 700, 800, 900]"
-              size="#xxl"
             />
           </div>
 
@@ -388,20 +483,20 @@ const tabs = [
           <div class="card-editor-sidebar-group">
             <Button.Group span>
               <Button
-                left-icon="mdi:format-align-left"
                 label="Left"
+                left-icon="mdi:format-align-left"
                 :variant="lyrics.align === 'left' ? 'filled' : 'outlined'"
                 @click="lyrics.align = 'left'"
               />
               <Button
-                left-icon="mdi:format-align-center"
                 label="Center"
+                left-icon="mdi:format-align-center"
                 :variant="lyrics.align === 'center' ? 'filled' : 'outlined'"
                 @click="lyrics.align = 'center'"
               />
               <Button
-                left-icon="mdi:format-align-right"
                 label="Right"
+                left-icon="mdi:format-align-right"
                 :variant="lyrics.align === 'right' ? 'filled' : 'outlined'"
                 @click="lyrics.align = 'right'"
               />
@@ -410,34 +505,35 @@ const tabs = [
             <Select 
               required
               :items="fonts" 
-              v-slot="{ value }"
+              v-slot="{ label, value }"
+              :value="[font.family]"
               @change="(([v]:any) => font.family = v)" 
             >
-              <FontSelect :label="value" :value />
+              <FontSelect :label :value />
             </Select>
           </div>
-
         </div>
       </div>
     </ScrollContainer>
 
-    <div class="card-editor-preview">
-      <ThemeProvider 
-        inherit
-        class="lyric-card" 
-        :options="{ colors: box.color || '#ffffff' }" 
-        :styled="{
-          $radius: box.radius,
-          $padding: box.padding,
-          $fontWeight: 'raw:' + font.weight,
-          $fontSize: font.size,
-          $fontFamily: font.family,
-          $align: lyrics.align,
-          $balance: lyrics.balance ? 'balance' : undefined,
-        }"
-      >
+    <ThemeProvider class="card-editor-preview"
+      inherit
+      :options="{ colors: box.color || '#ffffff' }" 
+      :styled="{
+        $radius: box.radius,
+        $padding: box.padding,
+        $fontWeight: 'raw:' + font.weight,
+        $fontSize: font.size,
+        $fontFamily: font.family,
+        $align: lyrics.align,
+        $balance: lyrics.balance ? 'balance' : undefined,
+      }"
+    >
+      <div class="lyric-card">
         <Box.Flex class="lyric-card-header" gap="#md" align="center">
           <SquareImage
+            :r="image.radius"
+            :frame="image.frame"
             :src="image.data || '/assets/gemini-generated-image.jpg'"
             :alt="audioInfo.title"
             :size="image.width"
@@ -452,20 +548,20 @@ const tabs = [
           <div class="lyric-card-line" v-if="lyrics.line !== undefined && lyrics.effect">
             {{ getPreviousLine() }}
           </div>
-          <div class="lyric-card-line primary">{{ lyricText }}</div>
+          <div class="lyric-card-line primary" v-if="lyricText">{{ lyricText }}</div>
           <div class="lyric-card-line" v-if="lyrics.line !== undefined && lyrics.effect">
             {{ getNextLine() }}
           </div>
         </div>
-      </ThemeProvider>
-    </div>
+      </div>
+    </ThemeProvider>
   </div>
 </template>
 
 <style lang="scss">
   .card-editor {
+    inset: 0;
     display: grid;
-    inset: 0 0 0 0;
     position: absolute;
     grid-template-columns: 400px 1fr;
 
@@ -484,12 +580,11 @@ const tabs = [
       &-categories {
         display: flex;
         contain: layout;
-        width: 100%;
-        
+        width: min(400px, 100%);
       }
       
       &-category {
-        min-width: 400px;
+        min-width: 100%;
         position: relative;
         height: 100%;
         transition: left 0.3s var(--timing-standard);
@@ -515,6 +610,7 @@ const tabs = [
         &.clickable {
           position: relative;
           overflow: hidden;
+           grid-template-columns: 1fr auto;
         }
 
         &-description {
@@ -536,10 +632,9 @@ const tabs = [
     }
 
     &-preview {
-      background-image: radial-gradient(
-        var(--surface-container-highest) 1px,
-        transparent 0
-      );
+      background:
+        var(--surface-bright) 
+        radial-gradient(var(--outline-variant) 1px, transparent 0);
       background-size: var(--lg) var(--lg);
       background-position: 0 0;
       background-repeat: repeat;
@@ -569,6 +664,15 @@ const tabs = [
         font-weight: var(--font-weight);
         text-align: var(--align);
         text-wrap: var(--balance); 
+        padding-block: var(--md);
+
+        &:empty {
+          display: none;
+        }
+      }
+
+      &-line {
+        color: var(--primary);
       }
     }
   }

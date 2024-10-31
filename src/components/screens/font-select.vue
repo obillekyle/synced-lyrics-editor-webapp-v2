@@ -1,12 +1,12 @@
 <script setup lang="ts">
 defineProps<{
 	label: string | number
-	value: string
+	value: string | number
 }>()
 </script>
 
 <template>
-  <div class="font-select" :style="{ fontFamily: value }">
+  <div class="font-select" :style="{ fontFamily: value + '' }">
     {{ value }}
   </div>
 </template>
