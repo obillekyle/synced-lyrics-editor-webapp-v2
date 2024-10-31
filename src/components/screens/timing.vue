@@ -8,9 +8,10 @@ import {
 	hasFormFocused,
 	targetsSelf,
 } from '@vue-material/core'
-import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys'
 
+import { useAppData } from '@/hooks/use-app-data'
 import animatedScroll from 'animated-scroll-to'
 import SortScreen from './sort-screen.vue'
 
@@ -24,11 +25,7 @@ const editor = reactive({
 	value: '',
 })
 
-const lyrics = reactive({
-	lines: Lyrics.lines,
-	tags: Lyrics.tags,
-})
-
+const data = useAppData()
 const [focused, setFocusedRef] = customRef<HTMLElement>()
 
 const toggleEdit: (value?: boolean) => void = (value) => {
@@ -38,7 +35,7 @@ const toggleEdit: (value?: boolean) => void = (value) => {
 	if (!id) return
 
 	if (value) {
-		editor.value = lyrics.lines[id].data
+		editor.value = Lyrics.lines[id].data
 		editor.editing = true
 		return
 	}
@@ -88,13 +85,7 @@ const setTimeFromMusicCurrent = (e?: MouseEvent) => {
 	if (!Player.ready) return
 
 	const currentTime = Player.currentTime * 1000
-	console.log(
-		id,
-		Object.keys(lyrics.lines).includes(id),
-		Object.keys(lyrics.lines),
-	)
-	if (lyrics.lines[id].time !== currentTime) {
-		console.log('update', index, id)
+	if (data.lrc.lines[id].time !== currentTime) {
 		Lyrics.update(id, { time: currentTime })
 	}
 
@@ -107,17 +98,10 @@ const setTimeFromMusicCurrent = (e?: MouseEvent) => {
 	setFocus(newIndex)
 }
 
-function updateLyrics() {
-	const data = Lyrics.getRaw()
-
-	lyrics.lines = data.lines
-	lyrics.tags = data.tags
-}
-
 const adjustTime = (value: number) => {
 	const index = editor.focus
 	const id = Lyrics.getIdFromIndex(index)
-	const lrcLine = lyrics.lines[index]
+	const lrcLine = data.lrc.lines[index]
 
 	if (!id) return
 	if (!lrcLine) return
@@ -128,9 +112,7 @@ const adjustTime = (value: number) => {
 		Player.currentTime = clamp(time / 1000, 0, Player.instance.duration)
 	}
 
-	Lyrics.update(id, {
-		time: time < 0 ? 0 : time,
-	})
+	Lyrics.update(id, { time: time < 0 ? 0 : time })
 }
 
 function handleKeyDown(e: KeyboardEvent) {
@@ -161,14 +143,11 @@ function addNewLineFromFocus(before = false) {
 
 function addedLine(id: string) {
 	const index = Lyrics.getIndexFromId(id)
-	updateLyrics()
 	setFocus(index)
 }
 
 function removedLine(id: string) {
-	const index = Object.keys(lyrics.lines).indexOf(id)
-
-	updateLyrics()
+	const index = Lyrics.getIndexFromId(id)
 	if (index <= editor.focus) setFocus(editor.focus - 1)
 }
 
@@ -223,20 +202,16 @@ watch(
 )
 
 onMounted(() => {
-	Lyrics.addEventListener('parsed', updateLyrics)
 	Lyrics.addEventListener('line-added', addedLine)
 	Lyrics.addEventListener('line-removed', removedLine)
-	Lyrics.addEventListener('line-updated', updateLyrics)
 
 	window.addEventListener('keydown', handleKeyDown)
 	window.addEventListener('keyup', handleKeyUp)
 })
 
 onUnmounted(() => {
-	Lyrics.removeEventListener('parsed', updateLyrics)
 	Lyrics.removeEventListener('line-added', addedLine)
 	Lyrics.removeEventListener('line-removed', removedLine)
-	Lyrics.removeEventListener('line-updated', updateLyrics)
 
 	window.removeEventListener('keydown', handleKeyDown)
 	window.removeEventListener('keyup', handleKeyUp)
@@ -264,7 +239,7 @@ onUnmounted(() => {
       }"
       :ref="(el, refs) => editor.focus === index && setFocusedRef(el, refs)"
       @click="targetsSelf($event, () => setFocus(index))"
-      v-for="({ time, data }, id, index) in lyrics.lines"
+      v-for="({ time, data }, id, index) in data.lrc.lines"
     >
       <div class="time" @click="Player.currentTime = time / 1000">
         {{ Lyrics.timeToString(time) }}
