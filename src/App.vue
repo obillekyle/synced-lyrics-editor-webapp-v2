@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import type { AppOverlays } from './components/overlays/use-overlays'
-
-import { computed, onMounted, shallowRef, watch } from 'vue'
-
 import AppTag from './components/app-tag.vue'
 import AppHeader from './components/header.vue'
 import I18nString from './components/i18n-string.vue'
@@ -10,18 +6,16 @@ import NavigationBar from './components/navigation/navigation-bar.vue'
 import AppOverlayProvider from './components/overlays/provider.vue'
 import AppPlayer from './components/player.vue'
 import LyricCard from './components/screens/lyric-card.vue'
-import LrcScreen from './components/screens/main.vue'
-
-import {
-	$,
-	Layout,
-	LinearProgress,
-	OverlayProvider,
-	customRef,
-} from '@vue-material/core'
-
-import { useOverlays } from './components/overlays/use-overlays'
 import LyricCard2 from './components/screens/lyric-card/index.vue'
+import Contents from './components/screens/main.vue'
+
+import { $, Layout, LinearProgress, OverlayProvider } from '@vue-material/core'
+import {
+	replaceDeep,
+	shallowMerge,
+} from '@vue-material/core/utils/object/merge.js'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { useOverlays } from './components/overlays/use-overlays'
 import { useAppData } from './hooks/use-app-data'
 import { useConfig } from './hooks/use-config'
 import { useLang } from './hooks/use-lang'
@@ -29,7 +23,10 @@ import { useLocation } from './hooks/use-location'
 import { useScreen } from './hooks/use-screen'
 import { useSession } from './hooks/use-session'
 
+const ignoreLRC = false
 const Player = window.app.player
+const Lyrics = window.app.lyric
+const DEFAULT_COLOR = '#4cffa5'
 
 const screen = useScreen()
 const config = useConfig()
@@ -39,6 +36,7 @@ const location = useLocation()
 const lang = useLang('en')
 
 const data = shallowRef()
+const color = ref(DEFAULT_COLOR)
 const overlays = useOverlays(data)
 
 const page = computed(() => location.pathname.split('/')[1])
@@ -47,26 +45,37 @@ function setMetaDescription(value: string) {
 	$('meta[name="description"]')?.setAttribute('content', value)
 }
 
+const pages: Record<string, { title: string; desc: string }> = {
+	'lyric-card': {
+		title: 'Lyrics Card Maker | Synced Lyrics Editor and Maker v2',
+		desc: 'Create your own lyrics card in seconds with our new lyrics card maker.',
+	},
+	default: {
+		title: 'Synced Lyrics Editor and Maker v2',
+		desc:
+			'Create your own synced lyrics for the music you love ' +
+			'– right from your browser. A sound file is required.',
+	},
+}
+
 watch(page, (page) => {
-	switch (page) {
-		case 'lyric-card':
-			document.title = 'Lyrics Card Maker | Synced Lyrics Editor and Maker v2 '
-			setMetaDescription(
-				'Create your own lyrics card in seconds with our new lyrics card maker.',
-			)
-			break
-		default:
-			document.title = 'Synced Lyrics Editor and Maker v2'
-			setMetaDescription(
-				'Create your own synced lyrics for the music you love – right from your browser. A sound file is required.',
-			)
-			break
-	}
+	page = page in pages ? page : 'default'
+	const { title, desc } = pages[page]
+	document.title = title
+	setMetaDescription(desc)
 })
 
-onMounted(() => {
-	Player.addEventListener('update', () => overlays.useAudioLRC())
+const colorTheme = computed(() =>
+	shallowMerge(config.preferences.colorScheme, { primary: color.value }),
+)
+
+const useAudioLRC = () => overlays.useAudioLRC()
+
+watch(lang, () => Player.addEventListener('update', useAudioLRC), {
+	once: true,
 })
+
+onUnmounted(() => Player.removeEventListener('update', useAudioLRC))
 </script>
 
 <template>
@@ -74,7 +83,7 @@ onMounted(() => {
     <Layout v-if="page === 'lyric-card'" :options="{
         theme: config.preferences.theme,
         fontFamily: 'Roboto Flex, sans-serif',
-        colors: { primary: 'green', ...config.preferences.colorScheme } ,
+        colors: colorTheme,
       }"
     >
       <OverlayProvider>
@@ -85,7 +94,7 @@ onMounted(() => {
     <Layout v-else-if="page === 'lyric-card2'" :options="{
         theme: config.preferences.theme,
         fontFamily: 'Roboto Flex, sans-serif',
-        colors: { primary: 'green', ...config.preferences.colorScheme } ,
+        colors: colorTheme,
       }"
     >
       <OverlayProvider>
@@ -97,7 +106,7 @@ onMounted(() => {
     <Layout v-else :options="{
       theme: config.preferences.theme,
       fontFamily: 'Roboto Flex, sans-serif',
-      colors: { primary: 'green', ...config.preferences.colorScheme } ,
+      colors: colorTheme
     }">
       <template #navbar>
         <NavigationBar />
@@ -117,7 +126,7 @@ onMounted(() => {
         </Transition>
         <template v-if="lang.ready">
           <I18nString entry="ALPHA" :as="AppTag" v-if="!config.showBuildType" />
-          <LrcScreen />
+          <Contents />
           <AppPlayer />
         </template>
       </OverlayProvider>
