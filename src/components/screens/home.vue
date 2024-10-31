@@ -151,11 +151,11 @@ function toLCMaker() {
           Create your own lyrics card in seconds with our new lyrics card maker
         </div>
         <Button
-          radius="sm"
+          r="#xs"
+          :scale="1.25"
           right-icon="material-symbols:arrow-forward"
           @click="toLCMaker"
           label="Get Started"
-          class="inverted"
         />
       </div>
 
@@ -370,8 +370,11 @@ function toLCMaker() {
       }
 
       .md-button {
-        color: var(--inverse-surface);
-        background: var(--inverse-on-surface);
+        --ripple-color: var(--on-surface);
+        
+        width: fit-content;
+        color: var(--on-surface);
+        background: var(--surface);
       }
 
 
