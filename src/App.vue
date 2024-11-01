@@ -10,11 +10,8 @@ import LyricCard2 from './components/screens/lyric-card/index.vue'
 import Contents from './components/screens/main.vue'
 
 import { $, Layout, LinearProgress, OverlayProvider } from '@vue-material/core'
-import {
-	replaceDeep,
-	shallowMerge,
-} from '@vue-material/core/utils/object/merge.js'
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { shallowMerge } from '@vue-material/core/utils/object/merge.js'
+import { computed, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useOverlays } from './components/overlays/use-overlays'
 import { useAppData } from './hooks/use-app-data'
 import { useConfig } from './hooks/use-config'

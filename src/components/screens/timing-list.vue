@@ -8,9 +8,7 @@ defineProps<LRCLine>()
 <template>
   <div class="timing-list">
     <span class="time">{{ Lyrics.timeToString(time) }}</span>
-    <span>
-      {{ typeof data == 'string' ? data : data.join('') }}
-    </span>
+    <span>{{ data }}</span>
   </div>
 </template>
 
