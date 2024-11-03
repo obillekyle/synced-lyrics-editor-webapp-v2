@@ -1,10 +1,10 @@
 <script setup lang="ts">
-  import { type KeyBind, keyEquivalent } from './keys';
+import { type KeyBind, keyEquivalent } from './keys'
 
-  defineProps<{
-    keys: KeyBind;
-    name?: string;
-  }>();
+defineProps<{
+	keys: KeyBind
+	name?: string
+}>()
 </script>
 
 <template>

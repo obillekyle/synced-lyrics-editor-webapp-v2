@@ -1,121 +1,106 @@
 <script setup lang="ts">
-  import { inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue';
+import type { Screens } from '@/app/main'
 
-  import I18nString from '../elements/Text/i18n-string.vue';
-  import IconButton from '../elements/Button/icon-button.vue';
-  import NavigationContent from '../elements/Navigation/content.vue';
-  import NavigationEntry from '../elements/Navigation/entry.vue';
-  import NavigationItem from '../elements/Navigation/item.vue';
-  import NavigationBar from '../elements/Navigation/main.vue';
-  import NavigationContainer from '../elements/Navigation/container.vue';
-  import _presets from '../modals/_presets';
-  import AppLogo from './app-logo.vue';
-  import { AppScreens } from '@/app/main';
-  import Floater from '../elements/Text/floater.vue';
+import { computed } from 'vue'
 
-  const Screen = window.app.screen;
-  const screenIndex = ref(0);
+import { AppScreens } from '@/app/main'
+import { useConfig } from '@/hooks/use-config'
+import { useScreen } from '@/hooks/use-screen'
+import { Floater, IconButton, Navigation } from '@vue-material/core'
+import { useOverlays } from '../overlays/use-overlays'
 
-  const debug = inject<Ref<boolean>>('app-debug')!;
-  const showHome = inject<Ref<boolean>>('app-show-home')!;
-  const centerNav = inject<Ref<boolean>>('app-center-nav')!;
-  const lang = inject<Ref<string>>('app-lang')!;
+import I18nString from '../i18n-string.vue'
+import AppLogo from './app-logo.vue'
 
-  function onScreenUpdate() {
-    const index = AppScreens.indexOf(Screen.current);
-    if (screenIndex.value !== index) {
-      screenIndex.value = index;
-    }
-  }
+type NavigationItem = {
+	icon: string
+	value: number
+	tKey: string
+	label: string
+	visible?: boolean
+}
 
-  function setScreen(index: number) {
-    screenIndex.value = index;
-    Screen.set(AppScreens[index]);
-  }
+const screen = useScreen()
+const config = useConfig()
+const overlay = useOverlays()
+const screens = computed<Record<Screens, NavigationItem>>(() => ({
+	home: {
+		icon: 'material-symbols:home-outline',
+		value: 0,
+		tKey: 'APP_HOME',
+		label: 'Home',
+		visible: config.navigation.showHome,
+	},
+	edit: {
+		icon: 'material-symbols:edit-outline',
+		value: 1,
+		tKey: 'APP_EDIT',
+		label: 'Edit',
+	},
+	timing: {
+		icon: 'material-symbols:hourglass-outline',
+		value: 2,
+		tKey: 'APP_TIMING',
+		label: 'Timing',
+	},
+	lyric: {
+		icon: 'material-symbols:queue-music',
+		value: 3,
+		tKey: 'APP_LYRIC',
+		label: 'Lyric',
+	},
+	debug: {
+		icon: 'material-symbols:bug-report-outline',
+		value: 4,
+		tKey: 'DEBUG',
+		label: 'Debug',
+		visible: config.debug,
+	},
+}))
 
-  onMounted(() => {
-    onScreenUpdate();
-    Screen.addEventListener('update', onScreenUpdate);
-  });
-
-  onUnmounted(() => {
-    Screen.removeEventListener('update', onScreenUpdate);
-  });
+const screenIndex = computed({
+	get: () => AppScreens.indexOf(screen.value),
+	set: (value) => {
+		screen.value = AppScreens[value] ?? 'home'
+	},
+})
 </script>
 
 <template>
-  <NavigationBar :active="screenIndex" labels="active" :change="setScreen">
-    <NavigationContent>
+  <Navigation v-model="screenIndex">
+    <Navigation.Content>
       <AppLogo />
-    </NavigationContent>
+    </Navigation.Content>
 
-    <NavigationContainer :center="centerNav">
-      <NavigationItem
-        v-if="showHome"
-        icon="material-symbols:home-outline"
-        :value="AppScreens.indexOf('home')"
-      >
-        <I18nString entry="APP_HOME" />
-      </NavigationItem>
+    <Navigation.Container :center="config.navigation.centered">
+      <template v-for="(item, key) in screens">
+        <Navigation.Item
+          v-if="item.visible ?? true"
+          :value="AppScreens.indexOf(key)"
+          :icon="item.icon"
+        >
+          <I18nString :entry="item.tKey" :fallback="item.label"/>
+        </Navigation.Item>
+      </template>
 
-      <NavigationItem
-        icon="material-symbols:edit-outline"
-        :value="AppScreens.indexOf('edit')"
-      >
-        <I18nString entry="APP_EDIT" />
-      </NavigationItem>
-      <NavigationItem
-        icon="material-symbols:hourglass-outline"
-        :value="AppScreens.indexOf('timing')"
-      >
-        <I18nString entry="APP_TIMING" />
-      </NavigationItem>
-      <NavigationItem
-        icon="material-symbols:queue-music"
-        :value="AppScreens.indexOf('lyric')"
-      >
-        <I18nString entry="APP_LYRIC" />
-      </NavigationItem>
-      <NavigationItem
-        icon="material-symbols:bug-report-outline"
-        v-if="debug"
-        :value="AppScreens.indexOf('debug')"
-      >
-        <I18nString entry="DEBUG" />
-      </NavigationItem>
-      <NavigationItem
-        icon="material-symbols:folder-outline"
-        v-if="debug"
-        :value="AppScreens.indexOf('files')"
-      >
-        <I18nString entry="FILES" fallback="Files" />
-      </NavigationItem>
-      <NavigationEntry
+      <Navigation.Entry
         id="nav-item-settings"
         icon="material-symbols:settings-outline"
-        :onclick="_presets.openSettings"
+        @click="overlay.openSettings"
       >
         <I18nString entry="SETTINGS" />
-      </NavigationEntry>
-    </NavigationContainer>
+      </Navigation.Entry>
+    </Navigation.Container>
 
-    <NavigationContent :style="{ paddingBottom: 'var(--md)' }">
-      <Floater :text="lang.toUpperCase()" size="xs" offset="4">
+    <Navigation.Content>
+      <Floater :text="config.preferences.lang.toUpperCase()" offset="4">
         <IconButton
           icon="material-symbols:settings-outline"
           class="settings"
           title="Settings"
-          :onclick="_presets.openSettings"
+          @click="overlay.openSettings"
         />
       </Floater>
-    </NavigationContent>
-  </NavigationBar>
+    </Navigation.Content>
+  </Navigation>
 </template>
-
-<style scoped>
-  @media screen and (min-width: 600px) {
-    #nav-item-settings {
-      display: none;
-    }
-  }
-</style>

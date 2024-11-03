@@ -1,329 +1,291 @@
 <script setup lang="ts">
-  import { $, clamp } from '@/api/util';
-  import { onMounted, onUnmounted, ref, watch, inject, type Ref } from 'vue';
-  import iconButton from '../elements/Button/icon-button.vue';
+import { useSession } from '@/hooks/use-session'
+import {
+	$,
+	IconButton,
+	clamp,
+	customRef,
+	hasFormFocused,
+	targetsSelf,
+} from '@vue-material/core'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys'
 
-  import animatedScroll from 'animated-scroll-to';
-  import { getKeybinds, keyHandlers, processKey } from '../keybinds/keys';
-  import type { LRCLine, LRCTags } from '@/api/parser';
-  import List from '../elements/List/list.vue';
-  import type { ListItemType } from '../elements/List/types';
-  import TimingList from './timing-list.vue';
-  import IconButton from '../elements/Button/icon-button.vue';
-  import { onSelfEvent } from '@/api/util/dom';
+import { useAppData } from '@/hooks/use-app-data'
+import animatedScroll from 'animated-scroll-to'
+import SortScreen from './sort-screen.vue'
 
-  const Lyrics = window.app.lyric;
-  const Player = window.app.player;
-  const Keybinds = getKeybinds();
+const Lyrics = window.app.lyric
+const Player = window.app.player
+const Keybinds = getKeybinds()
 
-  const focus = ref(-1);
-  const edit = ref(false);
-  const lines = ref<ListItemType<LRCLine>[]>([]);
-  const tags = ref<LRCTags>({});
+const editor = reactive({
+	focus: -1,
+	editing: false,
+	value: '',
+})
 
-  const sortMode = inject<Ref<boolean>>('app-timing-sort')!;
-  const timingPane = ref<HTMLElement | null>(null);
+const data = useAppData()
+const [focused, setFocusedRef] = customRef<HTMLElement>()
 
-  const setFocus = (value: typeof focus.value) => {
-    if (focus.value == value) return;
-    const focused = timingPane.value?.children[value];
-    edit.value = false;
+const toggleEdit: (value?: boolean) => void = (value) => {
+	value ??= !editor.editing
+	const id = Lyrics.getIdFromIndex(editor.focus)
 
-    if (!focused) {
-      if (value >= lines.value.length) {
-        focus.value = -1;
-        return;
-      }
-      focus.value = value;
-      return;
-    }
+	if (!id) return
 
-    focus.value = value;
-    const main = $('main')!;
+	if (value) {
+		editor.value = Lyrics.lines[id].data
+		editor.editing = true
+		return
+	}
 
-    const rect = main.getBoundingClientRect();
-    const halfElement = focused.clientHeight / 2;
-    const offset = rect.height / 2 - halfElement;
+	Lyrics.update(id, { data: editor.value.replace(/\r?\n/g, '') })
 
-    animatedScroll(focused, {
-      speed: 400,
-      verticalOffset: offset * -1,
-      elementToScroll: main,
-      cancelOnUserAction: true,
-    });
-  };
+	editor.editing = false
+	editor.value = ''
+}
 
-  const handleLyricsParse = () => {
-    const lrcData = Lyrics.getRaw();
+const session = useSession()
+const timingPane = ref<HTMLElement>()
 
-    lines.value = lrcData.lines.map((line) => ({
-      id: line.id,
-      props: line,
-    }));
+const setFocus = (value: number) => {
+	if (editor.focus === value) return
 
-    tags.value = lrcData.tags;
-    setFocus(-1);
-  };
+	const focused = timingPane.value?.children[value]
+	editor.editing = false
 
-  const handleLineAdd = (index: number, data: LRCLine) => {
-    lines.value.splice(index, 0, { id: data.id, props: data });
-    setFocus(index);
-  };
+	if (!focused) {
+		editor.focus = value >= Lyrics.length ? -1 : value
+		return
+	}
 
-  const handleLineRemove = (index: number) => {
-    lines.value.splice(index, 1);
-    setFocus(index >= lines.value.length ? index - 1 : index);
-  };
+	editor.focus = value
+	const main = $('.md-theme-provider .md-scroll')
 
-  const handleLineUpdate = (index: number, data: LRCLine) => {
-    lines.value[index] = { id: data.id, props: data };
-  };
+	if (!main) return
 
-  const toggleEdit = () => (edit.value = !edit.value);
-  const setTimeFromMusicCurrent = (e?: MouseEvent) => {
-    const index = focus.value;
+	const rect = main.getBoundingClientRect()
+	const halfElement = focused.clientHeight / 2
+	const offset = rect.height / 2 - halfElement
 
-    if (index == -1) return;
-    if (!lines.value[index]) return;
-    if (!isFinite(Player.duration)) return;
+	animatedScroll(focused, {
+		speed: 400,
+		verticalOffset: offset * -1,
+		elementToScroll: main,
+		cancelOnUserAction: true,
+	})
+}
 
-    const newIndex = index + 1 === lines.value.length ? index : index + 1;
-    const currentTime = Player.currentTime * 1000;
+const setTimeFromMusicCurrent = (e?: MouseEvent) => {
+	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
 
-    e?.stopPropagation?.();
-    setFocus(newIndex);
+	if (!id) return
+	if (!Player.ready) return
 
-    if (lines.value[newIndex].props.time != currentTime) {
-      Lyrics.updateLine(index, { time: currentTime });
-    }
-  };
+	const currentTime = Player.currentTime * 1000
+	if (data.lrc.lines[id].time !== currentTime) {
+		Lyrics.update(id, { time: currentTime })
+	}
 
-  const adjustTime = (value: number) => {
-    const index = focus.value;
-    const lrcLine = lines.value[index];
+	const newIndex = clamp(index + 1, 0, Lyrics.length - 1)
+	const newId = Lyrics.getIdFromIndex(newIndex)
 
-    if (index == -1) return;
-    if (!lrcLine) return;
+	if (!newId) return
 
-    const time = lrcLine.props.time + value;
+	e?.stopPropagation?.()
+	setFocus(newIndex)
+}
 
-    if (!Player.paused) {
-      Player.currentTime = clamp(time / 1000, 0, Player.duration);
-    }
+const adjustTime = (value: number) => {
+	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
+	const lrcLine = data.lrc.lines[index]
 
-    Lyrics.updateLine(index, {
-      time: time < 0 ? 0 : time,
-    });
-  };
+	if (!id) return
+	if (!lrcLine) return
 
-  function saveValue(index: number) {
-    const element = $<HTMLInputElement>(`.lrc-line.active .data`);
-    const value = element?.value ?? '';
-    toggleEdit();
+	const time = lrcLine.time + value
 
-    Lyrics.updateLine(index, {
-      data: value.replace(/\n/g, ''),
-      type: 'single',
-    });
-  }
+	if (!Player.instance.paused) {
+		Player.currentTime = clamp(time / 1000, 0, Player.instance.duration)
+	}
 
-  function handleKeyDown(e: KeyboardEvent) {
-    const index = focus.value;
-    const lyrics = lines.value;
+	Lyrics.update(id, { time: time < 0 ? 0 : time })
+}
 
-    if (e.ctrlKey) return;
-    if (edit.value) return;
-    if (document.activeElement instanceof HTMLInputElement) return;
-    document.activeElement instanceof HTMLElement &&
-      document.activeElement.blur();
+function handleKeyDown(e: KeyboardEvent) {
+	const index = editor.focus
 
-    processKey(Keybinds.timing.adjustTimeBackward, e, () => {
-      adjustTime(-100);
-    });
-    processKey(Keybinds.timing.adjustTimeForward, e, () => {
-      adjustTime(100);
-    });
+	if (e.ctrlKey || e.metaKey || hasFormFocused()) return
+	document.activeElement instanceof HTMLElement && document.activeElement.blur()
 
-    processKey(Keybinds.timing.arrowDownFocus, e, () => {
-      setFocus(index + 1 >= lyrics.length ? index : index + 1);
-    });
-    processKey(Keybinds.timing.arrowUpFocus, e, () => {
-      setFocus(index == 0 ? 0 : (index < 0 ? lyrics.length : index) - 1);
-    });
-  }
+	processKey(Keybinds.timing.adjustTimeBackward, e, () => adjustTime(-100))
+	processKey(Keybinds.timing.adjustTimeForward, e, () => adjustTime(100))
 
-  function addNewLineFromFocus(reverse: boolean = false) {
-    const index = focus.value;
-    const newItem = Lyrics.EMPTYLINE;
-    Lyrics.addLine(newItem, reverse ? index - 1 : index);
-  }
+	processKey(Keybinds.timing.arrowDownFocus, e, () => {
+		setFocus(index + 1 >= Lyrics.length ? index : index + 1)
+	})
+	processKey(Keybinds.timing.arrowUpFocus, e, () => {
+		setFocus(index === 0 ? 0 : (index < 0 ? Lyrics.length : index) - 1)
+	})
+}
 
-  function handleKeyUp(e: KeyboardEvent) {
-    const index = focus.value;
+function addNewLineFromFocus(before = false) {
+	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
 
-    if (e.ctrlKey) return;
-    if (edit.value) {
-      switch (e.key) {
-        case 'Enter':
-          $('#app')?.focus();
-          saveValue(index);
-          break;
-      }
-      return;
-    }
+	if (!id) return
 
-    if (index == -1) {
-      processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine);
-      processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine);
-      return;
-    }
+	before ? Lyrics.addBefore(id) : Lyrics.addAfter(id)
+}
 
-    processKey(Keybinds.timing.setLineTiming, e, () => {
-      setTimeFromMusicCurrent();
-      !Player.paused && setFocus(index + 1);
-    });
+function addedLine(id: string) {
+	const index = Lyrics.getIndexFromId(id)
+	setFocus(index)
+}
 
-    processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit());
-    processKey(Keybinds.timing.deleteLine, e, () => Lyrics.removeLine(index));
-    processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1));
-    processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus());
-    processKey(Keybinds.timing.addNewLineReverse, e, () =>
-      addNewLineFromFocus(true)
-    );
-  }
+function removedLine(id: string) {
+	const index = Lyrics.getIndexFromId(id)
+	if (index <= editor.focus) setFocus(editor.focus - 1)
+}
 
-  watch(edit, (value) => {
-    if (value) {
-      setTimeout(() => {
-        const element = $<HTMLInputElement>(`.lrc-line.active .data`);
-        if (element) {
-          element.focus();
-          element.setSelectionRange(element.value.length, element.value.length);
-        }
-      });
-    }
-  });
+function handleKeyUp(e: KeyboardEvent) {
+	const index = editor.focus
+	const id = Lyrics.getIdFromIndex(index)
 
-  onMounted(() => {
-    handleLyricsParse();
+	if (e.ctrlKey) return
+	if (editor.editing) {
+		switch (e.key) {
+			case 'Enter':
+				toggleEdit()
+				e.preventDefault()
+				break
+		}
+		return
+	}
 
-    Lyrics.addEventListener('parsed', handleLyricsParse);
-    Lyrics.addEventListener('line-added', handleLineAdd);
-    Lyrics.addEventListener('line-removed', handleLineRemove);
-    Lyrics.addEventListener('line-updated', handleLineUpdate);
+	if (index === -1 || !id) {
+		processKey(Keybinds.timing.addNewLine, e, keyHandlers.timing.addNewLine)
+		processKey(Keybinds.timing.deleteLine, e, keyHandlers.timing.deleteLine)
+		return
+	}
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-  });
+	processKey(Keybinds.timing.setLineTiming, e, () => {
+		setTimeFromMusicCurrent()
+		!Player.instance.paused && setFocus(index + 1)
+	})
 
-  onUnmounted(() => {
-    Lyrics.removeEventListener('parsed', handleLyricsParse);
-    Lyrics.removeEventListener('line-added', handleLineAdd);
-    Lyrics.removeEventListener('line-removed', handleLineRemove);
-    Lyrics.removeEventListener('line-updated', handleLineUpdate);
+	processKey(Keybinds.timing.toggleEditMode, e, () => toggleEdit())
+	processKey(Keybinds.timing.deleteLine, e, () => Lyrics.remove(id))
+	processKey(Keybinds.timing.unfocusLine, e, () => setFocus(-1))
+	processKey(Keybinds.timing.addNewLine, e, () => addNewLineFromFocus())
+	processKey(Keybinds.timing.addNewLineReverse, e, () =>
+		addNewLineFromFocus(true),
+	)
+}
 
-    window.removeEventListener('keydown', handleKeyDown);
-    window.removeEventListener('keyup', handleKeyUp);
-  });
+watch(
+	focused,
+	(element) => {
+		if (!element) return
 
-  function dismissLine(id: number) {
-    Lyrics.removeLine(id);
-  }
+		const textbox = $<HTMLInputElement>('.data', element)
+
+		if (textbox?.value) {
+			textbox.focus()
+			textbox.setSelectionRange(textbox.value.length, textbox.value.length)
+		}
+	},
+	{ flush: 'post' },
+)
+
+onMounted(() => {
+	Lyrics.addEventListener('line-added', addedLine)
+	Lyrics.addEventListener('line-removed', removedLine)
+
+	window.addEventListener('keydown', handleKeyDown)
+	window.addEventListener('keyup', handleKeyUp)
+})
+
+onUnmounted(() => {
+	Lyrics.removeEventListener('line-added', addedLine)
+	Lyrics.removeEventListener('line-removed', removedLine)
+
+	window.removeEventListener('keydown', handleKeyDown)
+	window.removeEventListener('keyup', handleKeyUp)
+})
 </script>
 
 <template>
-  <div class="timing-screen-drag" v-if="sortMode">
-    <div class="guide">Swipe left or right to remove</div>
-    <List
-      :items="lines"
-      :list-comp="TimingList"
-      :on-dismiss="dismissLine"
-      swipe="dismiss"
-    />
+  <div class="timing-screen-drag" v-if="session.timing.sorting">
+    <SortScreen />
   </div>
 
   <div
+    @click="!Lyrics.length && Lyrics.add()"
     class="timing-screen"
     ref="timingPane"
     v-else
-    @click="
-      () => {
-        if (lines.length == 0) {
-          Lyrics.addLine(Lyrics.EMPTYLINE);
-        }
-      }
-    "
   >
+    
     <div
       :key="id"
-      :data-index="index"
-      class="lrc-line"
       :class="{
-        active: focus == index,
-        edit,
+        'lrc-line': true,
+        active: editor.focus === index,
+        edit: editor.editing,
       }"
-      :onClick="(e) => onSelfEvent(e, () => setFocus(index))"
-      v-for="({ id, props }, index) in lines"
+      :ref="(el, refs) => editor.focus === index && setFocusedRef(el, refs)"
+      @click="targetsSelf($event, () => setFocus(index))"
+      v-for="({ time, data }, id, index) in data.lrc.lines"
     >
-      <div class="time" @click="() => (Player.currentTime = props.time / 1000)">
-        {{ Lyrics.timeToString(props.time) }}
+      <div class="time" @click="Player.currentTime = time / 1000">
+        {{ Lyrics.timeToString(time) }}
       </div>
-      <div v-if="focus == index" class="add-line-buttons">
+      <div v-if="editor.focus === index" class="add-line-buttons">
         <IconButton
           icon="mdi:table-row-plus-before"
           title="Add new line before"
-          @click="() => addNewLineFromFocus(true)"
+          @click="addNewLineFromFocus(true)"
         />
         <IconButton
           icon="mdi:table-row-plus-after"
           title="Add new line after"
-          @click="() => addNewLineFromFocus()"
+          @click="addNewLineFromFocus()"
         />
       </div>
 
       <textarea
         class="data"
-        v-if="focus == index && edit"
-        :defaultValue="
-          typeof props.data == 'string' ? props.data : props.data.join('')
-        "
+        v-if="editor.focus === index && editor.editing"
+        v-model="editor.value"
       />
 
-      <div class="data" v-else @dblclick="() => toggleEdit()">
-        <template v-if="typeof props.data == 'string'">
-          {{ props.data }}
-        </template>
-        <div :key="index" v-else v-for="({ line }, index) in props.data">
-          {{ line }}
-        </div>
+      <div class="data" v-else @dblclick="toggleEdit()">
+        {{ data }}
       </div>
 
-      <div class="timing-buttons" v-if="focus == index">
+      <div class="timing-buttons" v-if="editor.focus == index">
         <IconButton
-          @click="
-            () =>
-              (Player.currentTime = clamp(
-                0,
-                props.time / 1000,
-                Player.duration
-              ))
-          "
-          :disabled="!isFinite(Player.duration)"
+          @click="Player.currentTime = clamp(0, time / 1000, Player.instance.duration)"
+          :disabled="!Player.ready"
           title="Player current time"
           icon="material-symbols:play-arrow-outline"
         />
-        <icon-button
+        <IconButton
           @click="setTimeFromMusicCurrent"
-          :disabled="!isFinite(Player.duration)"
+          :disabled="!Player.ready"
           title="Player current time"
           icon="material-symbols:hourglass-empty"
         />
-        <icon-button
+        <IconButton
           @click="adjustTime(-100)"
           title="-100ms"
           icon="material-symbols:fast-rewind"
         />
-        <icon-button
+        <IconButton
           @click="adjustTime(100)"
           title="+100ms"
           icon="material-symbols:fast-forward"
@@ -341,23 +303,6 @@
     margin-inline: auto;
     position: relative;
     max-width: 768px;
-    .list:empty::after {
-      content: 'There are no lines';
-      text-align: center;
-      display: block;
-      padding-block: var(--md);
-      font-size: var(--font-xl);
-      color: var(--mono-700);
-    }
-
-    .guide {
-      top: 0;
-      z-index: 10;
-      position: sticky;
-      background: var(--background-body);
-      text-align: center;
-      padding: var(--xl);
-    }
   }
 
   .timing-screen {
@@ -374,7 +319,7 @@
       cursor: pointer;
       display: block;
       font-size: var(--font-xl);
-      color: var(--color-500);
+      color: var(--primary-50);
     }
 
     .lrc-line {
@@ -394,8 +339,8 @@
       column-gap: var(--sm);
       padding-inline: var(--sm);
 
-      background: var(--background-body);
-      box-shadow: 0 2px 12px var(--background-body);
+      background: var(--surface);
+      box-shadow: 0 2px 12px var(--surface);
       animation: fade-in 0.2s forwards;
 
       @keyframes fade-in {
@@ -435,7 +380,7 @@
       .time {
         font-size: var(--font-sm);
         align-self: center;
-        color: var(--color-800);
+        color: var(--primary);
       }
 
       .timing-buttons {
@@ -464,13 +409,8 @@
         }
       }
 
-      &:is(:first-child):is(:last-child) {
-        border-radius: var(--sm);
-        border: 1px solid var(--color-800-10) !important;
-      }
-
       &:not(.active) + .lrc-line {
-        border-top: 1px solid var(--color-800-10);
+        border-top: 1px solid var(--outline-variant);
       }
 
       textarea.data {
@@ -492,12 +432,13 @@
         grid-area: data;
         &:empty::after {
           content: '<Empty>';
-          color: var(--color-800-40);
+          opacity: 0.5;
         }
       }
 
       &:is(:first-child:last-child) {
-        border: 1px solid var(--color-10);
+        border: 1px solid var(--outline-variant);
+        border-radius: var(--sm);
       }
 
       &.active {
@@ -507,14 +448,14 @@
           'add-line data timing';
         position: sticky;
         z-index: 1;
-        top: var(--sm);
+        top: calc(var(--sm) + var(--header-size));
 
         > * {
           pointer-events: initial;
         }
 
         &::before {
-          background-color: var(--color-900-10);
+          background-color: var(--surface-container-highest);
           transition: none;
         }
 
@@ -524,9 +465,6 @@
           outline: none;
           align-self: self-start;
           border-radius: calc(var(--sm) / 2);
-          &:focus-visible {
-            box-shadow: 0 0 0 2px var(--color-600-20);
-          }
         }
       }
 
